@@ -1,0 +1,19 @@
+# ENVIRONMENT VARIABLES SETUP GUIDE
+# Copy the following lines into your environment configuration (e.g., .env file)
+# Make sure to provide the actual values for the empty fields.
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+
+# Email Configuration (Required for Contact Form)
+# Use a Gmail address and an App Password (not your regular password)
+GMAIL_USER=your-email@gmail.com
+GMAIL_PASS=your-app-password
+
+# AI Configuration (Required for Chatbot)
+GEMINI_API_KEY=your-gemini-api-key
+
+# External Services (Google Apps Script Backend)
+# This is the URL of your deployed Google Apps Script
+APPS_SCRIPT_URL=https://script.google.com/macros/s/AKfycby5ig8H65J4veWEfymYpSwWZuIvjwGg_X17ek4_QFSXif1G-iYAgNXIJgH4RY5x0rjW/exec
