@@ -1,0 +1,187 @@
+{
+  "entities": {
+    "User": {
+      "title": "User / Student Profile",
+      "description": "User profile containing student registry and admin details.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Full student name or admin name" },
+        "email": { "type": "string" },
+        "enrollmentNumber": { "type": "string", "description": "University Enrollment number" },
+        "branch": { "type": "string", "description": "Academic branch/department" },
+        "semester": { "type": "string", "description": "Current college semester" },
+        "role": { "type": "string", "enum": ["student", "super_admin", "admin", "sub_admin", "committee"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "lastLogin": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Disabled"] },
+        "mobile": { "type": "string" },
+        "profilePhoto": { "type": "string" },
+        "points": { "type": "number" },
+        "permissions": { "type": "array" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Admin": {
+      "title": "Chapter Administrator",
+      "description": "Whitelist of authorized chapter administrator records.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "StudentActivity": {
+      "title": "Student Activity Tracker",
+      "description": "Activity stream tracking resource access, event attendance, and certificates.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "resourceAccessed": { "type": "string" },
+        "eventJoined": { "type": "string" },
+        "certificateEarned": { "type": "string" },
+        "lastActivity": { "type": "string" }
+      },
+      "required": ["id", "studentId", "lastActivity"]
+    },
+    "Event": {
+      "title": "Chapter Event",
+      "description": "Campus programming hackathon and workshops catalog.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "location": { "type": "string" },
+        "poster_url": { "type": "string" },
+        "registration_link": { "type": "string" },
+        "qr_code_data": { "type": "string" },
+        "is_published": { "type": "boolean" },
+        "approvedBySuperAdmin": { "type": "boolean" }
+      },
+      "required": ["title", "description", "date"]
+    },
+    "Certificate": {
+      "title": "Earned Certificate",
+      "description": "Student achievement or workshop credentials.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "certificateId": { "type": "string" },
+        "userId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "eventName": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "pdfUrl": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["certificateId", "studentName", "studentEmail", "eventName"]
+    },
+    "Announcement": {
+      "title": "Notice/Announcement",
+      "description": "Notice and updates published for students.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["id", "title", "content", "date"]
+    },
+    "Registration": {
+      "title": "Event Registration",
+      "description": "Student registrations for programming hackathons and workshops.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "eventId": { "type": "string" },
+        "eventTitle": { "type": "string" },
+        "registeredAt": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "userId", "eventId", "registeredAt"]
+    },
+    "Attendance": {
+      "title": "Event Attendance",
+      "description": "Marked presence of students in campus programming workshops.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEnrollment": { "type": "string" },
+        "eventId": { "type": "string" },
+        "eventTitle": { "type": "string" },
+        "markedAt": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "userId", "eventId", "markedAt"]
+    },
+    "AuditLog": {
+      "title": "Administrative Action Audit Log",
+      "description": "Comprehensive security tracks of administrative changes.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "userId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "Access-controlled student registries cataloged by Firebase UID."
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Authorized chapter administrator list."
+    },
+    "/student_activity/{activityId}": {
+      "schema": "StudentActivity",
+      "description": "Engagement trace records."
+    },
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Interactive student community programs."
+    },
+    "/certificates/{certId}": {
+      "schema": "Certificate",
+      "description": "Secure verification certificates archive."
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Standard notices and campus updates."
+    },
+    "/registrations/{registrationId}": {
+      "schema": "Registration",
+      "description": "Student event registration records."
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Workshop/session attendance registry."
+    },
+    "/logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Audit trails for backend administrator edits."
+    }
+  }
+}

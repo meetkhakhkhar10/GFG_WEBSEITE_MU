@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FormEvent } from "react";
 import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, Loader2, ArrowLeft, Save, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiService } from "../../services/apiService";
 
 interface Event {
@@ -12,6 +12,7 @@ interface Event {
 }
 
 export default function EventManagement() {
+  const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,8 +27,22 @@ export default function EventManagement() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    const savedAdmin = localStorage.getItem("admin_user");
+    const savedToken = localStorage.getItem("token");
+    if (!savedAdmin || !savedToken) {
+      navigate("/admin-login");
+    } else {
+      const parsed = JSON.parse(savedAdmin);
+      const userEmail = parsed.email ? parsed.email.toLowerCase() : "";
+      if (userEmail !== "meetkhakhkhar05@gmail.com") {
+        localStorage.removeItem("admin_user");
+        localStorage.removeItem("token");
+        navigate("/admin-login");
+      } else {
+        fetchEvents();
+      }
+    }
+  }, [navigate]);
 
   const fetchEvents = async () => {
     try {

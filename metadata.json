@@ -1,5 +1,6 @@
 {
-  "name": "GFG Student Chapter MU Platform",
-  "description": "Official platform for GFG Student Chapter at Marwadi University. Features event registration, student portal, attendance tracking, and technical resources.",
-  "requestFramePermissions": []
+  "name": "GFG Student Login",
+  "description": "Official student login portal for GFG Student Chapter on Campus Marwadi University. Access event registrations, attendance records, study material, and certificates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

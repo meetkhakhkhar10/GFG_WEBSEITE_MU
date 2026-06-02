@@ -1,13 +1,13 @@
 import { motion } from "motion/react";
-import { Calendar, User, ArrowRight, Search, Tag } from "lucide-react";
+import { Calendar, User, ArrowRight, Search, Tag, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 const blogs = [
   {
     title: "The Future of AI at Marwadi University",
-    excerpt: "How AI is transforming the way MU students learn, build, and innovate in 2024.",
+    excerpt: "How AI is transforming the way MU students learn, build, and innovate in 2026.",
     author: "Meet Khakhkhar",
-    date: "March 20, 2024",
+    date: "March 20, 2026",
     category: "AI",
     image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop",
     readTime: "5 min read"
@@ -16,7 +16,7 @@ const blogs = [
     title: "Mastering React 19: A Guide for MU Developers",
     excerpt: "A deep dive into the latest updates in React 19 and how MU students can leverage them for better performance.",
     author: "GFG MU Team",
-    date: "March 15, 2024",
+    date: "March 15, 2026",
     category: "Web Dev",
     image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=800&auto=format&fit=crop",
     readTime: "8 min read"
@@ -25,7 +25,7 @@ const blogs = [
     title: "The Roadmap to FAANG from Marwadi University",
     excerpt: "Everything MU students need to know to start their journey towards landing a job at top tech companies.",
     author: "Technical Lead",
-    date: "March 10, 2024",
+    date: "March 10, 2026",
     category: "Career",
     image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=800&auto=format&fit=crop",
     readTime: "10 min read"
@@ -45,34 +45,36 @@ export default function Blogs() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="py-32 bg-[#000] min-h-screen text-white"
+      className="py-32 bg-theme-bg min-h-screen text-theme-text relative overflow-hidden theme-transition"
     >
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 mb-8 text-[10px] font-black tracking-widest text-[#00ff88] uppercase bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full">
-            <span className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-pulse" />
+      <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-gfg-primary/3 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 mb-6 text-[10px] font-black tracking-widest text-gfg-primary uppercase bg-gfg-primary/10 border border-gfg-primary/20 rounded-full shadow-sm">
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Articles & Insights</span>
           </div>
-          <h1 className="text-5xl md:text-8xl font-black text-white mb-8 tracking-tighter uppercase leading-[0.9]">
-            Our <span className="text-[#00ff88] neon-glow">Blogs</span>
+          <h1 className="text-4xl md:text-7xl font-black text-theme-text mb-6 tracking-tighter uppercase leading-none italic">
+            Our <span className="text-gfg-primary">Blogs</span>
           </h1>
-          <p className="text-white/40 max-w-2xl mx-auto text-lg leading-relaxed mb-12 font-medium uppercase tracking-widest text-[10px]">
+          <p className="text-theme-text-secondary max-w-2xl mx-auto text-sm md:text-base mb-8 font-semibold leading-relaxed">
             Read the latest technical articles, tutorials, and insights from our community members and industry experts.
           </p>
 
-          <div className="relative max-w-xl mx-auto mt-12">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+          <div className="relative max-w-xl mx-auto mt-6">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-theme-text-muted opacity-60" />
             <input 
               type="text" 
               placeholder="Search articles..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-16 pr-6 py-5 bg-[#0a0a0a] border border-white/10 rounded-2xl outline-none focus:border-[#00ff88]/30 transition-all text-sm shadow-2xl text-white placeholder:text-white/20"
+              className="w-full pl-12 pr-5 h-12 bg-theme-bg-secondary border border-theme-border rounded-xl outline-none focus:border-gfg-primary focus:shadow-sm transition-all text-sm text-theme-text placeholder:text-theme-text-muted/60"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {filteredBlogs.map((blog, i) => (
             <motion.div
               key={blog.title}
@@ -80,37 +82,37 @@ export default function Blogs() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="group relative rounded-[40px] overflow-hidden bg-[#0a0a0a] border border-white/5 hover:border-[#00ff88]/30 transition-all shadow-2xl flex flex-col h-full"
+              className="group relative rounded-[2.5rem] overflow-hidden bg-theme-bg-secondary border border-theme-border hover:border-gfg-primary/30 transition-all duration-300 shadow-sm flex flex-col h-full"
             >
-              <div className="aspect-[16/10] relative overflow-hidden">
+              <div className="aspect-[16/10] relative overflow-hidden bg-theme-bg">
                 <img 
                   src={blog.image} 
                   alt={blog.title} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 grayscale group-hover:grayscale-0"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 opacity-80"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-theme-bg-secondary via-transparent to-transparent opacity-95" />
                 
-                <div className="absolute top-6 left-6">
-                  <span className="px-4 py-1.5 bg-[#00ff88] text-black text-[8px] font-black rounded-full uppercase tracking-widest">
+                <div className="absolute top-4 left-4">
+                  <span className="px-3 py-1 bg-gfg-primary text-black text-[8px] font-black rounded-lg uppercase tracking-widest font-mono">
                     {blog.category}
                   </span>
                 </div>
               </div>
               
-              <div className="p-10 flex flex-col flex-grow">
-                <div className="flex items-center space-x-4 mb-6 text-[10px] font-black uppercase tracking-widest text-white/30">
-                  <span className="flex items-center"><Calendar className="w-3 h-3 mr-1.5 text-[#00ff88]" /> {blog.date}</span>
-                  <span className="flex items-center"><User className="w-3 h-3 mr-1.5 text-[#00ff88]" /> {blog.author}</span>
+              <div className="p-8 flex flex-col flex-grow text-left">
+                <div className="flex items-center space-x-4 mb-4 text-[9px] font-black uppercase tracking-widest text-theme-text-muted">
+                  <span className="flex items-center"><Calendar className="w-3.5 h-3.5 mr-1 text-gfg-primary" /> {blog.date}</span>
+                  <span className="flex items-center"><User className="w-3.5 h-3.5 mr-1 text-gfg-primary" /> {blog.author}</span>
                 </div>
-                <h3 className="text-2xl font-black text-white mb-4 group-hover:text-[#00ff88] transition-colors leading-tight uppercase tracking-tighter">
+                <h3 className="text-xl font-black text-theme-text mb-3 group-hover:text-gfg-primary transition-colors leading-tight uppercase tracking-tight">
                   {blog.title}
                 </h3>
-                <p className="text-white/40 text-[10px] uppercase tracking-widest font-medium leading-relaxed mb-10 line-clamp-2">{blog.excerpt}</p>
-                <div className="mt-auto flex items-center justify-between pt-8 border-t border-white/5">
-                  <span className="text-[10px] font-black tracking-widest text-white/20 uppercase">{blog.readTime}</span>
-                  <button className="flex items-center text-[#00ff88] font-black text-[10px] uppercase tracking-widest hover:text-white transition-colors group/link">
-                    Read Story <ArrowRight className="ml-2 w-4 h-4 group-hover/link:translate-x-2 transition-transform" />
+                <p className="text-theme-text-secondary text-xs leading-relaxed font-semibold mb-6 line-clamp-2">{blog.excerpt}</p>
+                <div className="mt-auto flex items-center justify-between pt-4 border-t border-theme-border">
+                  <span className="text-[9px] font-black tracking-widest text-theme-text-muted uppercase font-mono">{blog.readTime}</span>
+                  <button className="flex items-center text-gfg-primary font-black text-[10px] uppercase tracking-widest hover:text-theme-text transition-colors group/link cursor-pointer">
+                    Read Story <ArrowRight className="ml-1.5 w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
                   </button>
                 </div>
               </div>
@@ -123,20 +125,20 @@ export default function Blogs() {
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="p-16 rounded-[60px] bg-[#0a0a0a] border border-white/5 flex flex-col lg:flex-row items-center justify-between gap-12 relative overflow-hidden shadow-2xl"
+          className="p-10 md:p-12 rounded-[2.5rem] bg-theme-bg-secondary border border-theme-border flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-sm"
         >
-          <div className="absolute top-0 left-0 w-80 h-80 bg-[#00ff88]/5 rounded-full blur-[150px] pointer-events-none" />
-          <div className="flex items-center space-x-10 text-left relative z-10">
-            <div className="w-24 h-24 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center text-[#00ff88]">
-              <Tag className="w-12 h-12" />
+          <div className="absolute top-0 left-0 w-80 h-80 bg-gfg-primary/5 rounded-full blur-[150px] pointer-events-none" />
+          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8 text-left relative z-10">
+            <div className="w-16 h-16 rounded-[2rem] bg-gfg-primary/10 border border-gfg-primary/25 flex items-center justify-center text-gfg-primary shrink-0 shadow-sm">
+              <Tag className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-tight">Want to contribute?</h3>
-              <p className="text-white/40 font-medium uppercase tracking-widest text-[10px]">Share your technical knowledge with the community. Submit your article today.</p>
+              <h3 className="text-2xl font-black text-theme-text mb-1 tracking-tighter uppercase leading-tight">Want to contribute?</h3>
+              <p className="text-theme-text-secondary text-sm font-semibold">Share your technical knowledge with the community. Submit your article today.</p>
             </div>
           </div>
-          <button className="relative z-10 px-12 py-5 bg-[#00ff88] text-black font-black rounded-2xl hover:bg-white transition-all whitespace-nowrap flex items-center shadow-[0_0_30px_rgba(0,255,136,0.2)] uppercase tracking-widest text-xs">
-            Submit Article <ArrowRight className="ml-2 w-6 h-6" />
+          <button className="relative z-10 px-8 py-4 bg-gfg-primary text-black font-black rounded-xl hover:bg-theme-text hover:text-theme-bg transition-all whitespace-nowrap flex items-center uppercase tracking-widest text-[10px] shadow-sm select-none cursor-pointer">
+            Submit Article <ArrowRight className="ml-1.5 w-4 h-4" />
           </button>
         </motion.div>
       </div>

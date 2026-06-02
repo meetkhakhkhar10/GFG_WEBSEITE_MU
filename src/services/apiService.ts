@@ -20,6 +20,15 @@ export const apiService = {
     return res.json();
   },
 
+  async loginWithGoogle(data: { uid: string; email: string; name: string | null; photoURL: string | null }) {
+    const res = await fetch(`${API_URL}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
   async register(data: any) {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
@@ -94,6 +103,15 @@ export const apiService = {
 
   async getMyRegistrations() {
     const res = await fetch(`${API_URL}/me/registrations`, { headers: getHeaders() });
+    return res.json();
+  },
+
+  async updateUser(id: any, data: any) {
+    const res = await fetch(`${API_URL}/users/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
     return res.json();
   }
 };

@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global authorization helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == "meetkhakhkhar05@gmail.com";
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Users Collection (Student directory and Admin users)
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isAdmin() || isOwner(uid);
+      // Students can update their profile but NOT elevate their role, points, or permissions
+      allow update: if isAdmin() || (
+        isOwner(uid) && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions', 'points'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Student Activity collection
+    match /student_activity/{activityId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Events Collection
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Certificates Collection
+    match /certificates/{certId} {
+      allow read: if true; // Open read for verification lookup
+      allow write: if isAdmin();
+    }
+
+    // Announcements Collection
+    match /announcements/{announceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Registrations Collection
+    match /registrations/{regId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin() || (isSignedIn() && request.resource.data.userId == request.auth.uid);
+    }
+
+    // Attendance Collection
+    match /attendance/{attId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // System Logs Collection
+    match /logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

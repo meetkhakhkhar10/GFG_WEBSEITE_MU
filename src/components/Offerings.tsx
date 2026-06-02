@@ -42,23 +42,23 @@ const offerings = [
 
 export default function Offerings() {
   return (
-    <section className="py-24 relative overflow-hidden bg-gray-50/30">
+    <section className="py-24 relative overflow-hidden bg-theme-bg text-theme-text border-b border-theme-border theme-transition">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-black tracking-tight text-gray-900 mb-4"
+            className="text-3xl md:text-5xl font-black tracking-tight text-theme-text mb-4"
           >
-            Our Core <span className="text-[#2f9e44]">Domains</span>
+            Our Core <span className="text-gfg-primary">Domains</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-gray-500 max-w-2xl mx-auto"
+            className="text-theme-text-secondary max-w-2xl mx-auto"
           >
             We provide a comprehensive learning ecosystem for students to excel in various technical domains.
           </motion.p>
@@ -72,22 +72,22 @@ export default function Offerings() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative p-8 rounded-[40px] bg-white border border-gray-100 hover:border-[#2f9e44]/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-xl"
+              className="group relative p-8 rounded-[40px] bg-theme-bg-secondary border border-theme-border hover:border-gfg-primary/30 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-xl theme-transition"
             >
               {/* Animated Background Gradient */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${offering.color} opacity-0 group-hover:opacity-30 transition-opacity duration-500`} />
+              <div className={`absolute inset-0 bg-gradient-to-br ${offering.color} opacity-0 group-hover:opacity-35 transition-opacity duration-500`} />
               
               {/* Corner Accent */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#2f9e44]/5 rounded-bl-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gfg-primary/5 rounded-bl-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               <div className="relative z-10">
-                <div className="w-16 h-16 mb-8 rounded-2xl bg-gray-50 border border-gray-100 text-[#2f9e44] flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-sm">
+                <div className="w-16 h-16 mb-8 rounded-2xl bg-theme-bg-tertiary border border-theme-border text-gfg-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-sm">
                   <offering.icon className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-[#2f9e44] transition-colors">{offering.title}</h3>
-                <p className="text-gray-500 leading-relaxed text-sm">{offering.description}</p>
+                <h3 className="text-2xl font-bold text-theme-text mb-4 group-hover:text-gfg-primary transition-colors">{offering.title}</h3>
+                <p className="text-theme-text-secondary leading-relaxed text-sm">{offering.description}</p>
                 
-                <div className="mt-8 flex items-center text-[#2f9e44] text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="mt-8 flex items-center text-gfg-primary text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   Explore Domain <ArrowRight className="ml-2 w-4 h-4" />
                 </div>
               </div>
