@@ -37,6 +37,53 @@ try {
 
 export { firestoreDb, auth, isFirebaseActive };
 
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth?.currentUser?.uid,
+      email: auth?.currentUser?.email,
+      emailVerified: auth?.currentUser?.emailVerified,
+      isAnonymous: auth?.currentUser?.isAnonymous,
+      tenantId: auth?.currentUser?.tenantId,
+      providerInfo: auth?.currentUser?.providerData?.map((provider: any) => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error("Firestore Error: ", JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
 // Local in-memory store in case Firebase connection fails
 interface LocalDb {
   users: any[];
@@ -139,7 +186,54 @@ const seedLocalData = () => {
       poster_url: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
       registration_link: "https://ict-gfg-codejam.netlify.app/",
       qr_code_data: "codejam2026",
-      is_published: true
+      is_published: true,
+      approvedBySuperAdmin: true,
+      category: "Competitive Programming",
+      status: "Completed",
+      publicationStatus: "Published"
+    },
+    {
+      id: "evt_intellify",
+      title: "Intellify 4.0",
+      description: "Intellify 4.0 is the flagship national-level hackathon organized at Marwadi University on 15th–16th August 2026. Building upon the success of previous editions, Intellify has evolved into a platform that promotes innovation, collaboration, creativity, and technical excellence among students across India.\n\nThe hackathon provides participants with an opportunity to solve real-world challenges through technology in a highly competitive environment. With participation expected from 600+ students representing 150+ colleges nationwide, Intellify 4.0 aims to create impactful solutions while fostering networking, learning, and innovation.",
+      date: "15th–16th August 2026",
+      location: "Marwadi University, Rajkot, Gujarat, India",
+      poster_url: "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/banner/6a1ebf444ee51_intellify-40.jpg?d=1920x557",
+      poster_image: "https://media.licdn.com/dms/image/v2/D5622AQGX5GCF2vVchg/feedshare-shrink_480/B56Z6MtjFwI8Ag-/0/1780477211277?e=1782345600&v=beta&t=3KyigAHwI12hZAxOfpnKapHcCJl4Gi4kYyR5L0UIqeM",
+      registration_link: "https://unstop.com/hackathons/intellify-40-marwadi-university-mu-gujarat-1684922",
+      qr_code_data: "intellify_2026",
+      is_published: true,
+      approvedBySuperAdmin: true,
+      is_featured: true,
+      category: "Hackathon / Software Development",
+      status: "Upcoming",
+      publicationStatus: "Published",
+      capacity: "600",
+      registration_fee: "₹250",
+      team_size: "2–4 Members",
+      prize_pool: "₹3,40,000+",
+      eligibility: "Engineering Students, Undergraduate Students, Postgraduate Students, Management Students, Medical Students, Law Students, Arts, Commerce, Science & Other Streams",
+      expected_participation: "600+ Students",
+      expected_colleges: "150+ Colleges Across India",
+      organizer_name: "Marwadi University × GeeksforGeeks Student Chapter",
+      organizer_email: "gfg@marwadiuniversity.ac.in",
+      stages: [
+        {
+          title: "Abstract Submission",
+          date: "16 June 2026 – 30 June 2026",
+          desc: "Teams must submit an abstract describing: Problem Statement, Proposed Solution, Innovation & Uniqueness, Expected Impact, Feasibility, Technologies Used"
+        },
+        {
+          title: "Concept Demonstration",
+          date: "05 July 2026 – 25 July 2026",
+          desc: "Shortlisted teams must submit a video presentation covering: Problem Understanding, Solution Approach, Algorithm Flow, System Architecture, Technical Workflow, Team Introduction"
+        },
+        {
+          title: "Grand Finale",
+          date: "15 August 2026 – 16 August 2026",
+          desc: "Finalists will develop and present a working prototype, project demonstration, and presentation before the evaluation panel at Marwadi University."
+        }
+      ]
     },
     {
       id: "evt_neural",
@@ -150,7 +244,9 @@ const seedLocalData = () => {
       poster_url: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800",
       registration_link: "#",
       qr_code_data: "neural2026",
-      is_published: true
+      is_published: true,
+      approvedBySuperAdmin: true,
+      category: "Hackathon"
     }
   ];
 

@@ -157,19 +157,15 @@ const CATEGORIES = [
 ];
 
 export default function StudentDashboard() {
-  const { user, isAuthenticated, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Resources");
 
   useEffect(() => {
-    document.title = "Student Learning Hub | GeeksforGeeks MU";
-    if (!localStorage.getItem("token")) {
-      navigate("/login");
-    }
-  }, [navigate]);
+    document.title = "GFG Resources Vault | GeeksforGeeks MU";
+  }, []);
 
   // Live filtering method
   const filteredResources = RESOURCES.filter(res => {
@@ -198,7 +194,7 @@ export default function StudentDashboard() {
   return (
     <div 
       className={cn(
-        "min-h-screen font-sans transition-all duration-300 relative",
+        "min-h-screen font-sans transition-all duration-300 relative pb-16",
         isDark 
           ? "bg-[#030B1A] text-white" 
           : "bg-[#FFFFFF] text-[#111827]"
@@ -212,93 +208,6 @@ export default function StudentDashboard() {
           <div className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-[#2F8D46]/3 rounded-full blur-[160px] opacity-40" />
         </div>
       )}
-
-      {/* TOP HEADER MENU NAVIGATION BAR */}
-      <nav 
-        className={cn(
-          "relative z-30 border-b transition-all duration-300 sticky top-0 backdrop-blur-md bg-opacity-95",
-          isDark 
-            ? "border-[#0F2B46] bg-[#030B1A]/95" 
-            : "border-[#E5E7EB] bg-white/95"
-        )}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          
-          {/* GFG MU Student Chapter Logo branding */}
-          <div 
-            className="flex items-center space-x-3 cursor-pointer" 
-            onClick={() => navigate("/")}
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2F8D46] to-[#1F6B34] flex items-center justify-center text-white shadow-sm font-black">
-              G
-            </div>
-            <div>
-              <h1 className="font-extrabold text-[#2F8D46] text-xs uppercase tracking-wider leading-none">
-                GEEKSFORGEEKS
-              </h1>
-              <p className={cn(
-                "text-[8px] font-black uppercase tracking-widest mt-1",
-                isDark ? "text-gray-400" : "text-gray-500"
-              )}>Marwadi University Chapter</p>
-            </div>
-          </div>
-
-          {/* Quick Info & Controls */}
-          <div className="flex items-center space-x-4">
-            
-            {/* Student mini profile summary */}
-            <div className="hidden md:flex items-center space-x-2.5 px-3 py-1 bg-opacity-40 rounded-xl">
-              <div className="w-8 h-8 rounded-full bg-[#2F8D46]/10 border border-[#2F8D46]/20 flex items-center justify-center font-bold text-[#2F8D46] text-xs uppercase">
-                {user?.name ? user.name.slice(0, 2).toUpperCase() : "MU"}
-              </div>
-              <div className="text-left">
-                <div className={cn("text-[10px] font-black uppercase tracking-wide", isDark ? "text-white" : "text-gray-900")}>
-                  {user?.name || "Student Member"}
-                </div>
-                <div className={cn("text-[8px] font-mono", isDark ? "text-gray-400" : "text-gray-500")}>
-                  {user?.email || "student@marwadiuniversity.ac.in"}
-                </div>
-              </div>
-            </div>
-
-            {/* Portal Sync Button */}
-            <button
-              onClick={() => navigate("/student/portal")}
-              className={cn(
-                "px-3.5 py-1.5 rounded-lg text-[9px] font-mono font-black uppercase tracking-widest border transition-all hover:scale-105 shadow-sm",
-                isDark 
-                  ? "bg-[#071629] border-[#0F2B46] text-[#2F8D46] hover:bg-[#2F8D46]/10" 
-                  : "bg-[#FFFFFF] border-[#E5E7EB] text-[#2F8D46] hover:bg-gray-50"
-              )}
-            >
-              Portal Home
-            </button>
-
-            {/* Modern Uiverse 3D Cube Theme Switch Toggle */}
-            <div className="flex items-center justify-center shrink-0 scale-90">
-              <ThemeCube />
-            </div>
-
-            {/* Sign Out Button */}
-            <button
-              onClick={() => {
-                logout();
-                navigate("/");
-              }}
-              className={cn(
-                "p-2 rounded-xl transition-all border",
-                isDark 
-                  ? "bg-[#071629] border-[#0F2B46] text-red-400 hover:bg-red-950/10 hover:border-red-900" 
-                  : "bg-white border-[#E5E7EB] text-red-500 hover:bg-red-50 hover:border-red-200"
-              )}
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-
-          </div>
-        </div>
-      </nav>
 
       {/* DYNAMIC JUMBOTRON HERO ZONE */}
       <header 
@@ -642,23 +551,6 @@ export default function StudentDashboard() {
           </button>
         </motion.div>
       </section>
-
-      {/* COMPACT DASHBOARD FOOTER */}
-      <footer 
-        className={cn(
-          "py-10 border-t text-center transition-all duration-300 relative z-10",
-          isDark 
-            ? "bg-[#030B1A] border-[#0F2B46]" 
-            : "bg-white border-[#E5E7EB]"
-        )}
-      >
-        <p className={cn("text-[9px] font-black uppercase tracking-[0.3em] mb-2", isDark ? "text-gray-500" : "text-gray-400")}>
-          © {new Date().getFullYear()} GFG Student Chapter @ Marwadi University. Redesigned Courses Hub.
-        </p>
-        <p className="text-[#2F8D46] text-[8px] font-black uppercase tracking-[0.5em] opacity-85">
-          Powered by GeeksforGeeks
-        </p>
-      </footer>
 
     </div>
   );

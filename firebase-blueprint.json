@@ -144,6 +144,27 @@
         "timestamp": { "type": "string" }
       },
       "required": ["id", "userId", "action", "timestamp"]
+    },
+    "TeamMember": {
+      "title": "GFG Chapter Team Member",
+      "description": "Chapter team member profile from the GFG Student Chapter at Marwadi University.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "profilePhoto": { "type": "string" },
+        "position": { "type": "string" },
+        "department": { "type": "string" },
+        "bio": { "type": "string" },
+        "linkedinUrl": { "type": "string" },
+        "githubUrl": { "type": "string" },
+        "xUrl": { "type": "string" },
+        "gfgUrl": { "type": "string" },
+        "email": { "type": "string" },
+        "featuredMember": { "type": "boolean" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "name", "position", "department"]
     }
   },
   "firestore": {
@@ -182,6 +203,10 @@
     "/logs/{logId}": {
       "schema": "AuditLog",
       "description": "Audit trails for backend administrator edits."
+    },
+    "/team/{memberId}": {
+      "schema": "TeamMember",
+      "description": "GFG Student Chapter core team member listings."
     }
   }
 }

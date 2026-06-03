@@ -1,44 +1,68 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
 import { Menu, X, Sun, Moon } from "lucide-react";
-import { useState } from "react";
-import { useAuth } from "@/src/contexts/AuthContext";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import ThemeCube from "@/src/components/ThemeCube";
 
 const navLinks = [
   { name: "Home", path: "/" },
-  { name: "About", path: "/about" },
-  { name: "Events", path: "/events" },
   { name: "Courses", path: "/courses" },
+  { name: "Resources", path: "/resources" },
+  { name: "Events", path: "/events" },
   { name: "Team", path: "/team" },
+  { name: "About", path: "/about" },
   { name: "Contact", path: "/contact" },
 ];
 
-const GFG_LOGO = "https://raw.githubusercontent.com/GeeksforGeeks-Student-Chapter-MU/assets/main/gfg_logo.png";
-const MU_LOGO = "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg";
+const GFG_LOGO = "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png";
+const MU_LOGO = "https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const currentGfgLogo = theme === "dark" 
+    ? "https://raw.githubusercontent.com/GeeksforGeeks-Student-Chapter-MU/assets/main/gfg_logo.png"
+    : "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png";
+
+  const currentMuLogo = theme === "dark"
+    ? "https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png"
+    : "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg";
+
+  useEffect(() => {
+    const checkAdmin = () => {
+      const savedAdmin = localStorage.getItem("admin_user");
+      if (savedAdmin) {
+        try {
+          const parsed = JSON.parse(savedAdmin);
+          setIsAdmin(parsed?.email?.toLowerCase() === "meetkhakhkhar05@gmail.com");
+        } catch {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+    window.addEventListener("storage", checkAdmin);
+    return () => window.removeEventListener("storage", checkAdmin);
+  }, [location.pathname]);
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center px-4 sm:px-6 bg-theme-bg border-b border-theme-border shadow-sm theme-transition">
+      <header className="fixed top-0 left-0 right-0 z-50 h-20 shrink-0 min-h-[5rem] flex items-center px-4 sm:px-6 bg-theme-bg border-b border-theme-border shadow-sm theme-transition select-none">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           
           {/* Left Side: GFG Logo + Navigation Links */}
           <div className="flex items-center space-x-12">
-            <Link to="/" className="flex-shrink-0 flex items-center group transition-transform duration-300 hover:scale-105">
+            <Link to="/" className="flex-shrink-0 flex items-center justify-center bg-white border border-gray-200/80 shadow-md rounded-xl px-3 md:px-4 py-1.5 h-11 md:h-12 w-auto hover:scale-105 transition-all duration-300">
               <img 
-                src={GFG_LOGO} 
+                src="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png" 
                 alt="GeeksforGeeks" 
-                className={cn(
-                  "h-9 md:h-10 w-auto transition-all",
-                  theme === "dark" ? "brightness-100" : "brightness-95 contrast-105"
-                )}
+                className="h-6 md:h-7 w-auto object-contain"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   e.currentTarget.src = "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png";
@@ -65,6 +89,24 @@ export default function Navbar() {
                   )} />
                 </Link>
               ))}
+
+              {isAdmin && (
+                <Link
+                  to="/admin/dashboard"
+                  className={cn(
+                    "text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 relative py-2 group text-gfg-primary",
+                    location.pathname.startsWith("/admin") 
+                      ? "text-[#00aa55] dark:text-[#00ff88]" 
+                      : "text-gfg-primary hover:brightness-110"
+                  )}
+                >
+                  Admin Panel
+                  <span className={cn(
+                    "absolute bottom-0 left-0 w-full h-[1px] bg-[#00aa55] dark:bg-[#00ff88] transition-transform duration-300 origin-left",
+                    location.pathname.startsWith("/admin") ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  )} />
+                </Link>
+              )}
             </nav>
           </div>
 
@@ -86,29 +128,23 @@ export default function Navbar() {
               <ThemeCube />
             </div>
 
-            <Link
-              to={isAuthenticated ? "/student/dashboard" : "/login"}
-              className="inline-flex items-center px-4 py-2.5 bg-black hover:bg-black/80 text-[#00ff88] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all hover:shadow-[0_0_15px_rgba(0,255,136,0.4)] cursor-pointer border border-[#00ff88]/30"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00ff88] mr-2 animate-pulse" />
-              {isAuthenticated ? "PORTAL" : "LOGIN"}
-            </Link>
-
             <a 
               href="https://www.marwadiuniversity.ac.in/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="block transition-all duration-300 hover:scale-105"
+              className="flex items-center hover:scale-105 transition-transform duration-300"
             >
-              <img 
-                src={MU_LOGO} 
-                alt="Marwadi University" 
-                className="h-10 w-auto object-contain opacity-100"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  e.currentTarget.src = "https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png";
-                }}
-              />
+              <div className="flex items-center justify-center bg-white border border-gray-200/80 shadow-md rounded-xl px-3 md:px-4 py-1.5 h-11 md:h-12 w-auto">
+                <img 
+                  src="https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png" 
+                  alt="Marwadi University" 
+                  className="h-7 md:h-8 w-auto object-contain"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg";
+                  }}
+                />
+              </div>
             </a>
           </div>
 
@@ -143,19 +179,15 @@ export default function Navbar() {
           >
             {/* Logo & Close Button Section */}
             <div className="flex items-center justify-between mb-12 w-full gap-4 shrink-0">
-              <div className="flex items-center justify-start h-12 w-48 relative">
-                <img 
-                  src={GFG_LOGO} 
-                  alt="GeeksforGeeks" 
-                  className={cn(
-                    "max-h-full max-w-full h-auto w-auto object-contain block",
-                    theme === "dark" ? "brightness-100" : "brightness-95 contrast-105"
-                  )}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png";
-                  }}
-                />
+              <div className="flex items-center justify-start h-11 w-auto">
+                <div className="flex items-center justify-center bg-white border border-gray-200/80 shadow-md rounded-xl px-3 py-1.5 h-11 w-auto">
+                  <img 
+                    src="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png" 
+                    alt="GeeksforGeeks" 
+                    className="h-6 w-auto object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
               </div>
               <button 
                 onClick={() => setIsOpen(false)} 
@@ -184,6 +216,21 @@ export default function Navbar() {
                 </Link>
               ))}
 
+              {isAdmin && (
+                <Link
+                  to="/admin/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "text-2xl font-bold uppercase tracking-tight transition-colors duration-200 text-gfg-primary",
+                    location.pathname.startsWith("/admin") 
+                      ? "text-[#00aa55] dark:text-[#00ff88]" 
+                      : "text-gfg-primary hover:brightness-110"
+                  )}
+                >
+                  Admin Panel
+                </Link>
+              )}
+
               <div className="pt-6 flex flex-col gap-3">
                 <a
                   href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
@@ -195,15 +242,6 @@ export default function Navbar() {
                   <span className="w-1.5 h-1.5 rounded-full bg-white mr-2.5 animate-pulse" />
                   JOIN COMMUNITY
                 </a>
-
-                <Link
-                  to={isAuthenticated ? "/student/dashboard" : "/login"}
-                  onClick={() => setIsOpen(false)}
-                  className="w-full inline-flex items-center justify-center px-6 py-4 bg-black border border-[#00ff88]/30 hover:bg-[#00ff88] hover:text-black hover:border-transparent text-[#00ff88] font-black uppercase text-xs tracking-widest rounded-2xl transition-all shadow-[0_0_20px_rgba(0,255,136,0.1)] cursor-pointer"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00ff88] mr-2.5 animate-pulse" />
-                  {isAuthenticated ? "STUDENT PORTAL" : "STUDENT LOGIN"}
-                </Link>
               </div>
             </nav>
 
@@ -215,14 +253,16 @@ export default function Navbar() {
                 rel="noopener noreferrer"
                 className="mb-6 block"
               >
-                <img 
-                  src={MU_LOGO} 
-                  alt="MU" 
-                  className="h-12 w-auto object-contain opacity-100" 
-                  onError={(e) => {
-                    e.currentTarget.src = "https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png";
-                  }}
-                />
+                <div className="flex items-center justify-center bg-white border border-gray-200/80 shadow-md rounded-xl px-4 py-2 h-12 w-auto">
+                  <img 
+                    src="https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png" 
+                    alt="MU" 
+                    className="h-8 w-auto object-contain" 
+                    onError={(e) => {
+                      e.currentTarget.src = "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg";
+                    }}
+                  />
+                </div>
               </a>
               <p className="text-[10px] text-theme-text-muted font-bold uppercase tracking-widest text-center">
                 Empowering Geeks @ Marwadi University

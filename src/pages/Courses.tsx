@@ -31,7 +31,6 @@ import {
   CheckCircle,
   HelpCircle
 } from "lucide-react";
-import { useAuth } from "@/src/contexts/AuthContext";
 import { useTheme } from "@/src/contexts/ThemeContext";
 
 // Detailed list of 17 curation resources from prompt
@@ -189,7 +188,6 @@ const categoryPills = [
 ];
 
 export default function Courses() {
-  const { isAuthenticated } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
 
@@ -262,11 +260,11 @@ export default function Courses() {
             </p>
           </div>
 
-          {/* Locked Premium Banner Notice */}
+          {/* Public Resources Banner Notice */}
           <div className="max-w-2xl mx-auto p-4 bg-[#DDF7E3]/60 dark:bg-[#2F8D46]/5 rounded-2xl border border-[#2F8D46]/20 text-[#1F6B34] dark:text-[#2F8D46]/90 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2">
-            <span>🔒</span>
+            <span>🌟</span>
             <span className="text-center">
-              Full learning paths, certificates, progress tracking, exclusive resources, and advanced content are available inside the Student Portal.
+              Welcome to the GFG MU Learner Portal! Access complete curated collections of roadmaps, tutorials, and materials free of charge.
             </span>
           </div>
 
@@ -275,11 +273,11 @@ export default function Courses() {
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => navigate(isAuthenticated ? "/student/portal" : "/login")}
+              onClick={() => navigate("/resources")}
               className="w-full sm:w-auto px-8 py-4 bg-[#2F8D46] hover:bg-[#1F6B34] text-white font-mono font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-[#2F8D46]/20 flex items-center justify-center gap-2 cursor-pointer transition-colors"
             >
-              <span>Login to Student Portal</span>
-              <LogIn className="w-4 h-4" />
+              <span>View Materials Hub</span>
+              <Sparkles className="w-4 h-4" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.04 }}
@@ -292,7 +290,7 @@ export default function Courses() {
           </div>
         </motion.section>
 
-        {/* ==================== 2. PORTAL LOCKED FEATURE SHOWCASE ==================== */}
+        {/* ==================== 2. OPEN LEARNING PLATFORM FEATURES ==================== */}
         <motion.section 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -307,21 +305,21 @@ export default function Courses() {
             {/* Left Graphics info */}
             <div className="lg:col-span-5 space-y-6">
               <div className="w-12 h-12 bg-[#2F8D46]/10 border border-[#2F8D46]/20 rounded-2xl flex items-center justify-center text-[#2F8D46] animate-bounce">
-                <LockKeyhole className="w-6 h-6" />
+                <Sparkles className="w-6 h-6" />
               </div>
               <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-white leading-tight">
-                Unlock More Inside <br /><span className="text-[#2F8D46]">Student Portal</span>
+                Fully Open <br /><span className="text-[#2F8D46]">Ecosystem</span>
               </h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-semibold">
-                Login required to access all premium student resources. Get tailored roadmaps, real-time tracking, and verified certifications curated for Marwadi University student developers.
+                No accounts or registrations are needed to access student resources. Get tailored roadmaps, practice materials, language tracks, and interview summaries curated for Marwadi University student developers.
               </p>
               
               <div className="pt-2">
                 <button
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/resources")}
                   className="inline-flex items-center space-x-2 text-[#2F8D46] hover:text-[#1F6B34] font-bold text-sm group"
                 >
-                  <span>Log in with university email</span>
+                  <span>Browse GeeksforGeeks MU materials</span>
                   <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
@@ -471,7 +469,7 @@ export default function Courses() {
           )}
         </section>
 
-        {/* ==================== 6. STUDENT PORTAL CTA ==================== */}
+        {/* ==================== 6. PUBLIC ECOSYSTEM CTA ==================== */}
         <motion.section 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -482,37 +480,37 @@ export default function Courses() {
           <div className="absolute top-[-50%] left-[25%] right-[25%] bottom-0 bg-[#2F8D46]/5 rounded-full blur-[100px] pointer-events-none" />
 
           <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
-            Want Access to Everything?
+            Learn and Grow Together
           </h2>
 
           <div className="space-y-4 max-w-2xl mx-auto">
             <p className="text-[#64748B] dark:text-slate-300 text-xs sm:text-sm font-semibold">
-              Login to the Student Portal and unlock:
+              Explore our core student resource segments:
             </p>
             
-            {/* Checklist of locked offerings */}
+            {/* Checklist of open offerings */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 max-w-xl mx-auto text-left py-2 font-black uppercase tracking-widest text-[9px] text-[#2F8D46]">
-              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Personalized Dashboard</div>
-              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Event Resources</div>
-              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Premium Learning Paths</div>
-              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Certificates</div>
-              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Progress Tracking</div>
-              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Exclusive Chapter Content</div>
+              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Curated Free Courses</div>
+              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Active Event Materials</div>
+              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Core Language Tracks</div>
+              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> SDE Preparation Sheets</div>
+              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Job-A-Thon Events</div>
+              <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> Community Collaboration</div>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-4">
             <button
-              onClick={() => navigate(isAuthenticated ? "/student/portal" : "/login")}
+              onClick={() => navigate("/resources")}
               className="w-full sm:w-auto px-8 py-4.5 bg-[#2F8D46] hover:bg-[#1F6B34] text-white font-mono font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition-colors cursor-pointer"
             >
-              Login to Student Portal
+              Explore GFG Resources
             </button>
             <button
               onClick={() => navigate("/about")}
               className="w-full sm:w-auto px-8 py-4.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-100 font-mono font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-slate-200 dark:border-slate-700 cursor-pointer"
             >
-              Learn More
+              About MU Chapter
             </button>
           </div>
         </motion.section>

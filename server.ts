@@ -46,7 +46,12 @@ import {
   getFirebaseAttendance,
   saveFirebaseAttendance,
   getFirebaseLogs,
-  saveFirebaseLog
+  saveFirebaseLog,
+  getFirebaseSetting,
+  saveFirebaseSetting,
+  getFirebaseTeam,
+  saveFirebaseTeamMember,
+  deleteFirebaseTeamMember
 } from "./src/services/firebaseDb.server.js";
 
 const app = express();
@@ -328,12 +333,29 @@ const isUserSuperAdminOrAdmin = (req: any) => {
 app.get("/api/events", async (req, res) => {
   try {
     const events = await getFirebaseEvents();
+    
+    // Dynamically query registration counts from Firebase
+    let registrations: any[] = [];
+    try {
+      registrations = await getFirebaseRegistrations();
+    } catch (e) {
+      // In-memory or fallback
+    }
+
+    const eventsWithCounts = events.map(e => {
+      const count = registrations.filter(r => r.eventId === e.id || r.eventId === e.eventId).length;
+      return {
+        ...e,
+        registrationCount: count
+      };
+    });
+
     const isAdmin = isUserSuperAdminOrAdmin(req);
     if (isAdmin) {
-      res.json({ success: true, data: events });
+      res.json({ success: true, data: eventsWithCounts });
     } else {
       // Filter out unapproved events for public/student view
-      const publicEvents = events.filter(e => e.approvedBySuperAdmin === true || e.approvedBySuperAdmin === undefined);
+      const publicEvents = eventsWithCounts.filter(e => e.approvedBySuperAdmin === true || e.approvedBySuperAdmin === undefined);
       res.json({ success: true, data: publicEvents });
     }
   } catch (err: any) {
@@ -355,10 +377,11 @@ app.post("/api/events", authenticate, subAdminOnly, async (req: any, res) => {
     date,
     location,
     poster_url: poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
-    registration_link: registration_link || "#",
+    registration_link: registration_link || "",
     qr_code_data: qrData,
     is_published: isSuperAdmin,
-    approvedBySuperAdmin: isSuperAdmin // auto-approved if created by Super Admin
+    approvedBySuperAdmin: isSuperAdmin, // auto-approved if created by Super Admin
+    ...req.body
   };
 
   try {
@@ -895,6 +918,114 @@ app.post("/api/cms/home", authenticate, adminOnly, (req, res) => {
   res.json({ success: true, data: cachedHomeCMS });
 });
 
+// --- Settings Operations Endpoints ---
+const defaultSettings: Record<string, any> = {
+  contactFormUrl: {
+    value: "https://docs.google.com/forms/d/e/1FAIpQLSfQ5QSIqCn8AsRV_1CL76UXdPI3JABfhd7NC8tbGlih9ZQ8KA/viewform?embedded=true"
+  }
+};
+
+app.get("/api/settings/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const setting = await getFirebaseSetting(id);
+    if (setting) {
+      return res.json({ success: true, data: setting });
+    }
+    const fallback = defaultSettings[id] || { value: "" };
+    res.json({ success: true, data: fallback });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put("/api/settings/:id", authenticate, adminOnly, async (req, res) => {
+  const { id } = req.params;
+  const { value } = req.body;
+  try {
+    const newSetting = { id, value, updatedAt: new Date().toISOString() };
+    await saveFirebaseSetting(id, newSetting);
+    res.json({ success: true, data: newSetting });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// --- Team Member Endpoints ---
+app.get("/api/team", async (req, res) => {
+  try {
+    const data = await getFirebaseTeam();
+    res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post("/api/team", authenticate, adminOnly, async (req, res) => {
+  try {
+    const id = "tm_" + Math.random().toString(36).substring(7);
+    const member = { ...req.body, id, createdAt: new Date().toISOString() };
+    await saveFirebaseTeamMember(id, member);
+    
+    // Save audit log
+    await saveFirebaseLog("log_" + Math.random().toString(36).substring(7), {
+      userId: (req as any).userId || "admin",
+      userName: "Administrator",
+      userEmail: "meetkhakhkhar05@gmail.com",
+      action: "TEAM_MEMBER_CREATED",
+      details: `Added new team member: ${member.name} (${member.position}).`,
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({ success: true, data: member });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put("/api/team/:id", authenticate, adminOnly, async (req, res) => {
+  const id = req.params.id;
+  try {
+    const data = req.body;
+    await saveFirebaseTeamMember(id, data);
+
+    // Save audit log
+    await saveFirebaseLog("log_" + Math.random().toString(36).substring(7), {
+      userId: (req as any).userId || "admin",
+      userName: "Administrator",
+      userEmail: "meetkhakhkhar05@gmail.com",
+      action: "TEAM_MEMBER_UPDATED",
+      details: `Updated team member profile for: ${data.name}.`,
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({ success: true, data });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.delete("/api/team/:id", authenticate, adminOnly, async (req, res) => {
+  const id = req.params.id;
+  try {
+    await deleteFirebaseTeamMember(id);
+
+    // Save audit log
+    await saveFirebaseLog("log_" + Math.random().toString(36).substring(7), {
+      userId: (req as any).userId || "admin",
+      userName: "Administrator",
+      userEmail: "meetkhakhkhar05@gmail.com",
+      action: "TEAM_MEMBER_DELETED",
+      details: `Deleted team member with ID: ${id}.`,
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // --- Google Sheets Sync & Contact Portal API ---
 let contactSubmissions: any[] = [];
 app.post("/api/contact", async (req, res) => {
@@ -942,9 +1073,14 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
 startServer();
+
+export { app };
+export default app;

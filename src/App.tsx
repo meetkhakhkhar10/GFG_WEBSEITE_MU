@@ -7,12 +7,9 @@ import Events from "@/src/pages/Events";
 import Contact from "@/src/pages/Contact";
 import Courses from "@/src/pages/Courses";
 import Team from "@/src/pages/Team";
-import StudentPortal from "@/src/pages/student/StudentPortal";
 import StudentDashboard from "@/src/pages/student/StudentDashboard";
-import StudentLogin from "@/src/pages/StudentLogin";
 import Login from "@/src/pages/admin/Login";
 import Dashboard from "@/src/pages/admin/Dashboard";
-import EventManagement from "@/src/pages/admin/EventManagement";
 
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import { ThemeProvider } from "@/src/contexts/ThemeContext";
@@ -42,14 +39,15 @@ export default function App() {
             <Route path="events" element={<Events />} />
             <Route path="contact" element={<Contact />} />
             <Route path="courses" element={<Courses />} />
+            <Route path="resources" element={<StudentDashboard />} />
             <Route path="team" element={<Team />} />
           </Route>
 
-          {/* Student Portal */}
-          <Route path="/student/portal" element={<StudentPortal />} />
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/student-login" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<StudentLogin />} />
+          {/* Student Portal redirects to public resources */}
+          <Route path="/student/portal" element={<Navigate to="/resources" replace />} />
+          <Route path="/student/dashboard" element={<Navigate to="/resources" replace />} />
+          <Route path="/student-login" element={<Navigate to="/resources" replace />} />
+          <Route path="/login" element={<Navigate to="/resources" replace />} />
 
           {/* Admin Login */}
           <Route path="/admin-login" element={<Login />} />
@@ -59,7 +57,7 @@ export default function App() {
             <Route index element={<Navigate to="/admin-login" replace />} />
             <Route path="login" element={<Navigate to="/admin-login" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="events" element={<EventManagement />} />
+            <Route path="events" element={<Navigate to="/admin/dashboard?tab=events" replace />} />
           </Route>
 
           {/* Fallback */}

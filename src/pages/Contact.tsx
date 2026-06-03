@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Mail,
@@ -16,84 +16,28 @@ import {
   Fingerprint
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { apiService } from "../services/apiService";
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
+  const [formUrl, setFormUrl] = useState("https://docs.google.com/forms/d/e/1FAIpQLSfQ5QSIqCn8AsRV_1CL76UXdPI3JABfhd7NC8tbGlih9ZQ8KA/viewform?embedded=true");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error" | "info">("info");
-
-  const triggerToast = (msg: string, type: "success" | "error" | "info") => {
-    setToastMessage(msg);
-    setToastType(type);
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-    }, 4000);
-  };
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (status === "loading") return;
-
-    if (!formData.name.trim()) {
-      triggerToast("Name is required to initialize telemetry upload.", "error");
-      return;
-    }
-
-    if (!formData.email.trim() || !validateEmail(formData.email)) {
-      triggerToast("A valid secure SMTP electronic mail coordinate is required.", "error");
-      return;
-    }
-
-    if (!formData.message.trim() || formData.message.length < 10) {
-      triggerToast("Message transmission payload must exceed 10 characters.", "error");
-      return;
-    }
-
-    try {
-      setStatus("loading");
-      setErrorMsg("");
-
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setStatus("success");
-        triggerToast(result.sync ? "Payload successfully synced to Google Sheets!" : "Secure database log successfully cached!", "success");
-        setFormData({ name: "", email: "", message: "" });
-        
-        setTimeout(() => {
-          setStatus("idle");
-        }, 5000);
-      } else {
-        throw new Error(result.message || "Failed dispatching telemetry packet.");
+  useEffect(() => {
+    const fetchFormUrl = async () => {
+      try {
+        setIsLoading(true);
+        const res = await apiService.getSetting("contactFormUrl");
+        if (res.success && res.data?.value) {
+          setFormUrl(res.data.value);
+        }
+      } catch (err) {
+        console.error("Failed to load contact form setting:", err);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err: any) {
-      console.error(err);
-      setStatus("error");
-      const errClean = err.message || "Unknown proxy sync failure.";
-      setErrorMsg(errClean);
-      triggerToast(`Transmission Failed: ${errClean}`, "error");
-    }
-  };
+    };
+    fetchFormUrl();
+  }, []);
 
   return (
     <motion.div
@@ -124,17 +68,17 @@ export default function Contact() {
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-7xl font-black text-theme-text mb-6 uppercase tracking-tighter italic leading-none"
+            className="text-4xl md:text-6xl font-black text-theme-text mb-4 uppercase tracking-tight italic leading-none"
           >
-            CONTACT <span className="text-gfg-primary">PORTAL</span>
+            Contact <span className="text-gfg-primary">Us</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-theme-text-muted max-w-xl mx-auto text-xs font-mono tracking-widest uppercase leading-relaxed"
+            className="text-theme-text-muted max-w-xl mx-auto text-sm font-sans tracking-wide leading-relaxed"
           >
-            A high-speed university contact portal. All submitted packets automatically synchronize in the background with our central Google Sheets records.
+            Have questions, suggestions, or collaboration ideas? Reach out using the form below.
           </motion.p>
         </div>
 
@@ -198,7 +142,7 @@ export default function Contact() {
                 </div>
                 <div className="flex justify-between border-b border-theme-border pb-2.5">
                   <span className="text-theme-text-muted">BACKGROUND COURIER:</span>
-                  <span className="text-gfg-primary">GOOGLE APIS LINK</span>
+                  <span className="text-gfg-primary">GOOGLE FORMS IFRAME</span>
                 </div>
                 <div className="flex justify-between border-b border-theme-border pb-2.5">
                   <span className="text-theme-text-muted">ENCRYPTION TYPE:</span>
@@ -212,10 +156,10 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Right Block: Input Form */}
+          {/* Right Block: Embedded Google Form */}
           <div className="lg:col-span-12 xl:col-span-7">
             <div className="p-8 md:p-10 rounded-[2.5rem] bg-theme-bg-secondary border border-theme-border shadow-sm relative overflow-hidden group hover:border-gfg-primary/20 transition-all duration-300 text-left">
-              <div className="absolute top-0 left-0 w-[3px] h-full bg-gradient-to-b from-gfg-primary value-transparent" />
+              <div className="absolute top-0 left-0 w-[3px] h-[70px] bg-gradient-to-b from-gfg-primary to-transparent" />
               
               {/* Status Header Block */}
               <div className="flex justify-between items-center border-b border-theme-border pb-6 mb-8 gap-3">
@@ -227,175 +171,37 @@ export default function Contact() {
                   </div>
                 </div>
                 <div className="px-3 py-1 bg-theme-bg border border-theme-border text-theme-text-muted rounded-full text-[9px] font-mono tracking-widest uppercase shadow-sm">
-                  No Sign-in Required
+                  Google Form Integrated
                 </div>
               </div>
 
-              {/* Form State Machine */}
-              <AnimatePresence mode="wait">
-                {status === "success" ? (
-                  <motion.div
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="py-12 text-center"
-                  >
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gfg-primary/10 border-2 border-gfg-primary text-gfg-primary mb-6 shadow-sm">
-                      <motion.svg
-                        className="w-10 h-10"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
-                      >
-                        <motion.path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </motion.svg>
-                    </div>
-
-                    <h3 className="text-2xl font-mono font-black text-theme-text italic uppercase tracking-wider mb-2">
-                      TRANSMISSION SUCCESS
-                    </h3>
-                    <p className="text-xs font-mono text-theme-text-muted max-w-sm mx-auto leading-relaxed">
-                      Quantum protocol dispatched secure packet safely. Background threads are logging details directly inside the associated Google Sheets archive now.
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={() => setStatus("idle")}
-                      className="mt-8 px-6 py-2.5 bg-theme-bg border border-theme-border hover:border-gfg-primary/40 text-gfg-primary rounded-xl text-xs font-mono uppercase tracking-widest font-black transition-all shadow-sm"
-                    >
-                      SEND NEW MESSAGE
-                    </button>
-                  </motion.div>
+              {/* Form Embed Area */}
+              <div className="relative w-full overflow-hidden rounded-2xl bg-theme-bg border border-theme-border/30 min-h-[1601px] h-[1601px]">
+                {isLoading ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-theme-bg space-y-3" style={{ minHeight: "500px" }}>
+                    <RefreshCw className="w-8 h-8 animate-spin text-gfg-primary" />
+                    <span className="text-xs font-mono text-theme-text-muted font-black tracking-widest">ESTABLISHING TRANSMISSION...</span>
+                  </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Name Input */}
-                    <div className="relative group/input">
-                      <input
-                        type="text"
-                        id="form-name"
-                        required
-                        disabled={status === "loading"}
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-6 py-4 bg-theme-bg border border-theme-border group-hover/input:border-theme-text/20 rounded-2xl text-theme-text outline-none focus:border-gfg-primary focus:shadow-sm disabled:opacity-50 transition-all peer placeholder-transparent text-sm font-medium"
-                        placeholder="Name"
-                      />
-                      <label
-                        htmlFor="form-name"
-                        className="absolute left-6 top-[11px] text-theme-text-muted text-[9px] tracking-widest font-mono font-black uppercase transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-[15px] peer-focus:top-[-9px] peer-focus:left-4 peer-focus:text-[9px] peer-focus:text-gfg-primary peer-focus:bg-theme-bg-secondary peer-focus:px-2"
-                      >
-                        FULL TRANSMITTER NAME
-                      </label>
-                    </div>
-
-                    {/* Email Input */}
-                    <div className="relative group/input2">
-                      <input
-                        type="email"
-                        id="form-email"
-                        required
-                        disabled={status === "loading"}
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-6 py-4 bg-theme-bg border border-theme-border group-hover/input2:border-theme-text/20 rounded-2xl text-theme-text outline-none focus:border-gfg-primary focus:shadow-sm disabled:opacity-50 transition-all peer placeholder-transparent text-sm font-medium"
-                        placeholder="Email"
-                      />
-                      <label
-                        htmlFor="form-email"
-                        className="absolute left-6 top-[11px] text-theme-text-muted text-[9px] tracking-widest font-mono font-black uppercase transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-[15px] peer-focus:top-[-9px] peer-focus:left-4 peer-focus:text-[9px] peer-focus:text-gfg-primary peer-focus:bg-theme-bg-secondary peer-focus:px-2"
-                      >
-                        SMTP SECURE COORDINATE
-                      </label>
-                    </div>
-
-                    {/* Message Area */}
-                    <div className="relative group/textarea">
-                      <textarea
-                        id="form-message"
-                        required
-                        rows={5}
-                        disabled={status === "loading"}
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        className="w-full px-6 py-4.5 bg-theme-bg border border-theme-border group-hover/textarea:border-theme-text/20 rounded-2xl text-theme-text outline-none focus:border-gfg-primary focus:shadow-sm disabled:opacity-50 transition-all peer placeholder-transparent resize-none text-sm font-medium leading-relaxed"
-                        placeholder="Message"
-                      />
-                      <label
-                        htmlFor="form-message"
-                        className="absolute left-6 top-4 text-theme-text-muted text-[9px] tracking-widest font-mono font-black uppercase transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-5 peer-focus:top-[-9px] peer-focus:left-4 peer-focus:text-[9px] peer-focus:text-gfg-primary peer-focus:bg-theme-bg-secondary peer-focus:px-2"
-                      >
-                        TRANSMISSION PAYLOAD MESSAGE
-                      </label>
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
-                      type="submit"
-                      disabled={status === "loading"}
-                      className={cn(
-                        "w-full py-4.5 bg-gfg-primary text-black font-mono font-black rounded-2xl transition-all duration-300 flex items-center justify-center disabled:opacity-50 uppercase tracking-[0.2em] text-[11px] select-none cursor-pointer shadow-sm",
-                        status === "loading" && "bg-theme-bg border border-theme-border text-theme-text hover:shadow-none cursor-not-allowed"
-                      )}
-                    >
-                      {status === "idle" && (
-                        <>
-                          LAUNCH TRANSMISSION PROTOCOL <Send className="ml-2 w-4 h-4" />
-                        </>
-                      )}
-                      {status === "loading" && (
-                        <div className="flex items-center space-x-2">
-                          <RefreshCw className="w-4 h-4 animate-spin text-gfg-primary" />
-                          <span className="text-theme-text-muted font-bold">SYNCHRONIZING TELEMETRY STACK...</span>
-                        </div>
-                      )}
-                      {status === "error" && (
-                        <>
-                          RE-TRANSMIT INTERFACE PAYLOAD <AlertCircle className="ml-2 w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </form>
+                  <iframe
+                    src={formUrl}
+                    width="100%"
+                    height="1601"
+                    frameBorder="0"
+                    marginHeight={0}
+                    marginWidth={0}
+                    className="rounded-2xl border-none w-full h-[1601px] min-h-[1601px]"
+                    title="Contact Us Google Form"
+                    referrerPolicy="no-referrer"
+                  >
+                    Loading…
+                  </iframe>
                 )}
-              </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Floating glass toast alerts */}
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, x: "-50%" }}
-            animate={{ opacity: 1, y: 0, x: "-50%" }}
-            exit={{ opacity: 0, y: 30, x: "-50%" }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center space-x-3 px-5 py-4 bg-theme-bg-secondary border border-theme-border rounded-2xl shadow-lg max-w-sm w-full"
-          >
-            {toastType === "success" ? (
-              <ShieldCheck className="w-5 h-5 text-gfg-primary shrink-0" />
-            ) : toastType === "error" ? (
-              <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-            ) : (
-              <Database className="w-5 h-5 text-cyan-500 shrink-0 animate-pulse" />
-            )}
-            <div className="text-left font-mono text-[10px] leading-relaxed">
-              <div className="text-theme-text font-black uppercase tracking-wider">
-                {toastType === "success" ? "TRANSMISSION SECURE" : toastType === "error" ? "TRANSCEIVER FAULT ALERT" : "PORTAL MESSAGE"}
-              </div>
-              <p className="text-theme-text-muted mt-0.5">{toastMessage}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

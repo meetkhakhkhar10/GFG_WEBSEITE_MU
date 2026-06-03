@@ -113,5 +113,51 @@ export const apiService = {
       body: JSON.stringify(data)
     });
     return res.json();
+  },
+
+  async getSetting(id: string) {
+    const res = await fetch(`${API_URL}/settings/${id}`, { headers: getHeaders() });
+    return res.json();
+  },
+
+  async updateSetting(id: string, data: { value: string }) {
+    const res = await fetch(`${API_URL}/settings/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  // Team Members
+  async getTeam() {
+    const res = await fetch(`${API_URL}/team`, { headers: getHeaders() });
+    return res.json();
+  },
+
+  async createTeamMember(data: any) {
+    const res = await fetch(`${API_URL}/team`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  async updateTeamMember(id: any, data: any) {
+    const res = await fetch(`${API_URL}/team/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  async deleteTeamMember(id: any) {
+    const res = await fetch(`${API_URL}/team/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    return res.json();
   }
 };
