@@ -35,6 +35,7 @@ import { useAuth } from "@/src/contexts/AuthContext";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
+import ThemeSelector from "@/src/components/ThemeSelector";
 import { apiService } from "../../services/apiService";
 
 // Standard GeeksforGeeks and Academic Palette constants
@@ -446,14 +447,8 @@ export default function StudentPortal() {
         </div>
 
         <div className="flex items-center space-x-3">
-          {/* Quick theme toggler */}
-          <button 
-            onClick={toggleTheme}
-            className="p-2.5 rounded-lg bg-[#F1F5F9] dark:bg-[#1E293B] text-gray-700 dark:text-gray-200 border border-transparent dark:border-[#334155]"
-            aria-label="Toggle visual theme"
-          >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-          </button>
+          {/* Premium Day/Night Theme Switch Selector */}
+          <ThemeSelector />
 
           {/* Hamburger trigger */}
           <button
@@ -558,25 +553,10 @@ export default function StudentPortal() {
         {/* Global interactive system toggle controls */}
         <div className="pt-6 border-t border-[#E5E7EB] dark:border-[#334155] space-y-4">
           
-          {/* Quick theme toggler for desktop */}
-          <div className="hidden lg:flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#E5E7EB] dark:border-[#334155]">
+          {/* Premium Day/Night Theme Switch Selector */}
+          <div className="hidden lg:flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#E5E7EB] dark:border-[#334155]">
             <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">Portal Theme</span>
-            <button 
-              onClick={toggleTheme}
-              className="p-1.5 rounded-lg bg-white dark:bg-[#111827] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#334155] shadow-sm flex items-center gap-1.5 text-[9px] font-mono tracking-widest uppercase cursor-pointer"
-            >
-              {isDark ? (
-                <>
-                  <Sun className="w-3 md:w-3.5 h-3 md:h-3.5 text-amber-500 animate-pulse" />
-                  <span>LIGHT</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-3 md:w-3.5 h-3 md:h-3.5 text-[#2F8D46]" />
-                  <span>DARK</span>
-                </>
-              )}
-            </button>
+            <ThemeSelector />
           </div>
 
           <button

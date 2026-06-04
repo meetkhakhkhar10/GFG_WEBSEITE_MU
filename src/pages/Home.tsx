@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from "motion/react";
-import { ArrowRight, Calendar, Users, ArrowUpRight, Code, Sparkles, Flame, Zap, Atom, LogIn, ChevronRight, Terminal, BookOpen, Layers, Brain } from "lucide-react";
+import { ArrowRight, Calendar, Users, ArrowUpRight, Code, Sparkles, Flame, Zap, Atom, LogIn, ChevronRight, Terminal, BookOpen, Layers, Brain, MapPin, Award, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "../lib/utils";
@@ -7,6 +7,25 @@ import { useTheme } from "@/src/contexts/ThemeContext";
 import { subscribeToEvents } from "../utils/eventHelpers";
 import FeaturedCourses from "../components/FeaturedCourses";
 import Hero from "../components/Hero";
+
+const fallbackFeaturedEvent = {
+  id: "evt_intellify",
+  title: "Intellify 4.0",
+  description: "Intellify 4.0 is the flagship national-level hackathon organized at Marwadi University on 15th–16th August 2026. Building upon the success of previous editions, Intellify has evolved into a platform that promotes innovation, collaboration, creativity, and technical excellence among students across India.\n\nThe hackathon provides participants with an opportunity to solve real-world challenges through technology in a highly competitive environment. With participation expected from 600+ students representing 150+ colleges nationwide, Intellify 4.0 aims to create impactful solutions while fostering networking, learning, and innovation.",
+  date: "15th–16th August 2026",
+  location: "Marwadi University, Rajkot, Gujarat, India",
+  bannerImage: "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/banner/6a1ebf444ee51_intellify-40.jpg?d=1920x557",
+  poster_url: "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/banner/6a1ebf444ee51_intellify-40.jpg?d=1920x557",
+  registrationLink: "https://unstop.com/hackathons/intellify-40-marwadi-university-mu-gujarat-1684922",
+  registration_link: "https://unstop.com/hackathons/intellify-40-marwadi-university-mu-gujarat-1684922",
+  category: "Hackathon / Software Development",
+  status: "Upcoming",
+  registration_fee: "₹250",
+  team_size: "2–4 Members",
+  prize_pool: "₹3,40,000+",
+  expected_participation: "600+ Students",
+  expected_colleges: "150+ Colleges Across India",
+};
 
 export default function Home() {
   const { theme } = useTheme();
@@ -43,6 +62,9 @@ export default function Home() {
     });
     return () => unsub();
   }, []);
+
+  const featuredEventFromDb = allEvents.find((e) => e.featured || e.is_featured);
+  const featuredEvent = featuredEventFromDb || fallbackFeaturedEvent;
 
   return (
     <div className="bg-theme-bg text-theme-text overflow-hidden min-h-screen theme-transition">
@@ -226,15 +248,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ICT CODEJAM SECTION - REDESIGNED */}
+      {/* FEATURED EVENT SPOTLIGHT (CMS-DRIVEN) */}
       <section className="py-24 sm:py-32 bg-theme-bg relative overflow-hidden border-b border-theme-border">
         {/* Subtle dynamic background overlays */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+        <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
           <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(0,255,136,0.01)_1px,transparent_1px)] bg-[size:100px_100px]" />
           <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-gfg-primary/5 rounded-full blur-[150px]" />
         </div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+          {/* Header */}
           <div className="text-center mb-16">
             <motion.div
               initial={{ opacity: 0 }}
@@ -242,219 +265,104 @@ export default function Home() {
               viewport={{ once: true }}
               className="inline-flex items-center space-x-2 px-4 py-1.5 bg-gfg-primary/10 border border-gfg-primary/20 rounded-full mb-4 shadow-sm"
             >
-              <Zap className="w-3.5 h-3.5 text-gfg-primary animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gfg-primary">Compete • Solve • Innovate</span>
+              <Sparkles className="w-3.5 h-3.5 text-gfg-primary animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gfg-primary">Featured Event • Activation</span>
             </motion.div>
             
             <h2 className="text-4xl md:text-6xl font-black text-theme-text italic tracking-tighter uppercase mb-6">
-              ICT <span className="text-gfg-primary">CODEJAM</span>
+              EVENT <span className="text-gfg-primary">SPOTLIGHT</span>
             </h2>
             
             <p className="text-theme-text-secondary text-base font-medium max-w-2xl mx-auto leading-relaxed">
-              A university-wide competitive programming initiative powered by GeeksforGeeks to help students sharpen problem-solving skills, improve coding efficiency, and compete with the best minds across semesters.
+              Explore our flagship activation running in partnership with industry leaders and universities nationwide. Solve challenges, showcase prototype innovations, and compete for prestige.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-            {[
-              {
-                sem: "Semester 2",
-                desc: "Kickstart your competitive coding journey. Built for first-year programmers ready to make their mark.",
-                link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-2-round-1",
-                tags: ["Beginner Friendly", "Round 1"],
-                hot: false
-              },
-              {
-                sem: "Semester 4",
-                desc: "Level up with advanced data structures and algorithms. Challenge yourself against the best in your batch.",
-                link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-4-round-1-4819",
-                tags: ["Intermediate", "Round 1"],
-                hot: true
-              },
-              {
-                sem: "Semester 6",
-                desc: "The elite arena. Solve complex challenges and compete for the top position among senior coders.",
-                link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-6-round-1",
-                tags: ["Advanced", "Round 1"],
-                hot: false
-              }
-            ].map((card, i) => (
-              <motion.div
-                key={card.sem}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.6 }}
-                whileHover={{ y: -6 }}
-                className="group relative flex flex-col h-full p-8 md:p-10 rounded-[2rem] bg-theme-bg-secondary border border-theme-border hover:border-gfg-primary/40 transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden"
-              >
-                {/* Visual Top Highlight Accent */}
-                <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-gfg-primary to-transparent opacity-40 group-hover:opacity-100 transition-opacity" />
+          <div className="relative max-w-5xl mx-auto bg-theme-bg-secondary/40 backdrop-blur-3xl border border-theme-border/80 hover:border-[#00ff88]/30 transition-all duration-300 rounded-[28px] overflow-hidden shadow-2xl">
+            {/* Ambient Line */}
+            <div className="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-gfg-primary via-[#00ff88] to-transparent" />
+            
+            <div className="relative flex flex-col lg:flex-row items-stretch lg:h-[550px]">
+              
+              {/* Left Side: Large Banner Image at 55% width */}
+              <div className="w-full lg:w-[55%] h-[260px] lg:h-full relative overflow-hidden rounded-[20px] lg:rounded-none shrink-0 bg-black">
+                <img 
+                  src={featuredEvent.bannerImage || featuredEvent.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"} 
+                  alt={featuredEvent.title} 
+                  className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-700"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
                 
-                {/* Header Group with Title at the very top */}
-                <div className="space-y-5 flex-grow flex flex-col">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-[10px] font-black text-gfg-primary uppercase tracking-[0.3em] mb-1.5 block">ICT CodeJam</span>
-                      <h3 className="text-2xl md:text-3xl font-extrabold text-theme-text italic uppercase tracking-tighter group-hover:text-gfg-primary transition-colors leading-none">
-                        {card.sem}
-                      </h3>
+                {/* Floating Activation Date Tag */}
+                <div className="absolute top-6 left-6 z-10 px-4 py-2 bg-black/75 backdrop-blur-md rounded-xl border border-white/10 text-center font-mono">
+                  <p className="text-[10px] font-black text-gfg-primary uppercase tracking-widest">ACTIVATION</p>
+                  <p className="text-[9px] text-zinc-300 font-bold">{featuredEvent.date || featuredEvent.startDate}</p>
+                </div>
+              </div>
+
+              {/* Right Side: Detailed Stats Description at 45% width */}
+              <div className="w-full lg:w-[45%] p-8 sm:p-10 lg:p-12 flex flex-col justify-between relative z-10">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-3xl sm:text-4xl font-black uppercase text-theme-text leading-none tracking-tight pt-1 mb-2 italic">
+                      {featuredEvent.title}
+                    </h3>
+                    <div className="text-xs sm:text-sm font-mono tracking-wider font-extrabold uppercase text-[#00ff88] mb-4">
+                      {featuredEvent.category?.replace(" / ", " • ") || "Hackathon"} • {featuredEvent.location?.split(",")[0] || "Rajkot"}
                     </div>
-                    {card.hot && (
-                      <span className="px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded-full flex items-center space-x-1 shrink-0">
-                        <Flame className="w-3 h-3 text-red-500 animate-pulse" />
-                        <span className="text-[8px] font-black text-red-500 uppercase tracking-wider font-mono">HOT 🔥</span>
-                      </span>
-                    )}
+
+                    <p className="text-theme-text-secondary text-xs sm:text-sm font-medium leading-relaxed line-clamp-3">
+                      {featuredEvent.description}
+                    </p>
                   </div>
 
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {card.tags.map(tag => (
-                      <span 
-                        key={tag} 
-                        className="px-2.5 py-1 bg-gfg-primary/5 border border-gfg-primary/15 rounded-lg text-[9px] font-black text-gfg-primary uppercase tracking-wider"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  {/* Core Highlights Blocks GRID */}
+                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-theme-border/40 text-left">
+                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
+                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Prize Pool</div>
+                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.prize_pool || "₹3,40,000+"}</div>
+                    </div>
+                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
+                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Team Size</div>
+                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.team_size || "2–4 Members"}</div>
+                    </div>
+                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
+                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Participants</div>
+                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.expected_participation || "600+ Students"}</div>
+                    </div>
+                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
+                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Colleges</div>
+                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.expected_colleges || "150+ Nationwide"}</div>
+                    </div>
                   </div>
-
-                  {/* Description */}
-                  <p className="text-theme-text-secondary text-sm leading-relaxed font-semibold">
-                    {card.desc}
-                  </p>
                 </div>
 
-                {/* Bottom CTA Element */}
-                <div className="mt-8 pt-5 border-t border-theme-border space-y-3">
-                  <a 
-                    href={card.link}
+                {/* Event CTAs */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 pt-4 border-t border-theme-border/40">
+                  <a
+                    href={featuredEvent.registration_link || featuredEvent.registrationLink || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative z-10 group/btn w-full h-12 px-5 bg-theme-bg border border-theme-border rounded-xl flex items-center justify-between hover:bg-gfg-primary hover:text-black hover:border-transparent transition-all duration-300"
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-[#00ff88] hover:bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(0,255,136,0.15)] hover:shadow-[0_0_25px_rgba(0,255,136,0.3)] duration-300"
                   >
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-theme-text group-hover:text-black">Register Now</span>
-                    <ArrowRight className="w-4 h-4 text-theme-text group-hover/btn:translate-x-1 group-hover:text-black" />
+                    <span>{featuredEvent.title?.toLowerCase().includes("intellify") ? "Register on Unstop" : "Register Now"}</span>
+                    <ArrowRight className="w-3.5 h-3.5 ml-2" />
                   </a>
 
-                  <p className="text-theme-text-muted text-[8px] font-mono font-bold uppercase tracking-wider text-center block">
-                    Registration handled securely via GeeksforGeeks.
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* DYNAMIC FEATURED EVENT SPOTLIGHT (CMS-DRIVEN) */}
-      {allEvents.filter(e => e.featured || e.is_featured).slice(0, 1).map((evt) => (
-        <section key={evt.id} className="py-24 sm:py-32 bg-theme-bg relative overflow-hidden border-b border-theme-border">
-          {/* Neon background grids */}
-          <div className="absolute inset-0 bg-[#00ff88]/1 animate-pulse" />
-          <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[140px] pointer-events-none" />
-
-          <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-            <div className="text-center mb-16">
-              <span className="inline-flex items-center space-x-2 px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[9px] font-mono font-black uppercase tracking-widest text-[#9d4edd] mb-3">
-                <Sparkles className="w-3.5 h-3.5 text-[#9d4edd] animate-pulse" />
-                <span>DYNAMIC CMS FEATURED PROGRAM</span>
-              </span>
-              <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-theme-text">
-                SPOTLIGHT <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-[#00ff88] to-cyan-400">ACTIVATIONS</span>
-              </h2>
-            </div>
-
-            <div className="relative max-w-5xl mx-auto bg-theme-bg-secondary/50 backdrop-blur-3xl border border-theme-border/80 hover:border-[#00ff88]/30 transition-all duration-300 rounded-[2.5rem] overflow-hidden shadow-2xl">
-              <div className="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-purple-500 via-[#00ff88] to-transparent" />
-              
-              <div className="flex flex-col md:flex-row items-stretch">
-                {/* Left Side: Thumbnail cover */}
-                <div className="md:w-[40%] relative min-h-[220px] md:min-h-auto overflow-hidden bg-black">
-                  <img 
-                    src={evt.poster_url || evt.bannerImage} 
-                    alt={evt.title} 
-                    className="absolute inset-0 w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#0c141d]/100 via-transparent to-transparent" />
-                  
-                  {/* Floating Date Tag */}
-                  <div className="absolute top-6 left-6 z-10 px-4 py-2 bg-[#0c141d]/75 backdrop-blur-md rounded-xl border border-white/10 text-center font-mono">
-                    <p className="text-[10px] font-black text-[#00ff88] uppercase tracking-widest">ACTIVATION</p>
-                    <p className="text-[9px] text-zinc-400 font-bold">{evt.startDate || evt.date}</p>
-                  </div>
-                </div>
-
-                {/* Right Side: Description Stats */}
-                <div className="md:w-[60%] p-8 sm:p-10 flex flex-col justify-between relative z-10">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2 text-[10px] font-mono tracking-wider font-extrabold uppercase">
-                      <span className="text-emerald-400">{evt.category || "Hackathon"}</span>
-                      <span className="text-zinc-500">•</span>
-                      <span className="text-[#00ff88]/80">{evt.location || "Marwadi University"}</span>
-                    </div>
-
-                    <h3 className="text-3xl font-black uppercase text-theme-text leading-tight">{evt.title}</h3>
-                    <p className="text-theme-text-secondary text-xs sm:text-sm font-semibold leading-relaxed line-clamp-3">
-                      {evt.description}
-                    </p>
-
-                    {/* Metadata boxes */}
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-3 pt-3">
-                      <div className="bg-slate-100 dark:bg-black/30 border border-slate-200/50 dark:border-white/5 p-2 sm:p-3 rounded-xl text-center">
-                        <p className="text-[8px] font-mono font-black text-zinc-500 dark:text-zinc-400 uppercase">Prize Pool</p>
-                        <p className="text-xs font-black text-theme-text">{evt.prize_pool || "₹3,40,000+"}</p>
-                      </div>
-                      <div className="bg-slate-100 dark:bg-black/30 border border-slate-200/50 dark:border-white/5 p-2 sm:p-3 rounded-xl text-center">
-                        <p className="text-[8px] font-mono font-black text-zinc-500 dark:text-zinc-400 uppercase">Team size</p>
-                        <p className="text-xs font-black text-theme-text">{evt.team_size || "2–4 Members"}</p>
-                      </div>
-                      <div className="bg-slate-100 dark:bg-black/30 border border-slate-200/50 dark:border-white/5 p-2 sm:p-3 rounded-xl text-center">
-                        <p className="text-[8px] font-mono font-black text-zinc-500 dark:text-zinc-400 uppercase">Registration</p>
-                        <p className="text-xs font-black text-gfg-primary dark:text-[#00ff88] uppercase">OPEN</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions CTAs */}
-                  <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 pt-4 border-t border-theme-border/40">
-                    <a
-                      href={evt.registration_link || evt.registrationLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-[#00ff88] hover:bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl transition-all"
-                    >
-                      {(evt.id === "evt_intellify" || evt.title?.toLowerCase().includes("intellify")) ? "Register on Unstop" : "Register Now"} 
-                      <ArrowRight className="w-3.5 h-3.5 ml-2" />
-                    </a>
-
-                    {(evt.id === "evt_intellify" || evt.title?.toLowerCase().includes("intellify")) ? (
-                      <a
-                        href={evt.registration_link || evt.registrationLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-theme-border text-xs font-black uppercase tracking-widest text-theme-text rounded-xl transition-all"
-                      >
-                        View Event Details
-                      </a>
-                    ) : (
-                      <Link
-                        to="/events"
-                        className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-theme-border text-xs font-black uppercase tracking-widest text-theme-text rounded-xl transition-all"
-                      >
-                        Learn More details
-                      </Link>
-                    )}
-                  </div>
+                  <Link
+                    to="/events"
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-theme-border text-xs font-black uppercase tracking-widest text-theme-text rounded-xl transition-all duration-300"
+                  >
+                    <span>View Details</span>
+                  </Link>
                 </div>
 
               </div>
             </div>
           </div>
-        </section>
-      ))}
+        </div>
+      </section>
 
       {/* Featured Courses Section */}
       <section className="py-24 sm:py-32 bg-theme-bg border-b border-theme-border relative">

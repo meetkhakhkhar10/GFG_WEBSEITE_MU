@@ -3,7 +3,7 @@ import { cn } from "@/src/lib/utils";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/src/contexts/ThemeContext";
-import ThemeCube from "@/src/components/ThemeCube";
+import ThemeSelector from "@/src/components/ThemeSelector";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -123,9 +123,9 @@ export default function Navbar() {
               COMMUNITY
             </a>
 
-            {/* Modern Uiverse 3D Cube Theme Switch Toggle */}
+            {/* Premium Day/Night Theme Switch Selector */}
             <div className="flex items-center justify-center shrink-0" id="desktop-theme-toggle">
-              <ThemeCube />
+              <ThemeSelector />
             </div>
 
             <a 
@@ -151,9 +151,9 @@ export default function Navbar() {
           {/* Right: Mobile Controls containing Theme Toggle & Hamburger */}
           <div className="lg:hidden flex items-center space-x-2">
             
-            {/* Modern 3D Cube Theme Switch Toggle on Mobile */}
-            <div className="flex items-center justify-center shrink-0 scale-90" id="mobile-theme-toggle">
-              <ThemeCube />
+            {/* Premium Day/Night Theme Switch Selector on Mobile */}
+            <div className="flex items-center justify-center shrink-0" id="mobile-theme-toggle">
+              <ThemeSelector />
             </div>
 
             <button

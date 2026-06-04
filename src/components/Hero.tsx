@@ -168,18 +168,6 @@ export default function Hero() {
               />
             </div>
 
-            {/* Premium Glass Divider */}
-            <div className="h-[1.5px] w-12 bg-white/10 sm:h-9 sm:w-[1px] shrink-0" />
-            
-            {/* High-Contrast gold NAAC-Accredited Badge */}
-            <div className="flex items-center space-x-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/25 text-amber-400 rounded-xl sm:rounded-2xl font-mono font-black text-[7.5px] sm:text-[9px] tracking-wider shadow-[0_0_15px_rgba(245,158,11,0.12)] hover:border-amber-400 transition-colors duration-300">
-              <Award className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-amber-400 shrink-0 animate-pulse" />
-              <div className="flex flex-col items-start leading-none text-left">
-                <span className="font-sans font-black text-[8px] sm:text-[10px] tracking-tight">NAAC GRADE A+</span>
-                <span className="text-[6.5px] sm:text-[7.5px] text-amber-400/70 font-medium">ACCREDITED UNIVERSITY</span>
-              </div>
-            </div>
-
           </motion.div>
         </motion.div>
 

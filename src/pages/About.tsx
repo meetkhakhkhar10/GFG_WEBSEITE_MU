@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router-dom";
+import JourneyTrack from "@/src/components/JourneyTrack";
 import {
   BookOpen,
   Code2,
@@ -53,53 +54,7 @@ function AnimatedCounter({ value, duration = 1500 }: { value: string; duration?:
 }
 
 export default function About() {
-  const [activeStep, setActiveStep] = useState(0);
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
-
-  const journeySteps = [
-    {
-      title: "Join The Community",
-      short: "Become part of GFG MU.",
-      desc: "Step into an incredible ecosystem of tech enthusiasts. Attend our orientation, receive your introductory kit, and connect with peers.",
-      accent: "from-emerald-500 to-green-400"
-    },
-    {
-      title: "Learn New Skills",
-      short: "Master professional topics.",
-      desc: "Participate in guided peer-learning circles, deep-dive coding hours, and DSA study tracks tailored for both beginners and experts.",
-      accent: "from-green-400 to-teal-500"
-    },
-    {
-      title: "Participate In Events",
-      short: "Test your boundaries.",
-      desc: "Enter coding contests, competitive hackathons, industry webinars, and tech festivals where you apply your knowledge on a timer.",
-      accent: "from-teal-500 to-cyan-400"
-    },
-    {
-      title: "Build Amazing Projects",
-      short: "Transform code into solutions.",
-      desc: "Collaborate in team sprints to develop open-source systems, mobile apps, and full-stack solutions that solve real community challenges.",
-      accent: "from-cyan-400 to-blue-500"
-    },
-    {
-      title: "Connect With Mentors",
-      short: "Receive elite coaching.",
-      desc: "Get industry guidance from GFG alumni, senior leaders, and partner developers who review your code and offer career pathways.",
-      accent: "from-blue-500 to-indigo-500"
-    },
-    {
-      title: "Become A Leader",
-      short: "Guide the next wave.",
-      desc: "Gain organizational superpowers. Run technical chapters, host events, mentor freshers, and manage global club initiatives.",
-      accent: "from-indigo-500 to-purple-500"
-    },
-    {
-      title: "Launch Your Career",
-      short: "Step onto the big stage.",
-      desc: "Leverage resume-building clinics, interview mockups, exclusive referral networks, and placement partnerships to land your dream job.",
-      accent: "from-purple-500 to-emerald-500"
-    }
-  ];
 
   const specialtyCards = [
     {
@@ -366,100 +321,18 @@ export default function About() {
 
         {/* CLUB JOURNEY SECTION */}
         <div className="mb-32">
-          <div className="text-center mb-16 max-w-2xl mx-auto">
+          <div className="text-center mb-10 max-w-2xl mx-auto">
             <span className="text-gfg-primary text-xs font-mono font-black tracking-widest uppercase mb-3 block">ROADMAP MATRIX</span>
-            <h2 className="text-3xl md:text-5xl font-black text-theme-text uppercase tracking-tight">
+            <img src="/gfg-logo.svg" className="hidden" alt="hidden-trigger" />
+            <h2 className="text-3xl md:text-5xl font-black text-theme-text uppercase tracking-tight mb-3">
               YOUR JOURNEY WITH <span className="text-gfg-primary">GFG MU</span>
             </h2>
-            <p className="text-theme-text-muted mt-3 text-xs uppercase font-mono tracking-widest">
+            <p className="text-theme-text-muted text-xs uppercase font-mono tracking-widest">
               An epic 7-step formula where raw curiosity converts into high-impact leadership.
             </p>
           </div>
 
-          {/* Graphical Timeline / Roadmap Card */}
-          <div className="p-8 md:p-12 rounded-[3.5rem] bg-theme-bg-secondary border border-theme-border relative overflow-hidden shadow-sm">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gfg-primary/5 rounded-full blur-[140px] pointer-events-none" />
-            
-            {/* Steps Bubble Navigation (Horizontal Row in Big Screen, stack in Mobile) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-10 relative z-10 border-b border-theme-border pb-8">
-              {journeySteps.map((step, idx) => (
-                <button
-                  key={step.title}
-                  type="button"
-                  onClick={() => setActiveStep(idx)}
-                  className={`p-3 md:p-4 rounded-2xl border text-center transition-all duration-300 group flex flex-col justify-center items-center relative ${
-                    activeStep === idx
-                      ? "bg-gfg-primary/10 border-gfg-primary/40 text-gfg-primary"
-                      : "bg-theme-bg/50 border-theme-border/60 hover:border-gfg-primary/35 text-theme-text-muted hover:text-theme-text"
-                  }`}
-                >
-                  {/* Step No */}
-                  <span className={`text-[10px] font-mono font-black tracking-widest uppercase block ${
-                    activeStep === idx ? "text-gfg-primary" : "text-theme-text-muted/60"
-                  }`}>
-                    STEP 0{idx + 1}
-                  </span>
-                  
-                  {/* Miniature Circle */}
-                  <div className={`w-2.5 h-2.5 rounded-full my-2 transition-all duration-300 ${
-                    activeStep === idx 
-                      ? "bg-gfg-primary shadow-[0_0_8px_#00ff88]" 
-                      : "bg-theme-text-muted/20 group-hover:bg-gfg-primary/40"
-                  }`} />
-                  
-                  <h4 className="text-[10px] font-mono font-black uppercase tracking-wider line-clamp-1">
-                    {step.title.split(" ")[0]} {step.title.split(" ")[1] || ""}
-                  </h4>
-                </button>
-              ))}
-            </div>
-
-            {/* Selected Step Description Board */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeStep}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.4 }}
-                className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10"
-              >
-                <div className="md:col-span-4 text-left">
-                  {/* Huge Index Counter */}
-                  <span className="text-7xl md:text-9xl font-black font-mono tracking-tighter opacity-10 bg-clip-text text-transparent bg-gradient-to-r from-gfg-primary to-transparent leading-none">
-                    0{activeStep + 1}
-                  </span>
-                  <div className="-mt-6 md:-mt-10">
-                    <span className="text-xs font-mono font-black tracking-widest text-gfg-primary uppercase block">MILESTONE GATEWAY</span>
-                    <h3 className="text-2xl md:text-4xl font-black text-theme-text uppercase tracking-tight mt-1">
-                      {journeySteps[activeStep].title}
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="md:col-span-8 text-left md:border-l border-theme-border md:pl-10">
-                  <p className="text-theme-text-secondary text-base font-semibold leading-relaxed mb-6">
-                    "{journeySteps[activeStep].short}"
-                  </p>
-                  <p className="text-theme-text-muted text-sm md:text-base leading-relaxed font-medium">
-                    {journeySteps[activeStep].desc}
-                  </p>
-                  
-                  {/* Mini Bullet Indicator Progress Bar */}
-                  <div className="flex gap-1.5 mt-8 items-center">
-                    {journeySteps.map((_, i) => (
-                      <div
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          i === activeStep ? "w-10 bg-gfg-primary" : "w-2.5 bg-theme-border"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          <JourneyTrack />
         </div>
 
         {/* CLUB CULTURE SECTION */}

@@ -23,7 +23,6 @@ import { useAuth } from "@/src/contexts/AuthContext";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
-import ThemeCube from "@/src/components/ThemeCube";
 
 // Fully populated Resource Data matching requirements
 interface Resource {
