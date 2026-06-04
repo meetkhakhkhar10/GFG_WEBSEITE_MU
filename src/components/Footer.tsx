@@ -101,6 +101,9 @@ export default function Footer() {
               <li>
                 <Link to="/contact" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Contact</Link>
               </li>
+              <li>
+                <Link to="/deploy" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Netlify Deploy</Link>
+              </li>
             </ul>
           </div>
 

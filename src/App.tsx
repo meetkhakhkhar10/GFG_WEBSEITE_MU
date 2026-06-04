@@ -7,6 +7,7 @@ import Events from "@/src/pages/Events";
 import Contact from "@/src/pages/Contact";
 import Courses from "@/src/pages/Courses";
 import Team from "@/src/pages/Team";
+import NetlifyDeploy from "@/src/pages/NetlifyDeploy";
 import StudentDashboard from "@/src/pages/student/StudentDashboard";
 import Login from "@/src/pages/admin/Login";
 import Dashboard from "@/src/pages/admin/Dashboard";
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="courses" element={<Courses />} />
             <Route path="resources" element={<StudentDashboard />} />
             <Route path="team" element={<Team />} />
+            <Route path="deploy" element={<NetlifyDeploy />} />
           </Route>
 
           {/* Student Portal redirects to public resources */}
