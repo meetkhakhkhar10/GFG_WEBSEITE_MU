@@ -79,7 +79,7 @@ export default function Team() {
               <div className="relative shrink-0 w-44 h-44 rounded-full p-1 bg-gradient-to-tr from-[#00ff88]/30 via-transparent to-white/10 group-hover:from-[#00ff88] transition-all duration-700">
                 <div className="w-full h-full rounded-full overflow-hidden bg-black/40 border border-white/15">
                   <img 
-                    src="https://media.licdn.com/dms/image/v2/D5603AQHZ1_NcFRFxsA/profile-displayphoto-crop_800_800/B56ZraxYpMHAAM-/0/1764606972119?e=1784764800&v=beta&t=SUwbZFXozyJK47Ef8Sa6VlJN4SQ1RIBlWRvIWxe0OBM"
+                    src="https://github.com/meetkhakhkhar10/GFG_WEBSEITE_MU/blob/main/src/pages/student/Meet_Khakhkhar_photo.jpg"
                     alt="Meet Khakhkhar"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
