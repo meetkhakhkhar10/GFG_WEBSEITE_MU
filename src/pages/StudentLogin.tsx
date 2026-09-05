@@ -25,7 +25,7 @@ export default function StudentLogin() {
   const [muLogoLoading, setMuLogoLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "GFG Student Login | GeeksforGeeks on Campus MU";
+    document.title = "GFG| GeeksforGeeks Marwadi University";
   }, []);
 
   const handleGoogleSignIn = async () => {
