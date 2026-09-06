@@ -4,6 +4,7 @@ import {
   Github, Linkedin, Twitter, Users, ArrowRight, Mail, Globe, 
   Terminal, Sparkles, Loader2, Compass
 } from "lucide-react";
+import { gasApi } from "../services/gasApi";
 
 export default function Team() {
   const [members, setMembers] = useState<any[]>([]);
@@ -12,14 +13,20 @@ export default function Team() {
   useEffect(() => {
     async function loadTeam() {
       try {
-        const response = await fetch("/api/team");
-        const data = await response.json();
-        if (data.success) {
-          // Sort or filter: keep active
-          setMembers(data.data || []);
+        // Fetch active team members from Google Apps Script Web App
+        const res = await gasApi.getTeam();
+        if (res.success && Array.isArray(res.team) && res.team.length > 0) {
+          setMembers(res.team);
+        } else {
+          // Fallback to local endpoint if needed
+          const response = await fetch("/api/team");
+          const data = await response.json();
+          if (data.success) {
+            setMembers(data.data || []);
+          }
         }
       } catch (err) {
-        console.error("Failed to fetch dynamic core team directory:", err);
+        console.warn("Dynamic core team directory notice:", err);
       } finally {
         setLoading(false);
       }
@@ -27,12 +34,17 @@ export default function Team() {
     loadTeam();
   }, []);
 
-  // Filter out Meet Khakhkhar from dynamic list to avoid duplication of top spotlight
-  const coreCommittee = members.filter(
-    (m) => 
-      m.active !== false && 
-      m.name?.toLowerCase().trim() !== "meet khakhkhar"
-  );
+  // Filter out spotlighted leaders from dynamic list to avoid duplication
+  const coreCommittee = members.filter((m) => {
+    if (m.active === false) return false;
+    const name = (m.name || "").toLowerCase().trim();
+    return (
+      name !== "meet khakhkhar" &&
+      name !== "ravi gohel" &&
+      name !== "sri vyshnavi y" &&
+      name !== "sri vyshnavi"
+    );
+  });
 
   return (
     <motion.div
@@ -163,6 +175,100 @@ export default function Team() {
               </div>
             </div>
           </motion.div>
+        </div>
+
+        {/* SECTION: CAMPUS MANTRI 2026 */}
+        <div className="mb-24">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center space-x-2 px-4 py-1.5 mb-4 text-[10px] font-black tracking-widest text-[#00ff88] uppercase bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full shadow-sm font-mono">
+              <Sparkles className="w-3.5 h-3.5 text-[#00ff88]" />
+              <span>Leadership Category</span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold uppercase text-white tracking-widest font-mono">
+              CAMPUS MANTRI <span className="text-[#00ff88]">2026</span>
+            </h2>
+            <div className="w-28 h-1 bg-[#00ff88] mx-auto mt-4 rounded-full opacity-70" />
+            <p className="text-white/50 max-w-xl mx-auto text-xs md:text-sm mt-3 font-semibold">
+              Official Campus Mantri leaders selected for the 2026 tenure at GeeksforGeeks Marwadi University Chapter.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* 1. Ravi Gohel */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative p-8 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-[#0c0c0c] via-black to-[#0e0e0e] border border-white/10 hover:border-[#00ff88]/30 transition-all shadow-2xl overflow-hidden group flex flex-col items-center text-center"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00ff88]/5 blur-3xl rounded-full pointer-events-none" />
+
+              {/* Profile Photo - Ravi Gohel */}
+              <div className="relative w-36 h-36 rounded-full p-1 bg-gradient-to-tr from-[#00ff88]/40 via-transparent to-white/10 group-hover:from-[#00ff88] transition-all duration-700 mb-6">
+                <div className="w-full h-full rounded-full overflow-hidden bg-black/40 border border-white/15">
+                  <img 
+                    src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/1788464711991.png"
+                    alt="Ravi Gohel"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <span className="absolute bottom-1 right-1 w-4 h-4 bg-[#00ff88] rounded-full border-4 border-[#070707] animate-pulse" />
+              </div>
+
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-md mb-3">
+                <span className="text-[9px] font-black uppercase tracking-wider text-[#00ff88] font-mono">Campus Mantri 2026</span>
+              </div>
+
+              <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-1">
+                Ravi Gohel
+              </h3>
+              <p className="text-[#00ff88] text-xs font-mono font-bold tracking-wider uppercase mb-3">
+                Campus Mantri 2026 | GFG MU Chapter
+              </p>
+              <p className="text-white/60 text-xs font-medium leading-relaxed max-w-sm">
+                Empowering the campus community with technical skills, mentoring, competitive programming, and collaborative innovation.
+              </p>
+            </motion.div>
+
+            {/* 2. Sri Vyshnavi Y */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="relative p-8 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-[#0c0c0c] via-black to-[#0e0e0e] border border-white/10 hover:border-[#00ff88]/30 transition-all shadow-2xl overflow-hidden group flex flex-col items-center text-center"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00ff88]/5 blur-3xl rounded-full pointer-events-none" />
+
+              {/* Profile Photo - Sri Vyshnavi Y */}
+              <div className="relative w-36 h-36 rounded-full p-1 bg-gradient-to-tr from-[#00ff88]/40 via-transparent to-white/10 group-hover:from-[#00ff88] transition-all duration-700 mb-6">
+                <div className="w-full h-full rounded-full overflow-hidden bg-black/40 border border-white/15">
+                  <img 
+                    src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/bf037374-c847-4e3a-8dd2-1cb5496da19b.png"
+                    alt="Sri Vyshnavi Y"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <span className="absolute bottom-1 right-1 w-4 h-4 bg-[#00ff88] rounded-full border-4 border-[#070707] animate-pulse" />
+              </div>
+
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-md mb-3">
+                <span className="text-[9px] font-black uppercase tracking-wider text-[#00ff88] font-mono">Campus Mantri 2026</span>
+              </div>
+
+              <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-1">
+                Sri Vyshnavi Y
+              </h3>
+              <p className="text-[#00ff88] text-xs font-mono font-bold tracking-wider uppercase mb-3">
+                Campus Mantri 2026 | GFG MU Chapter
+              </p>
+              <p className="text-white/60 text-xs font-medium leading-relaxed max-w-sm">
+                Championing student development, organizing flagship hackathons, and fostering an inclusive environment for developers.
+              </p>
+            </motion.div>
+          </div>
         </div>
 
         {/* SECTION 3 & TEAM LISTING AREA */}

@@ -1,5 +1,6 @@
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { firestoreDb, isFirebaseActive } from "../services/firebaseDb";
+import { gasApi } from "../services/gasApi";
 
 export interface EventDocument {
   id?: string;
@@ -119,10 +120,53 @@ export function subscribeToEvents(callback: (events: EventDocument[]) => void): 
     }
   }
 
-  // Fallback to local memory / REST fetch
+  // Fetch from Google Apps Script Web App with fallback to local memory / REST fetch
   let active = true;
   const poll = async () => {
     try {
+      // 1. Try Google Apps Script Web App
+      const gasRes = await gasApi.getEvents();
+      if (active && gasRes.success && Array.isArray(gasRes.events) && gasRes.events.length > 0) {
+        const normalized: EventDocument[] = gasRes.events.map((e) => {
+          const docItem: EventDocument = {
+            id: e.id,
+            eventId: e.id,
+            title: e.title,
+            category: e.category || "General",
+            description: e.description,
+            bannerImage: e.poster_url,
+            startDate: e.date,
+            endDate: e.date,
+            startTime: e.time || "10:00",
+            endTime: "18:00",
+            venue: e.location,
+            registrationLink: e.registration_link,
+            maxParticipants: e.capacity || 100,
+            organizer: e.organizer_name || "GFG MU Chapter",
+            status: (e.status?.toLowerCase() as any) || "upcoming",
+            featured: e.is_featured === true,
+            visibility: e.is_published !== false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            approvedBySuperAdmin: true,
+            poster_url: e.poster_url,
+            location: e.location,
+            registration_link: e.registration_link,
+            date: e.date,
+            time: e.time || "10:00 AM - 06:00 PM"
+          };
+          docItem.status = getEventStatus(docItem);
+          return docItem;
+        });
+        callback(normalized);
+        return;
+      }
+    } catch (gasErr) {
+      console.warn("GAS Events fetch note:", gasErr);
+    }
+
+    try {
+      // 2. Fallback to local server /api/events
       const res = await fetch("/api/events");
       const json = await res.json();
       if (active && json.success) {

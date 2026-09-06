@@ -35,7 +35,6 @@ import { useAuth } from "@/src/contexts/AuthContext";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
-import ThemeSelector from "@/src/components/ThemeSelector";
 import { apiService } from "../../services/apiService";
 
 // Standard GeeksforGeeks and Academic Palette constants
@@ -110,7 +109,7 @@ const GFG_COURSES = [
 
 export default function StudentPortal() {
   const { user, isAuthenticated, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   // Tab State: "dashboard", "events", "submissions", "resources", "team"
@@ -175,7 +174,6 @@ export default function StudentPortal() {
   const [searchResourceQuery, setSearchResourceQuery] = useState("");
 
   // UI responsive sizes helper
-  const isDark = theme === "dark";
 
   // Trigger temporary success feedback
   const showToast = (msg: string) => {
@@ -448,7 +446,6 @@ export default function StudentPortal() {
 
         <div className="flex items-center space-x-3">
           {/* Premium Day/Night Theme Switch Selector */}
-          <ThemeSelector />
 
           {/* Hamburger trigger */}
           <button
@@ -556,7 +553,6 @@ export default function StudentPortal() {
           {/* Premium Day/Night Theme Switch Selector */}
           <div className="hidden lg:flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] dark:bg-[#1E293B] border border-[#E5E7EB] dark:border-[#334155]">
             <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">Portal Theme</span>
-            <ThemeSelector />
           </div>
 
           <button

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "dark";
 
 interface ThemeContextType {
   theme: Theme;
@@ -10,34 +10,19 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Light is the default if not specified
-    const saved = localStorage.getItem("theme");
-    if (saved === "light" || saved === "dark") {
-      return saved;
-    }
-    return "light";
-  });
-
   useEffect(() => {
     const root = window.document.documentElement;
-    // Add/remove class to root elements so Tailwind & CSS base styles pick it up
-    if (theme === "dark") {
-      root.classList.add("dark");
-      root.classList.remove("light");
-    } else {
-      root.classList.add("light");
-      root.classList.remove("dark");
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+    root.classList.add("dark");
+    root.classList.remove("light");
+    localStorage.setItem("theme", "dark");
+  }, []);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    // No-op, dark theme is permanent
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: "dark", toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

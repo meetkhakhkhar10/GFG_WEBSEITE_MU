@@ -1,19 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  --theme-bg: #FFFFFF;
-  --theme-bg-secondary: #F8FAFC;
-  --theme-bg-tertiary: #F1F5F9;
-  --theme-text: #111827;
-  --theme-text-muted: #475569;
-  --theme-text-secondary: #334155;
-  --theme-border: #E5E7EB;
-  --theme-card: #FFFFFF;
-  --gfg-primary: #2F8D46; /* GeeksforGeeks primary green */
-  --gfg-primary-neon: #32994C;
-}
-
-.dark {
   --theme-bg: #030B1A;
   --theme-bg-secondary: #071629;
   --theme-bg-tertiary: #051226;
@@ -57,7 +44,6 @@
     -moz-user-select: none !important;
     -ms-user-select: none !important;
   }
-
   * {
     user-select: none !important;
     -webkit-user-select: none !important;

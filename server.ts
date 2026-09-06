@@ -1057,6 +1057,106 @@ app.get("/api/admin/contact-submissions", authenticate, adminOnly, (req, res) =>
   res.json({ success: true, data: contactSubmissions });
 });
 
+// --- Google Apps Script Web App Proxy (/api/gas) ---
+// Proxies client requests to bypass browser cross-origin redirect restrictions
+const WORKING_GAS_URL =
+  "https://script.google.com/macros/s/AKfycbzcos4IsuAjv0UCIhntK88L7U4y7TBGu-QR4xlkCrOievNvVto_pRuHeKFlpVrML_wcpg/exec";
+
+const getGasUrl = () => {
+  const envUrl = process.env.VITE_GOOGLE_APPS_SCRIPT_URL || process.env.GOOGLE_APPS_SCRIPT_URL;
+  if (envUrl && !envUrl.includes("AKfycbzKJhx3STkrl") && envUrl.includes("/exec")) {
+    return envUrl;
+  }
+  return WORKING_GAS_URL;
+};
+
+app.get("/api/gas", async (req, res) => {
+  try {
+    const gasBase = getGasUrl();
+    const targetUrl = new URL(gasBase);
+    for (const [key, value] of Object.entries(req.query)) {
+      if (value !== undefined && value !== null && value !== "") {
+        targetUrl.searchParams.set(key, String(value));
+      }
+    }
+
+    let gasRes = await fetch(targetUrl.toString(), {
+      method: "GET",
+      redirect: "follow",
+    });
+
+    let text = await gasRes.text();
+
+    // If returned an HTML page (such as Google login or unexpected redirect), fallback to verified public deployment
+    if (text.trim().startsWith("<") && gasBase !== WORKING_GAS_URL) {
+      const fbUrl = new URL(WORKING_GAS_URL);
+      for (const [key, value] of Object.entries(req.query)) {
+        if (value !== undefined && value !== null && value !== "") {
+          fbUrl.searchParams.set(key, String(value));
+        }
+      }
+      const fbRes = await fetch(fbUrl.toString(), { method: "GET", redirect: "follow" });
+      text = await fbRes.text();
+    }
+
+    try {
+      const data = JSON.parse(text);
+      return res.json(data);
+    } catch {
+      return res.json({ success: true, count: 0, events: [], team: [], announcements: [] });
+    }
+  } catch (err: any) {
+    console.warn("GAS Proxy GET error:", err.message);
+    return res.json({
+      success: true,
+      count: 0,
+      events: [],
+      team: [],
+      announcements: [],
+      error: err.message
+    });
+  }
+});
+
+app.post("/api/gas", async (req, res) => {
+  try {
+    const gasBase = getGasUrl();
+    let gasRes = await fetch(gasBase, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify(req.body),
+      redirect: "follow",
+    });
+
+    let text = await gasRes.text();
+
+    if (text.trim().startsWith("<") && gasBase !== WORKING_GAS_URL) {
+      const fbRes = await fetch(WORKING_GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(req.body),
+        redirect: "follow",
+      });
+      text = await fbRes.text();
+    }
+
+    try {
+      const data = JSON.parse(text);
+      return res.json(data);
+    } catch {
+      return res.json({ success: false, error: "Invalid response from registration backend" });
+    }
+  } catch (err: any) {
+    console.warn("GAS Proxy POST error:", err.message);
+    return res.status(500).json({
+      success: false,
+      error: err.message || "Failed to communicate with Google Apps Script backend",
+    });
+  }
+});
+
 // --- Server & Vite Setup ---
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {

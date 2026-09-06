@@ -2,8 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useTheme } from "@/src/contexts/ThemeContext";
-import ThemeSelector from "@/src/components/ThemeSelector";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -21,16 +19,10 @@ const MU_LOGO = "https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const currentGfgLogo = theme === "dark" 
-    ? "https://raw.githubusercontent.com/GeeksforGeeks-Student-Chapter-MU/assets/main/gfg_logo.png"
-    : "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png";
-
-  const currentMuLogo = theme === "dark"
-    ? "https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png"
-    : "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg";
+  const currentGfgLogo = "https://raw.githubusercontent.com/GeeksforGeeks-Student-Chapter-MU/assets/main/gfg_logo.png";
+  const currentMuLogo = "https://www.marwadiuniversity.ac.in/wp-content/uploads/2021/04/Logo-1.png";
 
   useEffect(() => {
     const checkAdmin = () => {
@@ -123,11 +115,6 @@ export default function Navbar() {
               COMMUNITY
             </a>
 
-            {/* Premium Day/Night Theme Switch Selector */}
-            <div className="flex items-center justify-center shrink-0" id="desktop-theme-toggle">
-              <ThemeSelector />
-            </div>
-
             <a 
               href="https://www.marwadiuniversity.ac.in/" 
               target="_blank" 
@@ -148,14 +135,9 @@ export default function Navbar() {
             </a>
           </div>
 
-          {/* Right: Mobile Controls containing Theme Toggle & Hamburger */}
+          {/* Right: Mobile Controls containing Hamburger */}
           <div className="lg:hidden flex items-center space-x-2">
             
-            {/* Premium Day/Night Theme Switch Selector on Mobile */}
-            <div className="flex items-center justify-center shrink-0" id="mobile-theme-toggle">
-              <ThemeSelector />
-            </div>
-
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 text-theme-text hover:text-gfg-primary transition-colors cursor-pointer"

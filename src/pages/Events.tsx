@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useSearchParams } from "react-router-dom";
 import { 
   ArrowRight, Flame, Trophy, Terminal, Award, Cpu, 
   Calendar, MapPin, Users, Coins, Users2, Building2, 
-  Layers, CheckCircle, Clock, Info, X, MapPinned, Play
+  Layers, CheckCircle, Clock, Info, X, MapPinned, Play,
+  Loader2, Copy, Check, AlertTriangle, RefreshCw, Send, CheckCircle2,
+  Sparkles, ShieldCheck
 } from "lucide-react";
 import { subscribeToEvents } from "../utils/eventHelpers";
+import { gasApi, GasEvent, RegistrationPayload, RegistrationResult } from "../services/gasApi";
 
 interface EventItem {
   id: string;
   title: string;
   description: string;
   date: string;
+  time?: string;
   location: string;
   poster_url: string;
   poster_image?: string;
@@ -22,7 +27,7 @@ interface EventItem {
   is_featured?: boolean;
   category?: string;
   status?: string;
-  capacity?: string;
+  capacity?: string | number;
   registration_fee?: string;
   team_size?: string;
   prize_pool?: string;
@@ -37,10 +42,31 @@ interface EventItem {
 const INTELLIFY_REGISTRATION_URL = "https://unstop.com/hackathons/intellify-40-marwadi-university-mu-gujarat-1684922";
 
 export default function Events() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [eventsList, setEventsList] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedDetailEvent, setSelectedDetailEvent] = useState<EventItem | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"about" | "timeline" | "eligibility">("about");
+
+  // Registration Modal State
+  const [isRegModalOpen, setIsRegModalOpen] = useState(false);
+  const [regEvent, setRegEvent] = useState<EventItem | null>(null);
+  const [regSubmitting, setRegSubmitting] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regSuccessData, setRegSuccessData] = useState<RegistrationResult | null>(null);
+  const [copiedRegId, setCopiedRegId] = useState(false);
+  const [regForm, setRegForm] = useState<Omit<RegistrationPayload, "event_id">>({
+    name: "",
+    email: "",
+    phone: "",
+    enrollment_number: "",
+    department: "Computer Science & Engineering",
+    year: "3",
+    college: "Marwadi University",
+  });
 
   // Local fallback events exactly matching design requirement in case Firestore is not active
   const codejamEvents = [
@@ -77,55 +103,196 @@ export default function Events() {
     },
   ];
 
-  // Dynamic database subscription to sync instantly with CMS edits
-  useEffect(() => {
-    const unsub = subscribeToEvents((list) => {
-      // Filter out any older draft or deleted events
-      const activeEvents = list.map((e: any) => ({
-        id: e.id,
-        title: e.title,
-        description: e.description,
-        date: e.date || e.startDate,
-        location: e.location || e.venue,
-        poster_url: e.poster_url || e.bannerImage,
-        poster_image: e.poster_image || e.poster_url || e.bannerImage,
-        registration_link: (e.id === "evt_intellify" || e.title?.includes("Intellify")) ? INTELLIFY_REGISTRATION_URL : (e.registration_link || e.registrationLink || ""),
-        is_published: e.is_published !== false,
-        approvedBySuperAdmin: e.approvedBySuperAdmin !== false,
-        is_featured: e.is_featured || e.featured || false,
-        category: e.category,
-        status: e.status,
-        capacity: e.capacity,
-        registration_fee: e.registration_fee || "₹250",
-        team_size: e.team_size || "2–4 Members",
-        prize_pool: e.prize_pool || "₹3,40,000+",
-        eligibility: e.eligibility || "Engineering Students, Undergraduate Students, Postgraduate Students, Management Students, Medical Students, Law Students, Arts, Commerce, Science & Other Streams",
-        expected_participation: e.expected_participation || "600+ Students",
-        expected_colleges: e.expected_colleges || "150+ Colleges Across India",
-        organizer_name: e.organizer_name || e.organizer || "MU × GFG Student Chapter",
-        stages: e.stages || [
-          {
-            title: "Abstract Submission",
-            date: "16 June 2026 – 30 June 2026",
-            desc: "Teams must submit an abstract describing: Problem Statement, Proposed Solution, Innovation & Uniqueness, Expected Impact, Feasibility, Technologies Used"
-          },
-          {
-            title: "Concept Demonstration",
-            date: "05 July 2026 – 25 July 2026",
-            desc: "Shortlisted teams must submit a video presentation covering: Problem Understanding, Solution Approach, Algorithm Flow, System Architecture, Technical Workflow, Team Introduction"
-          },
-          {
-            title: "Grand Finale",
-            date: "15 August 2026 – 16 August 2026",
-            desc: "Finalists will develop and present a working prototype, project demonstration, and presentation before the evaluation panel at Marwadi University."
-          }
-        ]
-      }));
-      setEventsList(activeEvents);
+  // Fetch events from Google Apps Script Web App
+  const fetchGasEvents = async () => {
+    setLoading(true);
+    setApiError(null);
+    try {
+      const res = await gasApi.getEvents();
+      if (res.success && res.events) {
+        const mapped: EventItem[] = res.events.map((e: GasEvent) => ({
+          id: e.id,
+          title: e.title,
+          description: e.description,
+          date: e.date,
+          time: e.time,
+          location: e.location,
+          poster_url: e.poster_url,
+          poster_image: e.poster_image || e.poster_url,
+          registration_link: e.registration_link || INTELLIFY_REGISTRATION_URL,
+          is_published: e.is_published !== false,
+          approvedBySuperAdmin: true,
+          is_featured: e.is_featured,
+          category: e.category || "Hackathon / Workshop",
+          status: e.status || "Upcoming",
+          capacity: e.capacity,
+          registration_fee: e.registration_fee || "Free",
+          team_size: e.team_size || "1–4 Members",
+          prize_pool: e.prize_pool || "Exciting Certificates & Swag",
+          eligibility: e.eligibility || "All MU & External College Students",
+          expected_participation: e.expected_participation,
+          expected_colleges: e.expected_colleges,
+          organizer_name: e.organizer_name || "GFG × Marwadi University Chapter",
+          organizer_email: e.organizer_email || "gfg@marwadiuniversity.ac.in",
+          stages: e.stages || [
+            {
+              title: "Registration & Abstract",
+              date: e.date,
+              desc: "Register team details and participate in the official chapter events."
+            }
+          ]
+        }));
+        if (mapped.length > 0) {
+          setEventsList(mapped);
+        }
+      } else if (!res.success && res.error) {
+        console.warn("GAS sync notice:", res.error);
+      }
+    } catch (err: any) {
+      console.warn("GAS Events load failed, checking fallback:", err);
+      setApiError(err.message || "Unable to reach Google Apps Script API");
+    } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGasEvents();
+
+    // Check if URL specifies an event ID: ?id=... or ?action=event&id=...
+    const eventIdFromUrl = searchParams.get("id");
+    if (eventIdFromUrl) {
+      handleOpenEventDetail(eventIdFromUrl);
+    }
+
+    // Dynamic database subscription for realtime fallback/compatibility
+    const unsub = subscribeToEvents((list) => {
+      if (list && list.length > 0) {
+        setEventsList(prev => {
+          if (prev.length === 0) {
+            return list.map((e: any) => ({
+              id: e.id,
+              title: e.title,
+              description: e.description,
+              date: e.date || e.startDate,
+              location: e.location || e.venue,
+              poster_url: e.poster_url || e.bannerImage,
+              poster_image: e.poster_image || e.poster_url || e.bannerImage,
+              registration_link: (e.id === "evt_intellify" || e.title?.includes("Intellify")) ? INTELLIFY_REGISTRATION_URL : (e.registration_link || e.registrationLink || ""),
+              is_published: e.is_published !== false,
+              approvedBySuperAdmin: e.approvedBySuperAdmin !== false,
+              is_featured: e.is_featured || e.featured || false,
+              category: e.category,
+              status: e.status,
+              capacity: e.capacity,
+              registration_fee: e.registration_fee || "₹250",
+              team_size: e.team_size || "2–4 Members",
+              prize_pool: e.prize_pool || "₹3,40,000+",
+              eligibility: e.eligibility || "Engineering Students, Undergraduate Students, Postgraduate Students, Management Students, Medical Students, Law Students, Arts, Commerce, Science & Other Streams",
+              expected_participation: e.expected_participation || "600+ Students",
+              expected_colleges: e.expected_colleges || "150+ Colleges Across India",
+              organizer_name: e.organizer_name || e.organizer || "MU × GFG Student Chapter",
+              stages: e.stages
+            }));
+          }
+          return prev;
+        });
+      }
     });
     return () => unsub();
-  }, []);
+  }, [searchParams]);
+
+  // Fetch single event by ID (GET ?action=event&id=EVENT_ID)
+  const handleOpenEventDetail = async (eventId: string, fallback?: EventItem) => {
+    if (fallback) {
+      setSelectedDetailEvent(fallback);
+    } else {
+      const match = eventsList.find(e => e.id === eventId);
+      if (match) setSelectedDetailEvent(match);
+    }
+    setIsDetailModalOpen(true);
+    setDetailLoading(true);
+
+    try {
+      const res = await gasApi.getEvent(eventId);
+      if (res.success && res.event) {
+        const e = res.event;
+        setSelectedDetailEvent({
+          id: e.id,
+          title: e.title,
+          description: e.description,
+          date: e.date,
+          time: e.time,
+          location: e.location,
+          poster_url: e.poster_url,
+          poster_image: e.poster_image || e.poster_url,
+          registration_link: e.registration_link || INTELLIFY_REGISTRATION_URL,
+          is_published: e.is_published !== false,
+          approvedBySuperAdmin: true,
+          is_featured: e.is_featured,
+          category: e.category || "Hackathon / Workshop",
+          status: e.status || "Upcoming",
+          capacity: e.capacity,
+          registration_fee: e.registration_fee || "Free",
+          team_size: e.team_size || "1–4 Members",
+          prize_pool: e.prize_pool || "Exciting Swag & Certificate",
+          eligibility: e.eligibility || "All College Students",
+          expected_participation: e.expected_participation,
+          expected_colleges: e.expected_colleges,
+          organizer_name: e.organizer_name || "GFG × Marwadi University Chapter",
+          organizer_email: e.organizer_email,
+          stages: e.stages
+        });
+      }
+    } catch (err) {
+      console.warn("Error fetching single event:", err);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  // Open Registration Modal
+  const handleOpenRegistration = (event: EventItem) => {
+    setRegEvent(event);
+    setRegError(null);
+    setRegSuccessData(null);
+    setCopiedRegId(false);
+    setIsRegModalOpen(true);
+  };
+
+  // Submit Registration via POST action=register
+  const handleRegistrationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regEvent) return;
+
+    setRegSubmitting(true);
+    setRegError(null);
+    setRegSuccessData(null);
+
+    const payload: RegistrationPayload = {
+      event_id: regEvent.id,
+      name: regForm.name.trim(),
+      email: regForm.email.trim(),
+      phone: regForm.phone.trim(),
+      enrollment_number: regForm.enrollment_number.trim(),
+      department: regForm.department.trim(),
+      year: regForm.year.trim(),
+      college: regForm.college.trim(),
+    };
+
+    try {
+      const res = await gasApi.registerForEvent(payload);
+      if (res.success) {
+        setRegSuccessData(res);
+      } else {
+        setRegError(res.error || "Registration request rejected by backend.");
+      }
+    } catch (err: any) {
+      setRegError(err.message || "Failed to send registration payload to Google Apps Script.");
+    } finally {
+      setRegSubmitting(false);
+    }
+  };
 
   // Find Intellify Event or Fallback to pre-populated schema
   const intellifyEvent: EventItem = eventsList.find(e => e.id === "evt_intellify" || e.title.includes("Intellify")) || {
@@ -290,16 +457,15 @@ export default function Events() {
                 </div>
 
                 {/* Event CTAs */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 mt-8 pt-6 border-t border-theme-border/40">
-                  <a
-                    href={INTELLIFY_REGISTRATION_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 pt-6 border-t border-theme-border/40">
+                  <button
+                    onClick={() => handleOpenRegistration(intellifyEvent)}
                     className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-[#00ff88] text-black font-black uppercase text-xs tracking-widest rounded-2xl hover:bg-white hover:shadow-[0_0_25px_rgba(0,255,136,0.25)] transition-all duration-300"
+                    id="intellify-quick-register-btn"
                   >
-                    <span>Register on Unstop</span>
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </a>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    <span>Quick Register</span>
+                  </button>
 
                   <a
                     href={INTELLIFY_REGISTRATION_URL}
@@ -307,14 +473,173 @@ export default function Events() {
                     rel="noopener noreferrer"
                     className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-white/5 border border-theme-border hover:bg-white/10 hover:border-white/25 text-theme-text font-black uppercase text-xs tracking-widest rounded-2xl transition-all"
                   >
+                    <span>Unstop Portal</span>
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </a>
+
+                  <button
+                    onClick={() => handleOpenEventDetail(intellifyEvent.id, intellifyEvent)}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-white/5 border border-theme-border hover:bg-white/10 hover:border-white/25 text-theme-text font-black uppercase text-xs tracking-widest rounded-2xl transition-all"
+                    id="intellify-details-btn"
+                  >
                     <Info className="w-4 h-4 mr-2" />
                     <span>View Event Details</span>
-                  </a>
+                  </button>
                 </div>
 
               </div>
             </div>
           </div>
+        </section>
+
+        {/* 1.5 PUBLISHED CHAPTER EVENTS (LIVE FROM GOOGLE APPS SCRIPT) */}
+        <section className="relative w-full max-w-6xl mx-auto" id="chapter-events-feed">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 border-b border-theme-border/60 pb-6">
+            <div>
+              <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/25 rounded-full text-[10px] font-mono font-bold text-[#00ff88] uppercase tracking-wider mb-2">
+                <span className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-ping" />
+                <span>Google Apps Script Sync</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white italic">
+                Chapter <span className="text-[#00ff88]">Events</span>
+              </h2>
+              <p className="text-theme-text-secondary text-xs sm:text-sm font-semibold mt-1">
+                Active events published and synchronized directly from the chapter Google Sheet database.
+              </p>
+            </div>
+            
+            <button
+              onClick={fetchGasEvents}
+              disabled={loading}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-mono font-bold transition-all disabled:opacity-50"
+              title="Sync with Google Apps Script"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#00ff88]" : ""}`} />
+              <span>{loading ? "Syncing..." : "Refresh Feed"}</span>
+            </button>
+          </div>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="p-6 rounded-[2rem] bg-theme-bg-secondary/40 border border-theme-border animate-pulse space-y-4">
+                  <div className="h-44 bg-white/5 rounded-2xl" />
+                  <div className="h-4 bg-white/10 rounded w-1/3" />
+                  <div className="h-6 bg-white/15 rounded w-3/4" />
+                  <div className="h-3 bg-white/5 rounded w-full" />
+                  <div className="h-10 bg-white/10 rounded-xl mt-4" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Error State */}
+          {!loading && apiError && (
+            <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <AlertTriangle className="w-6 h-6 text-rose-400 shrink-0" />
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider font-mono">Backend Synchronization Notice</p>
+                  <p className="text-xs text-rose-200/80 font-medium">{apiError}</p>
+                </div>
+              </div>
+              <button
+                onClick={fetchGasEvents}
+                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded-xl text-xs font-bold text-white transition-all shrink-0"
+              >
+                Retry Connection
+              </button>
+            </div>
+          )}
+
+          {/* Live Events Grid */}
+          {!loading && !apiError && eventsList.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {eventsList.map((evt) => (
+                <motion.div
+                  key={evt.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="group relative flex flex-col h-full bg-theme-bg-secondary/50 backdrop-blur-xl border border-theme-border rounded-[2rem] overflow-hidden hover:border-[#00ff88]/40 transition-all duration-300 shadow-xl"
+                >
+                  {/* Poster Image */}
+                  <div className="h-48 w-full relative bg-black/40 overflow-hidden">
+                    <img
+                      src={evt.poster_url || evt.poster_image}
+                      alt={evt.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                    
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                      <span className="px-2.5 py-1 bg-black/70 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-mono font-black uppercase text-[#00ff88] tracking-wider">
+                        {evt.category || "Event"}
+                      </span>
+                      {evt.status && (
+                        <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-full text-[9px] font-mono font-bold uppercase text-emerald-300">
+                          {evt.status}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-[11px] font-mono text-zinc-300">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-[#00ff88]" />
+                        {evt.date}
+                      </span>
+                      {evt.location && (
+                        <span className="flex items-center gap-1 truncate max-w-[150px]">
+                          <MapPin className="w-3.5 h-3.5 text-[#00ff88]" />
+                          {evt.location}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                    <div>
+                      <h3 className="text-xl font-black uppercase text-white tracking-tight leading-tight group-hover:text-[#00ff88] transition-colors">
+                        {evt.title}
+                      </h3>
+                      <p className="text-theme-text-secondary text-xs font-medium leading-relaxed mt-2 line-clamp-3">
+                        {evt.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-theme-border/60 flex items-center justify-between gap-3">
+                      <button
+                        onClick={() => handleOpenEventDetail(evt.id, evt)}
+                        className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white transition-all text-center"
+                      >
+                        Details
+                      </button>
+                      <button
+                        onClick={() => handleOpenRegistration(evt)}
+                        className="flex-1 py-2.5 px-3 bg-[#00ff88] hover:bg-white text-black font-black uppercase text-xs tracking-wider rounded-xl transition-all text-center flex items-center justify-center gap-1"
+                      >
+                        <span>Register</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && !apiError && eventsList.length === 0 && (
+            <div className="p-8 rounded-[2rem] bg-theme-bg-secondary/40 border border-theme-border text-center max-w-xl mx-auto space-y-3">
+              <Sparkles className="w-8 h-8 text-[#00ff88] mx-auto opacity-75" />
+              <h3 className="text-lg font-bold text-white uppercase">Backend Connected & Active</h3>
+              <p className="text-xs text-zinc-400 font-medium">
+                No extra events are currently published in the Google Sheet. Use our flagship registration buttons above or add rows to the Google Sheet backend!
+              </p>
+            </div>
+          )}
         </section>
 
         {/* 2. ICT CODEJAM SECTION */}
@@ -455,179 +780,487 @@ export default function Events() {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Split Content layout inside scrollable area */}
-              <div className="flex-grow overflow-y-auto w-full p-6 sm:p-10 md:p-12">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                  
-                  {/* Left Column: Visual Poster & Direct Details */}
-                  <div className="lg:col-span-5 space-y-6">
-                    <div className="aspect-[3/4] relative rounded-3xl overflow-hidden border border-theme-border shadow-xl bg-black">
-                      <img 
-                        src={intellifyEvent.poster_image} 
-                        alt="Intellify Poster" 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    </div>
+              {/* Dynamic Event Detail Content */}
+              {(() => {
+                const currentDetail = selectedDetailEvent || intellifyEvent;
+                return (
+                  <div className="flex-grow overflow-y-auto w-full p-6 sm:p-10 md:p-12">
+                    {detailLoading && (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center space-x-3">
+                        <Loader2 className="w-8 h-8 text-[#00ff88] animate-spin" />
+                        <span className="text-white text-xs font-mono font-bold uppercase tracking-wider">Syncing Event Details...</span>
+                      </div>
+                    )}
 
-                    {/* Collaboration Zone */}
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
-                      <p className="text-[10px] font-mono font-black text-[#00ff88] uppercase tracking-widest">Coordinated By</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                       
-                      <div className="flex flex-col space-y-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                            <Building2 className="w-5 h-5 text-emerald-400" />
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-mono text-zinc-400 leading-tight">Host University</p>
-                            <p className="text-xs font-black text-white uppercase">Marwadi University</p>
-                          </div>
+                      {/* Left Column: Visual Poster & Direct Details */}
+                      <div className="lg:col-span-5 space-y-6">
+                        <div className="aspect-[3/4] relative rounded-3xl overflow-hidden border border-theme-border shadow-xl bg-black">
+                          <img 
+                            src={currentDetail.poster_image || currentDetail.poster_url} 
+                            alt={currentDetail.title} 
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                         </div>
 
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                            <Trophy className="w-5 h-5 text-gfg-primary" />
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-mono text-zinc-400 leading-tight">Powered Engagement</p>
-                            <p className="text-xs font-black text-white uppercase">GeeksforGeeks MU Chapter</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Tabbed Content & Timelines */}
-                  <div className="lg:col-span-7 flex flex-col justify-between space-y-8">
-                    <div className="space-y-6">
-                      
-                      {/* Meta header */}
-                      <div>
-                        <span className="px-3.5 py-1.5 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full text-[9px] font-mono font-black uppercase text-[#00ff88] tracking-widest">
-                          {intellifyEvent.category}
-                        </span>
-                        
-                        <h2 className="text-3xl sm:text-4xl font-extrabold uppercase italic tracking-tighter text-white mt-4 leading-none">
-                          {intellifyEvent.title}
-                        </h2>
-                        
-                        <p className="text-xs font-mono text-zinc-400 mt-2 flex items-center">
-                          <MapPin className="w-3.5 h-3.5 mr-1 text-[#00ff88]" /> {intellifyEvent.location}
-                        </p>
-                      </div>
-
-                      {/* Premium Tabs Selection */}
-                      <div className="flex border-b border-theme-border/60">
-                        {["about", "timeline", "eligibility"].map((tab) => (
-                          <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab as any)}
-                            className={`px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all transition-colors cursor-pointer ${
-                              activeTab === tab 
-                                ? "border-[#00ff88] text-[#00ff88]" 
-                                : "border-transparent text-zinc-400 hover:text-white"
-                            }`}
-                          >
-                            {tab}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Tab Content Display */}
-                      <div className="min-h-[220px]">
-                        {activeTab === "about" && (
-                          <div className="space-y-4">
-                            <p className="text-theme-text-secondary text-sm leading-relaxed font-semibold">
-                              Intellify 4.0 is the flagship national-level hackathon organized at Marwadi University on 15th–16th August 2026. Building upon the success of previous editions, Intellify has evolved into a platform that promotes innovation, collaboration, creativity, and technical excellence among students across India.
-                            </p>
-                            <p className="text-theme-text-secondary text-sm leading-relaxed font-semibold">
-                              The hackathon provides participants with an opportunity to solve real-world challenges through technology in a highly competitive environment. With participation expected from 600+ students representing 150+ colleges nationwide, Intellify 4.0 aims to create impactful solutions while fostering networking, learning, and innovation.
-                            </p>
-
-                            <div className="grid grid-cols-2 gap-4 pt-4">
-                              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center space-x-3">
-                                <Users2 className="w-5 h-5 text-emerald-400" />
-                                <div>
-                                  <p className="text-[10px] font-mono text-zinc-400">Total Entries</p>
-                                  <p className="text-xs font-black text-white uppercase">{intellifyEvent.expected_participation || "600+ Students"}</p>
-                                </div>
+                        {/* Collaboration Zone */}
+                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+                          <p className="text-[10px] font-mono font-black text-[#00ff88] uppercase tracking-widest">Event Coordination</p>
+                          
+                          <div className="flex flex-col space-y-3">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+                                <Building2 className="w-5 h-5 text-emerald-400" />
                               </div>
+                              <div>
+                                <p className="text-[11px] font-mono text-zinc-400 leading-tight">Organizer</p>
+                                <p className="text-xs font-black text-white uppercase">{currentDetail.organizer_name || "Marwadi University"}</p>
+                              </div>
+                            </div>
 
-                              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center space-x-3">
-                                <Building2 className="w-5 h-5 text-cyan-400" />
-                                <div>
-                                  <p className="text-[10px] font-mono text-zinc-400">Target Colleges</p>
-                                  <p className="text-xs font-black text-white uppercase">{intellifyEvent.expected_colleges || "150+ Nationwide"}</p>
-                                </div>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+                                <Trophy className="w-5 h-5 text-gfg-primary" />
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-mono text-zinc-400 leading-tight">Host Chapter</p>
+                                <p className="text-xs font-black text-white uppercase">GeeksforGeeks MU Chapter</p>
                               </div>
                             </div>
                           </div>
-                        )}
+                        </div>
+                      </div>
 
-                        {activeTab === "timeline" && (
-                          <div className="space-y-4 relative pl-4 border-l-2 border-emerald-500/10">
-                            {intellifyEvent.stages?.map((stage, idx) => (
-                              <div key={idx} className="relative space-y-1 pb-6 last:pb-0">
-                                {/* Chronos pin */}
-                                <div className="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full bg-[#00ff88] border-2 border-black" />
-                                
-                                <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-400 font-bold">
-                                  <span>Stage {idx + 1}: {stage.title}</span>
-                                  <span>•</span>
-                                  <span className="text-white/60">{stage.date}</span>
-                                </div>
-                                <p className="text-theme-text-secondary text-xs font-semibold leading-relaxed">
-                                  {stage.desc}
-                                </p>
-                              </div>
+                      {/* Right Column: Tabbed Content & Timelines */}
+                      <div className="lg:col-span-7 flex flex-col justify-between space-y-8">
+                        <div className="space-y-6">
+                          
+                          {/* Meta header */}
+                          <div>
+                            <span className="px-3.5 py-1.5 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full text-[9px] font-mono font-black uppercase text-[#00ff88] tracking-widest">
+                              {currentDetail.category || "Hackathon / Competition"}
+                            </span>
+                            
+                            <h2 className="text-3xl sm:text-4xl font-extrabold uppercase italic tracking-tighter text-white mt-4 leading-none">
+                              {currentDetail.title}
+                            </h2>
+                            
+                            <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-zinc-400 mt-3">
+                              <span className="flex items-center text-[#00ff88]">
+                                <Calendar className="w-3.5 h-3.5 mr-1" /> {currentDetail.date}
+                              </span>
+                              {currentDetail.time && (
+                                <span className="flex items-center">
+                                  <Clock className="w-3.5 h-3.5 mr-1 text-[#00ff88]" /> {currentDetail.time}
+                                </span>
+                              )}
+                              <span className="flex items-center">
+                                <MapPin className="w-3.5 h-3.5 mr-1 text-[#00ff88]" /> {currentDetail.location}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Premium Tabs Selection */}
+                          <div className="flex border-b border-theme-border/60">
+                            {["about", "timeline", "eligibility"].map((tab) => (
+                              <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab as any)}
+                                className={`px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+                                  activeTab === tab 
+                                    ? "border-[#00ff88] text-[#00ff88]" 
+                                    : "border-transparent text-zinc-400 hover:text-white"
+                                }`}
+                              >
+                                {tab}
+                              </button>
                             ))}
                           </div>
-                        )}
 
-                        {activeTab === "eligibility" && (
-                          <div className="space-y-4">
-                            <p className="text-xs font-mono text-zinc-400">Who can participate?</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {[
-                                "Engineering Students",
-                                "Undergraduate Students",
-                                "Postgraduate Students",
-                                "Management Students",
-                                "Medical Students",
-                                "Law Students",
-                                "Arts, Commerce, Science & Other Streams"
-                              ].map((item, index) => (
-                                <div key={index} className="flex items-center space-x-2.5 text-xs text-white bg-white/5 border border-white/5 p-3.5 rounded-xl">
-                                  <CheckCircle className="w-4 h-4 text-[#00ff88] shrink-0" />
-                                  <span className="font-semibold">{item}</span>
+                          {/* Tab Content Display */}
+                          <div className="min-h-[220px]">
+                            {activeTab === "about" && (
+                              <div className="space-y-4">
+                                <p className="text-theme-text-secondary text-sm leading-relaxed font-semibold whitespace-pre-line">
+                                  {currentDetail.description}
+                                </p>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4">
+                                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
+                                    <p className="text-[10px] font-mono text-zinc-400">Prize Pool</p>
+                                    <p className="text-xs font-black text-[#00ff88] uppercase">{currentDetail.prize_pool || "Exciting Swag"}</p>
+                                  </div>
+
+                                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
+                                    <p className="text-[10px] font-mono text-zinc-400">Team Size</p>
+                                    <p className="text-xs font-black text-white uppercase">{currentDetail.team_size || "1–4 Members"}</p>
+                                  </div>
+
+                                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 col-span-2 sm:col-span-1">
+                                    <p className="text-[10px] font-mono text-zinc-400">Registration Fee</p>
+                                    <p className="text-xs font-black text-white uppercase">{currentDetail.registration_fee || "Free"}</p>
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            )}
+
+                            {activeTab === "timeline" && (
+                              <div className="space-y-4 relative pl-4 border-l-2 border-emerald-500/10">
+                                {(currentDetail.stages && currentDetail.stages.length > 0 ? currentDetail.stages : [
+                                  { title: "Registration Window", date: currentDetail.date, desc: "Team registrations open on chapter portal." },
+                                  { title: "Event Day", date: currentDetail.date, desc: "Reporting at Marwadi University campus." }
+                                ]).map((stage, idx) => (
+                                  <div key={idx} className="relative space-y-1 pb-6 last:pb-0">
+                                    <div className="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full bg-[#00ff88] border-2 border-black" />
+                                    <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-400 font-bold">
+                                      <span>Stage {idx + 1}: {stage.title}</span>
+                                      <span>•</span>
+                                      <span className="text-white/60">{stage.date}</span>
+                                    </div>
+                                    <p className="text-theme-text-secondary text-xs font-semibold leading-relaxed">
+                                      {stage.desc}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {activeTab === "eligibility" && (
+                              <div className="space-y-4">
+                                <p className="text-xs font-mono text-zinc-400">{currentDetail.eligibility || "Open to all university students."}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {[
+                                    "Engineering Students",
+                                    "Undergraduate Students",
+                                    "Postgraduate Students",
+                                    "Computer Science & IT",
+                                    "Management & Sciences",
+                                    "All Universities Across India"
+                                  ].map((item, index) => (
+                                    <div key={index} className="flex items-center space-x-2.5 text-xs text-white bg-white/5 border border-white/5 p-3.5 rounded-xl">
+                                      <CheckCircle className="w-4 h-4 text-[#00ff88] shrink-0" />
+                                      <span className="font-semibold">{item}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
+
+                        </div>
+
+                        {/* Modal Action Buttons */}
+                        <div className="pt-6 border-t border-theme-border/60 flex flex-col sm:flex-row items-center gap-3">
+                          <button
+                            onClick={() => {
+                              setIsDetailModalOpen(false);
+                              handleOpenRegistration(currentDetail);
+                            }}
+                            className="w-full sm:w-1/2 inline-flex items-center justify-center px-8 py-4.5 bg-[#00ff88] hover:bg-white text-black font-black uppercase text-xs tracking-widest rounded-2xl hover:shadow-[0_0_20px_rgba(0,255,136,0.25)] transition-all duration-300"
+                            id="detail-modal-quick-reg-btn"
+                          >
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            <span>Quick Register</span>
+                          </button>
+
+                          {currentDetail.registration_link && (
+                            <a
+                              href={currentDetail.registration_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full sm:w-1/2 inline-flex items-center justify-center px-8 py-4.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black uppercase text-xs tracking-widest rounded-2xl transition-all duration-300"
+                            >
+                              <span>External Portal</span>
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </a>
+                          )}
+                        </div>
+
                       </div>
 
                     </div>
+                  </div>
+                );
+              })()}
 
-                    <div className="pt-6 border-t border-theme-border/60 flex flex-col sm:flex-row items-center gap-4">
-                      <a
-                        href={INTELLIFY_REGISTRATION_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center px-8 py-4.5 bg-[#00ff88] hover:bg-white text-black font-black uppercase text-xs tracking-widest rounded-2xl hover:shadow-[0_0_20px_rgba(0,255,136,0.25)] transition-all duration-300"
-                      >
-                        <span>Register on Unstop</span>
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </a>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 4. INTERACTIVE GOOGLE APPS SCRIPT REGISTRATION MODAL */}
+      <AnimatePresence>
+        {isRegModalOpen && regEvent && (
+          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                if (!regSubmitting) setIsRegModalOpen(false);
+              }}
+              className="fixed inset-0 bg-black/85 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-xl bg-[#0c141d] border border-theme-border rounded-[2.5rem] overflow-hidden shadow-2xl z-10 my-8 flex flex-col"
+            >
+              {/* Top Accent Line */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00ff88] via-emerald-400 to-[#00ff88]" />
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsRegModalOpen(false)}
+                disabled={regSubmitting}
+                className="absolute top-5 right-5 z-20 p-2.5 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full border border-white/10 transition-colors disabled:opacity-50"
+                id="close-reg-modal-btn"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="p-8 sm:p-10">
+                {/* Header info */}
+                <div className="mb-6">
+                  <span className="px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/25 rounded-full text-[9px] font-mono font-black uppercase text-[#00ff88] tracking-wider">
+                    Official Registration • {regEvent.category || "Event"}
+                  </span>
+                  <h3 className="text-2xl font-black uppercase tracking-tight text-white mt-2">
+                    {regEvent.title}
+                  </h3>
+                  <p className="text-xs text-zinc-400 font-mono mt-1">
+                    Date: {regEvent.date} {regEvent.time ? `• ${regEvent.time}` : ""}
+                  </p>
+                </div>
+
+                {/* SUCCESS STATE */}
+                {regSuccessData ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="space-y-6 text-center py-4"
+                  >
+                    <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center text-[#00ff88]">
+                      <CheckCircle2 className="w-10 h-10" />
                     </div>
 
-                  </div>
+                    <div>
+                      <h4 className="text-2xl font-black uppercase tracking-tight text-white">
+                        Registration Confirmed!
+                      </h4>
+                      <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
+                        Your registration has been securely synced to the Google Apps Script Web App backend.
+                      </p>
+                    </div>
 
-                </div>
+                    {/* Registration ID Details Card */}
+                    <div className="p-5 bg-white/5 border border-white/10 rounded-2xl text-left space-y-3">
+                      <div>
+                        <span className="text-[10px] font-mono text-zinc-400 uppercase">Registration ID</span>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-lg font-mono font-black text-[#00ff88]" id="reg-id-display">
+                            {regSuccessData.registration_id || `REG-${Date.now()}`}
+                          </span>
+                          <button
+                            onClick={() => {
+                              const idToCopy = regSuccessData.registration_id || "";
+                              navigator.clipboard.writeText(idToCopy);
+                              setCopiedRegId(true);
+                              setTimeout(() => setCopiedRegId(false), 2000);
+                            }}
+                            className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono text-zinc-300 flex items-center gap-1.5 transition-all"
+                            title="Copy Registration ID"
+                          >
+                            {copiedRegId ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-[#00ff88]" />
+                                <span className="text-[#00ff88]">Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copy</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5 text-xs">
+                        <div>
+                          <span className="text-[10px] font-mono text-zinc-400 uppercase">Participant</span>
+                          <p className="font-bold text-white mt-0.5">{regForm.name}</p>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-mono text-zinc-400 uppercase">Event</span>
+                          <p className="font-bold text-white mt-0.5 truncate">{regEvent.title}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setIsRegModalOpen(false);
+                        setRegSuccessData(null);
+                      }}
+                      className="w-full py-4 bg-[#00ff88] text-black font-black uppercase text-xs tracking-widest rounded-xl hover:bg-white transition-all shadow-lg"
+                    >
+                      Done
+                    </button>
+                  </motion.div>
+                ) : (
+                  /* REGISTRATION FORM */
+                  <form onSubmit={handleRegistrationSubmit} className="space-y-4">
+                    {/* Error Notice */}
+                    {regError && (
+                      <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                        <span>{regError}</span>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-name">
+                        Full Name *
+                      </label>
+                      <input
+                        id="reg-name"
+                        type="text"
+                        required
+                        value={regForm.name}
+                        onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
+                        placeholder="e.g. Meet Khakhkhar"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-email">
+                          Email Address *
+                        </label>
+                        <input
+                          id="reg-email"
+                          type="email"
+                          required
+                          value={regForm.email}
+                          onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
+                          placeholder="student@marwadiuniversity.ac.in"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-phone">
+                          Phone Number *
+                        </label>
+                        <input
+                          id="reg-phone"
+                          type="tel"
+                          required
+                          value={regForm.phone}
+                          onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
+                          placeholder="+91 98765 43210"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-enrollment">
+                          Enrollment No. *
+                        </label>
+                        <input
+                          id="reg-enrollment"
+                          type="text"
+                          required
+                          value={regForm.enrollment_number}
+                          onChange={(e) => setRegForm({ ...regForm, enrollment_number: e.target.value })}
+                          placeholder="e.g. 92200103001"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-year">
+                          Year of Study *
+                        </label>
+                        <select
+                          id="reg-year"
+                          value={regForm.year}
+                          onChange={(e) => setRegForm({ ...regForm, year: e.target.value })}
+                          className="w-full px-4 py-3 bg-[#111c27] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#00ff88] transition-colors"
+                        >
+                          <option value="1">1st Year (Freshman)</option>
+                          <option value="2">2nd Year (Sophomore)</option>
+                          <option value="3">3rd Year (Junior)</option>
+                          <option value="4">4th Year (Senior)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-department">
+                          Department / Branch *
+                        </label>
+                        <input
+                          id="reg-department"
+                          type="text"
+                          required
+                          value={regForm.department}
+                          onChange={(e) => setRegForm({ ...regForm, department: e.target.value })}
+                          placeholder="Computer Science & Engineering"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-college">
+                          College / University *
+                        </label>
+                        <input
+                          id="reg-college"
+                          type="text"
+                          required
+                          value={regForm.college}
+                          onChange={(e) => setRegForm({ ...regForm, college: e.target.value })}
+                          placeholder="Marwadi University"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-4">
+                      <button
+                        type="submit"
+                        disabled={regSubmitting}
+                        className="w-full py-4 bg-[#00ff88] hover:bg-white text-black font-black uppercase text-xs tracking-widest rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+                        id="reg-submit-btn"
+                      >
+                        {regSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-black" />
+                            <span>Syncing with Google Apps Script...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 text-black" />
+                            <span>Complete Registration</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
               </div>
-
             </motion.div>
           </div>
         )}

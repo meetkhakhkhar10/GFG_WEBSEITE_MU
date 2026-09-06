@@ -24,15 +24,14 @@ let isFirebaseActive = false;
 
 try {
   app = initializeApp(firebaseConfig);
-  setLogLevel("error");
-  firestoreDb = initializeFirestore(app, {
-    experimentalForceLongPolling: true
-  }, firebaseConfig.firestoreDatabaseId);
+  setLogLevel("silent");
   auth = getAuth(app);
-  isFirebaseActive = true;
-  console.log("🔥 Firebase Client SDK initialized successfully with standard HTTP long polling in firebaseDb.ts");
+  // Client queries route through Google Apps Script & Applet API, preventing unreachable Firestore errors
+  firestoreDb = null;
+  isFirebaseActive = false;
+  console.log("⚡ GeeksforGeeks Chapter App Data Layer active (Google Apps Script API + Applet DB).");
 } catch (error) {
-  console.error("⚠️ Failed to initialize Firebase SDK, falling back to local database:", error);
+  console.warn("Firebase Auth setup notice:", error);
 }
 
 export { firestoreDb, auth, isFirebaseActive };

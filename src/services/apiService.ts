@@ -1,4 +1,9 @@
-// Custom API Service for Python/Node Backend
+import { gasApi, API_BASE_URL, RegistrationPayload, BookingPayload, AttendancePayload, AnnouncementPayload } from "./gasApi";
+
+export { gasApi, API_BASE_URL };
+export type { RegistrationPayload, BookingPayload, AttendancePayload, AnnouncementPayload };
+
+// Custom API Service for Python/Node Backend & Google Apps Script
 const API_URL = '/api';
 
 const getHeaders = () => {

@@ -29,7 +29,7 @@ export default function Footer() {
                 </div>
               </div>
             </Link>
-            <p className="text-[#444444] dark:text-theme-text-secondary font-semibold leading-relaxed text-xs max-w-xs text-left">
+            <p className="text-white font-semibold leading-relaxed text-xs max-w-xs text-left">
               Empowering students at Marwadi University to learn, code, and grow together. 
               Built for innovators, builders, and future leaders.
             </p>
@@ -78,45 +78,45 @@ export default function Footer() {
 
           {/* COLUMN 2: QUICK NAVIGATION */}
           <div className="flex flex-col space-y-6 items-start">
-            <h3 className="text-[#111111] dark:text-white font-black tracking-widest uppercase text-xs text-left w-full">Quick Links</h3>
+            <h3 className="text-white font-black tracking-widest uppercase text-xs text-left w-full">Quick Links</h3>
             <ul className="space-y-4 font-bold uppercase text-[10px] tracking-widest text-left w-full">
               <li>
-                <Link to="/" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Home</Link>
+                <Link to="/" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Home</Link>
               </li>
               <li>
-                <Link to="/courses" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Courses</Link>
+                <Link to="/courses" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Courses</Link>
               </li>
               <li>
-                <Link to="/resources" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Resources</Link>
+                <Link to="/resources" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Resources</Link>
               </li>
               <li>
-                <Link to="/events" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Events</Link>
+                <Link to="/events" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Events</Link>
               </li>
               <li>
-                <Link to="/team" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Team</Link>
+                <Link to="/team" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Team</Link>
               </li>
               <li>
-                <Link to="/about" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">About</Link>
+                <Link to="/about" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">About</Link>
               </li>
               <li>
-                <Link to="/contact" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Contact</Link>
+                <Link to="/contact" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Contact</Link>
               </li>
               <li>
-                <Link to="/deploy" className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Netlify Deploy</Link>
+                <Link to="/deploy" className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors block">Netlify Deploy</Link>
               </li>
             </ul>
           </div>
 
           {/* COLUMN 3: COMMUNITY LINKS */}
           <div className="flex flex-col space-y-6 items-start">
-            <h3 className="text-[#111111] dark:text-white font-black tracking-widest uppercase text-xs text-left w-full">Community Links</h3>
+            <h3 className="text-white font-black tracking-widest uppercase text-xs text-left w-full">Community Links</h3>
             <ul className="space-y-4 font-bold uppercase text-[10px] tracking-widest text-left w-full">
               <li>
                 <a 
                   href="https://www.linkedin.com/company/geeksforgeeks-marwadi-university/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors flex items-center space-x-1.5"
+                  className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors flex items-center space-x-1.5"
                 >
                   <span>LinkedIn Community</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
@@ -127,7 +127,7 @@ export default function Footer() {
                   href="https://www.geeksforgeeks.org/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors flex items-center space-x-1.5"
+                  className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors flex items-center space-x-1.5"
                 >
                   <span>GeeksforGeeks</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
@@ -138,7 +138,7 @@ export default function Footer() {
                   href="https://www.marwadiuniversity.ac.in/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-[#111111] dark:text-theme-text-muted hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors flex items-center space-x-1.5"
+                  className="text-white hover:text-gfg-primary dark:hover:text-[#00ff88] transition-colors flex items-center space-x-1.5"
                 >
                   <span>Marwadi University</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
@@ -149,12 +149,12 @@ export default function Footer() {
 
           {/* COLUMN 4: STAY CONNECTED */}
           <div className="flex flex-col space-y-5 items-start">
-            <h3 className="text-[#111111] dark:text-white font-black tracking-widest uppercase text-xs text-left w-full">Stay Connected</h3>
+            <h3 className="text-white font-black tracking-widest uppercase text-xs text-left w-full">Stay Connected</h3>
             <div className="space-y-4 max-w-sm text-left w-full">
               <div className="text-[10px] font-black uppercase tracking-wider text-gfg-primary dark:text-[#00ff88] font-mono leading-tight">
                 Stay Connected With GeeksforGeeks × Marwadi University
               </div>
-              <p className="text-[#555555] dark:text-white/40 text-[11px] leading-relaxed font-semibold">
+              <p className="text-white text-[11px] leading-relaxed font-semibold">
                 Follow our official community channels for updates on workshops, hackathons, coding competitions, technical events, chapter achievements, student opportunities, and community activities.
               </p>
               <div className="pt-1 flex w-full justify-center sm:justify-start">
@@ -184,10 +184,10 @@ export default function Footer() {
                   <span className="w-1.5 h-1.5 bg-gfg-primary dark:bg-[#00ff88] rounded-full animate-pulse" />
                   <span className="text-[9px] font-black uppercase tracking-wider text-gfg-primary dark:text-[#00ff88] font-mono">Join Our WhatsApp Community</span>
                 </div>
-                <h3 className="text-xl sm:text-3xl font-black text-[#222222] dark:text-theme-text tracking-tight uppercase italic leading-none max-w-full">
+                <h3 className="text-xl sm:text-3xl font-black text-white tracking-tight uppercase italic leading-none max-w-full">
                   Join Our WhatsApp Community
                 </h3>
-                <p className="text-[#555555] dark:text-white/40 text-xs sm:text-sm font-semibold leading-relaxed max-w-[90%] lg:max-w-none">
+                <p className="text-white text-xs sm:text-sm font-semibold leading-relaxed max-w-[90%] lg:max-w-none">
                   Get instant updates about events, registrations, workshops, hackathons, coding contests, and chapter announcements directly on WhatsApp.
                 </p>
                 <div className="pt-2 w-full sm:w-auto">
@@ -275,7 +275,7 @@ export default function Footer() {
             </div>
           </a>
 
-          <p className="text-theme-text-muted text-[9px] font-black uppercase tracking-[0.3em] mb-2 leading-relaxed">
+          <p className="text-white text-[9px] font-black uppercase tracking-[0.3em] mb-2 leading-relaxed">
             © {new Date().getFullYear()} GFG Student Chapter @ Marwadi University. Built by the community.
           </p>
           <p className="text-gfg-primary text-[8px] font-black uppercase tracking-[0.3em] opacity-80">
