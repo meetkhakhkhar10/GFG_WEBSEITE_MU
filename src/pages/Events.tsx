@@ -36,6 +36,8 @@ interface EventItem {
   expected_colleges?: string;
   organizer_name?: string;
   organizer_email?: string;
+  organizer_phone?: string;
+  contact_phone?: string;
   stages?: Array<{ title: string; date: string; desc: string }>;
 }
 
@@ -109,8 +111,10 @@ export default function Events() {
     setApiError(null);
     try {
       const res = await gasApi.getEvents();
-      if (res.success && res.events) {
-        const mapped: EventItem[] = res.events.map((e: GasEvent) => ({
+      console.log("Events.tsx fetchGasEvents response:", res);
+      const rawEvents = res.events || res.data || [];
+      if (res.success && Array.isArray(rawEvents) && rawEvents.length > 0) {
+        const mapped: EventItem[] = rawEvents.map((e: GasEvent) => ({
           id: e.id,
           title: e.title,
           description: e.description,
@@ -134,6 +138,8 @@ export default function Events() {
           expected_colleges: e.expected_colleges,
           organizer_name: e.organizer_name || "GFG × Marwadi University Chapter",
           organizer_email: e.organizer_email || "gfg@marwadiuniversity.ac.in",
+          organizer_phone: String(e.organizer_phone || e.contact_phone || ""),
+          contact_phone: String(e.contact_phone || e.organizer_phone || ""),
           stages: e.stages || [
             {
               title: "Registration & Abstract",
@@ -142,14 +148,14 @@ export default function Events() {
             }
           ]
         }));
-        if (mapped.length > 0) {
-          setEventsList(mapped);
-        }
+        console.log("Events.tsx setting mapped events count:", mapped.length);
+        setEventsList(mapped);
       } else if (!res.success && res.error) {
         console.warn("GAS sync notice:", res.error);
+        setApiError(res.error);
       }
     } catch (err: any) {
-      console.warn("GAS Events load failed, checking fallback:", err);
+      console.warn("GAS Events load failed:", err);
       setApiError(err.message || "Unable to reach Google Apps Script API");
     } finally {
       setLoading(false);
@@ -168,35 +174,34 @@ export default function Events() {
     // Dynamic database subscription for realtime fallback/compatibility
     const unsub = subscribeToEvents((list) => {
       if (list && list.length > 0) {
-        setEventsList(prev => {
-          if (prev.length === 0) {
-            return list.map((e: any) => ({
-              id: e.id,
-              title: e.title,
-              description: e.description,
-              date: e.date || e.startDate,
-              location: e.location || e.venue,
-              poster_url: e.poster_url || e.bannerImage,
-              poster_image: e.poster_image || e.poster_url || e.bannerImage,
-              registration_link: (e.id === "evt_intellify" || e.title?.includes("Intellify")) ? INTELLIFY_REGISTRATION_URL : (e.registration_link || e.registrationLink || ""),
-              is_published: e.is_published !== false,
-              approvedBySuperAdmin: e.approvedBySuperAdmin !== false,
-              is_featured: e.is_featured || e.featured || false,
-              category: e.category,
-              status: e.status,
-              capacity: e.capacity,
-              registration_fee: e.registration_fee || "₹250",
-              team_size: e.team_size || "2–4 Members",
-              prize_pool: e.prize_pool || "₹3,40,000+",
-              eligibility: e.eligibility || "Engineering Students, Undergraduate Students, Postgraduate Students, Management Students, Medical Students, Law Students, Arts, Commerce, Science & Other Streams",
-              expected_participation: e.expected_participation || "600+ Students",
-              expected_colleges: e.expected_colleges || "150+ Colleges Across India",
-              organizer_name: e.organizer_name || e.organizer || "MU × GFG Student Chapter",
-              stages: e.stages
-            }));
-          }
-          return prev;
-        });
+        const mappedList: EventItem[] = list.map((e: any) => ({
+          id: e.id,
+          title: e.title,
+          description: e.description,
+          date: e.date || e.startDate,
+          time: e.time,
+          location: e.location || e.venue,
+          poster_url: e.poster_url || e.bannerImage,
+          poster_image: e.poster_image || e.poster_url || e.bannerImage,
+          registration_link: (e.id === "evt_intellify" || e.title?.includes("Intellify")) ? INTELLIFY_REGISTRATION_URL : (e.registration_link || e.registrationLink || ""),
+          is_published: e.is_published !== false,
+          approvedBySuperAdmin: e.approvedBySuperAdmin !== false,
+          is_featured: e.is_featured || e.featured || false,
+          category: e.category,
+          status: e.status,
+          capacity: e.capacity,
+          registration_fee: e.registration_fee || "Free",
+          team_size: e.team_size || "1–4 Members",
+          prize_pool: e.prize_pool || "Exciting Swag & Certificate",
+          eligibility: e.eligibility || "All MU & External College Students",
+          expected_participation: e.expected_participation || "500+ Students",
+          expected_colleges: e.expected_colleges || "100+ Colleges Across India",
+          organizer_name: e.organizer_name || e.organizer || "MU × GFG Student Chapter",
+          organizer_phone: String(e.contact_phone || e.organizer_phone || ""),
+          contact_phone: String(e.contact_phone || e.organizer_phone || ""),
+          stages: e.stages
+        }));
+        setEventsList(mappedList);
       }
     });
     return () => unsub();

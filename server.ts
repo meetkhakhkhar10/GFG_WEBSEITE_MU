@@ -332,7 +332,37 @@ const isUserSuperAdminOrAdmin = (req: any) => {
 // 2. Events Endpoints
 app.get("/api/events", async (req, res) => {
   try {
-    const events = await getFirebaseEvents();
+    let gasEvents: any[] = [];
+    try {
+      const gasUrl = "https://script.google.com/macros/s/AKfycbwXI6rB6TB2dGPvAUEN8OPNeISND5fmWbsnQu4TtI0bz5UsbKrh4X8zfm6pIMozXSVpDw/exec?action=events";
+      const gRes = await fetch(gasUrl, { redirect: "follow" });
+      if (gRes.ok) {
+        const gJson = await gRes.json();
+        const rawList = gJson.events || gJson.data || [];
+        if (Array.isArray(rawList)) {
+          gasEvents = rawList.map((e: any) => ({
+            id: String(e.Event_ID || e.event_id || e.id || ""),
+            title: String(e.Event_Name || e.event_name || e.Title || e.title || "Campus Event"),
+            description: String(e.Description || e.description || ""),
+            date: String(e.Date || e.date || "Upcoming"),
+            time: String(e.Start_Time || e.time || ""),
+            venue: String(e.Venue || e.venue || e.Location || e.location || "Marwadi University"),
+            poster_url: e.Poster_URL || e.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
+            registration_link: e.Registration_Link || e.registration_link || "",
+            status: e.Status || e.status || "PUBLISHED",
+            registration_status: e.Registration_Status || e.registration_status || "OPEN",
+            approvedBySuperAdmin: true,
+            is_published: true,
+            organizer: e.Organizer || e.organizer || "GFG MU Chapter",
+            contact_phone: String(e.Contact_Phone || e.contact_phone || "")
+          })).filter(e => e.id);
+        }
+      }
+    } catch (e) {
+      console.warn("Server fetch GAS events warning:", e);
+    }
+
+    const firebaseEvents = await getFirebaseEvents();
     
     // Dynamically query registration counts from Firebase
     let registrations: any[] = [];
@@ -342,7 +372,18 @@ app.get("/api/events", async (req, res) => {
       // In-memory or fallback
     }
 
-    const eventsWithCounts = events.map(e => {
+    // Merge GAS events and Firebase events, prioritizing GAS events for matching IDs
+    const mergedMap = new Map<string, any>();
+    gasEvents.forEach(e => mergedMap.set(e.id, e));
+    firebaseEvents.forEach(e => {
+      if (!mergedMap.has(e.id)) {
+        mergedMap.set(e.id, e);
+      }
+    });
+
+    const allEvents = Array.from(mergedMap.values());
+
+    const eventsWithCounts = allEvents.map(e => {
       const count = registrations.filter(r => r.eventId === e.id || r.eventId === e.eventId).length;
       return {
         ...e,
@@ -352,11 +393,11 @@ app.get("/api/events", async (req, res) => {
 
     const isAdmin = isUserSuperAdminOrAdmin(req);
     if (isAdmin) {
-      res.json({ success: true, data: eventsWithCounts });
+      res.json({ success: true, count: eventsWithCounts.length, data: eventsWithCounts, events: eventsWithCounts });
     } else {
       // Filter out unapproved events for public/student view
       const publicEvents = eventsWithCounts.filter(e => e.approvedBySuperAdmin === true || e.approvedBySuperAdmin === undefined);
-      res.json({ success: true, data: publicEvents });
+      res.json({ success: true, count: publicEvents.length, data: publicEvents, events: publicEvents });
     }
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });

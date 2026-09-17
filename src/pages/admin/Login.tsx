@@ -63,10 +63,11 @@ export default function Login() {
         setError(response.message || "Failed to establish enterprise administrator credentials.");
       }
     } catch (err: any) {
-      console.error("Admin google sign in sequence aborted:", err);
-      if (err.code === "auth/popup-closed-by-user") {
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        console.warn("Admin google sign in sequence cancelled by user.");
         setError("Authentication popup was closed. Please try again.");
       } else {
+        console.error("Admin google sign in sequence failed:", err);
         setError(err.message || "Admin authorization processing failed.");
       }
     } finally {

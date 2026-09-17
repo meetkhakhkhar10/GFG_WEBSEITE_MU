@@ -93,11 +93,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: response.message || "Failed to authenticate with project node." };
       }
     } catch (err: any) {
-      console.error("Google sign in failed:", err);
-      // Auth cancellation by user is code: auth/popup-closed-by-user
-      if (err.code === "auth/popup-closed-by-user") {
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        console.warn("Google sign in popup closed by user.");
         return { success: false, message: "Authentication window was closed." };
       }
+      console.error("Google sign in failed:", err);
       return { success: false, message: err.message || "Sign in process failed." };
     }
   };

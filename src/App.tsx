@@ -11,6 +11,9 @@ import NetlifyDeploy from "@/src/pages/NetlifyDeploy";
 import StudentDashboard from "@/src/pages/student/StudentDashboard";
 import Login from "@/src/pages/admin/Login";
 import Dashboard from "@/src/pages/admin/Dashboard";
+import AtgfgLogin from "@/src/pages/atgfg/AtgfgLogin";
+import AtgfgDashboard from "@/src/pages/atgfg/AtgfgDashboard";
+import AtgfgProtectedRoute from "@/src/components/atgfg/AtgfgProtectedRoute";
 
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import { ThemeProvider } from "@/src/contexts/ThemeContext";
@@ -61,6 +64,17 @@ export default function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="events" element={<Navigate to="/admin/dashboard?tab=events" replace />} />
           </Route>
+
+          {/* Attendance Admin Portal Routes */}
+          <Route path="/atgfg" element={<AtgfgLogin />} />
+          <Route
+            path="/atgfg/dashboard"
+            element={
+              <AtgfgProtectedRoute>
+                <AtgfgDashboard />
+              </AtgfgProtectedRoute>
+            }
+          />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

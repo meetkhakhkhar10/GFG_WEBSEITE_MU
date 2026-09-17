@@ -28,6 +28,8 @@ export interface EventDocument {
   registration_link?: string; // backwards compatibility
   time?: string; // backwards compatibility
   date?: string; // backwards compatibility
+  contact_phone?: string;
+  organizer_phone?: string;
 }
 
 /**
@@ -66,79 +68,30 @@ export function getEventStatus(evt: EventDocument): "upcoming" | "live" | "compl
 
 /**
  * Subscribes to real-time events.
- * Falls back to simple REST polling or promise resolution if Firebase is inactive.
+ * Prioritizes real Google Apps Script API events, falling back to local/Firestore if needed.
  */
 export function subscribeToEvents(callback: (events: EventDocument[]) => void): () => void {
-  if (isFirebaseActive && firestoreDb) {
-    try {
-      const q = query(collection(firestoreDb, "events"));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const list: EventDocument[] = [];
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          // Normalize legacy and actual formats
-          const docItem: EventDocument = {
-            id: docSnap.id,
-            eventId: data.eventId || docSnap.id,
-            title: data.title || "",
-            category: data.category || "General",
-            description: data.description || "",
-            bannerImage: data.bannerImage || data.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
-            startDate: data.startDate || data.date || "2026-05-29",
-            endDate: data.endDate || data.startDate || data.date || "2026-05-29",
-            startTime: data.startTime || "10:00",
-            endTime: data.endTime || "17:00",
-            venue: data.venue || data.location || "Online",
-            registrationLink: data.registrationLink || data.registration_link || "",
-            maxParticipants: data.maxParticipants || 100,
-            organizer: data.organizer || "GFG MU Chapter",
-            status: data.status || "upcoming",
-            featured: data.featured === true || data.is_featured === true,
-            visibility: data.visibility !== false && data.is_published !== false,
-            createdAt: data.createdAt || new Date().toISOString(),
-            updatedAt: data.updatedAt || new Date().toISOString(),
-            approvedBySuperAdmin: data.approvedBySuperAdmin !== false,
-            poster_url: data.bannerImage || data.poster_url,
-            location: data.venue || data.location,
-            registration_link: data.registrationLink || data.registration_link,
-            date: data.startDate || data.date,
-            time: `${data.startTime || "10:00"} - ${data.endTime || "17:00"}`
-          };
-          
-          // Apply dynamic status check logic on mount / state load
-          docItem.status = getEventStatus(docItem);
-          list.push(docItem);
-        });
-        
-        callback(list);
-      }, (err) => {
-        console.error("Snapshot error on subscribeToEvents:", err);
-      });
-      return unsubscribe;
-    } catch (e) {
-      console.error("Failed to boot Firebase onSnapshot sync:", e);
-    }
-  }
-
-  // Fetch from Google Apps Script Web App with fallback to local memory / REST fetch
   let active = true;
+
   const poll = async () => {
     try {
-      // 1. Try Google Apps Script Web App
+      // 1. Always fetch from Google Apps Script Web App FIRST
       const gasRes = await gasApi.getEvents();
-      if (active && gasRes.success && Array.isArray(gasRes.events) && gasRes.events.length > 0) {
-        const normalized: EventDocument[] = gasRes.events.map((e) => {
+      const eventsData = gasRes.events || gasRes.data || [];
+      if (active && gasRes.success && Array.isArray(eventsData) && eventsData.length > 0) {
+        const normalized: EventDocument[] = eventsData.map((e) => {
+          const phoneStr = String(e.contact_phone || e.organizer_phone || "");
           const docItem: EventDocument = {
             id: e.id,
             eventId: e.id,
             title: e.title,
             category: e.category || "General",
             description: e.description,
-            bannerImage: e.poster_url,
+            bannerImage: e.poster_url || e.poster_image || "",
             startDate: e.date,
             endDate: e.date,
-            startTime: e.time || "10:00",
-            endTime: "18:00",
+            startTime: e.time || "10:00 AM",
+            endTime: "01:00 PM",
             venue: e.location,
             registrationLink: e.registration_link,
             maxParticipants: e.capacity || 100,
@@ -153,7 +106,8 @@ export function subscribeToEvents(callback: (events: EventDocument[]) => void): 
             location: e.location,
             registration_link: e.registration_link,
             date: e.date,
-            time: e.time || "10:00 AM - 06:00 PM"
+            time: e.time || "10:00 AM - 01:00 PM",
+            contact_phone: phoneStr,
           };
           docItem.status = getEventStatus(docItem);
           return docItem;
@@ -162,15 +116,67 @@ export function subscribeToEvents(callback: (events: EventDocument[]) => void): 
         return;
       }
     } catch (gasErr) {
-      console.warn("GAS Events fetch note:", gasErr);
+      console.warn("GAS Events fetch note in subscribeToEvents:", gasErr);
+    }
+
+    // 2. Fallback to Firestore / local server if GAS returns no events
+    if (isFirebaseActive && firestoreDb) {
+      try {
+        const q = query(collection(firestoreDb, "events"));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          if (!active) return;
+          const list: EventDocument[] = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const phoneStr = String(data.contact_phone || data.Organizer_Phone || data.Contact_Phone || "");
+            const docItem: EventDocument = {
+              id: docSnap.id,
+              eventId: data.eventId || docSnap.id,
+              title: data.title || "",
+              category: data.category || "General",
+              description: data.description || "",
+              bannerImage: data.bannerImage || data.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
+              startDate: data.startDate || data.date || "2026-05-29",
+              endDate: data.endDate || data.startDate || data.date || "2026-05-29",
+              startTime: data.startTime || "10:00",
+              endTime: data.endTime || "17:00",
+              venue: data.venue || data.location || "Online",
+              registrationLink: data.registrationLink || data.registration_link || "",
+              maxParticipants: data.maxParticipants || 100,
+              organizer: data.organizer || "GFG MU Chapter",
+              status: data.status || "upcoming",
+              featured: data.featured === true || data.is_featured === true,
+              visibility: data.visibility !== false && data.is_published !== false,
+              createdAt: data.createdAt || new Date().toISOString(),
+              updatedAt: data.updatedAt || new Date().toISOString(),
+              approvedBySuperAdmin: data.approvedBySuperAdmin !== false,
+              poster_url: data.bannerImage || data.poster_url,
+              location: data.venue || data.location,
+              registration_link: data.registrationLink || data.registration_link,
+              date: data.startDate || data.date,
+              time: `${data.startTime || "10:00"} - ${data.endTime || "17:00"}`,
+              contact_phone: phoneStr,
+            };
+            docItem.status = getEventStatus(docItem);
+            list.push(docItem);
+          });
+          if (list.length > 0) callback(list);
+        }, (err) => {
+          console.error("Snapshot error on subscribeToEvents:", err);
+        });
+        return unsubscribe;
+      } catch (e) {
+        console.error("Failed to sync Firestore events:", e);
+      }
     }
 
     try {
-      // 2. Fallback to local server /api/events
+      // 3. Fallback to local server /api/events
       const res = await fetch("/api/events");
       const json = await res.json();
       if (active && json.success) {
         const normalized = (json.data || []).map((data: any) => {
+          const phoneStr = String(data.contact_phone || data.Contact_Phone || "");
           const docItem: EventDocument = {
             id: data.id,
             eventId: data.eventId || data.id,
@@ -196,7 +202,8 @@ export function subscribeToEvents(callback: (events: EventDocument[]) => void): 
             location: data.venue || data.location,
             registration_link: data.registrationLink || data.registration_link,
             date: data.startDate || data.date,
-            time: `${data.startTime || "10:00"} - ${data.endTime || "17:00"}`
+            time: `${data.startTime || "10:00"} - ${data.endTime || "17:00"}`,
+            contact_phone: phoneStr,
           };
           docItem.status = getEventStatus(docItem);
           return docItem;

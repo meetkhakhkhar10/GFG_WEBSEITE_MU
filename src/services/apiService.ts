@@ -45,6 +45,14 @@ export const apiService = {
 
   // Events
   async getEvents() {
+    try {
+      const gasRes = await gasApi.getEvents();
+      if (gasRes && gasRes.success && ((gasRes.events && gasRes.events.length > 0) || (gasRes.data && gasRes.data.length > 0))) {
+        return gasRes;
+      }
+    } catch (err) {
+      console.warn("apiService.getEvents GAS fetch note:", err);
+    }
     const res = await fetch(`${API_URL}/events`, { headers: getHeaders() });
     return res.json();
   },

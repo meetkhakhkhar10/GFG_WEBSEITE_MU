@@ -19,9 +19,9 @@
  */
 
 // Central API configuration constant
-export const DIRECT_GAS_URL = "https://script.google.com/macros/s/AKfycbz27B5fsCWCyq0-EUA64qLqDYJEsPncgyy3cisdNkS2IWBHWqYVv0S5sj3OWgkN3nbsRg/exec";
-
-export const API_BASE_URL = "https://script.google.com/macros/s/AKfycbz27B5fsCWCyq0-EUA64qLqDYJEsPncgyy3cisdNkS2IWBHWqYVv0S5sj3OWgkN3nbsRg/exec";
+export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXI6rB6TB2dGPvAUEN8OPNeISND5fmWbsnQu4TtI0bz5UsbKrh4X8zfm6pIMozXSVpDw/exec";
+export const DIRECT_GAS_URL = APPS_SCRIPT_URL;
+export const API_BASE_URL = APPS_SCRIPT_URL;
 
 export interface GasEvent {
   id: string;
@@ -35,6 +35,9 @@ export interface GasEvent {
   registration_link: string;
   category?: string;
   status?: string;
+  registration_status?: string;
+  registration_deadline?: string;
+  registration_count?: number;
   capacity?: string | number;
   registration_fee?: string;
   team_size?: string;
@@ -44,6 +47,9 @@ export interface GasEvent {
   expected_colleges?: string;
   organizer_name?: string;
   organizer_email?: string;
+  organizer_phone?: string;
+  contact_phone?: string;
+  contact_email?: string;
   stages?: Array<{ title: string; date: string; desc: string }>;
   is_published?: boolean;
   is_featured?: boolean;
@@ -234,23 +240,30 @@ function formatGasDate(val: any): string {
  * Normalizes an event from GAS sheet row
  */
 function normalizeEvent(e: any): GasEvent {
-  const id = String(e.Event_ID || e.event_id || e.id || e.ID || "");
-  const title = e.Title || e.title || e.Event_Title || e.event_title || "Campus Event";
-  const poster =
-    e.Poster_URL ||
-    e.poster_url ||
-    e.Banner_Image ||
-    e.banner_image ||
-    e.bannerImage ||
-    e.Poster_Image ||
-    e.poster_image ||
-    "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/banner/6a1ebf444ee51_intellify-40.jpg?d=1920x557";
+  if (!e || typeof e !== "object") {
+    return {
+      id: "unknown",
+      title: "Campus Event",
+      description: "",
+      date: "Upcoming",
+      time: "",
+      location: "Marwadi University, Rajkot",
+      poster_url: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
+      poster_image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
+      registration_link: "",
+      is_published: true,
+    };
+  }
+
+  const id = String(e.Event_ID || e.event_id || e.id || e.ID || "").trim();
+  const title = String(e.Event_Name || e.event_name || e.Title || e.title || e.Event_Title || e.event_title || "Campus Event").trim();
+  const description = String(e.Description || e.description || e.Desc || e.desc || "").trim();
 
   let dateVal = e.Date || e.date || e.Start_Date || e.startDate || "Upcoming";
+  dateVal = formatGasDate(dateVal);
+
   let timeVal = e.Start_Time || e.startTime || e.Time || e.time || "";
   let endTimeVal = e.End_Time || e.endTime || "";
-  
-  dateVal = formatGasDate(dateVal);
   
   if (timeVal) {
     timeVal = formatGasTime(timeVal);
@@ -260,28 +273,69 @@ function normalizeEvent(e: any): GasEvent {
     }
   }
 
+  const venue = String(e.Venue || e.venue || e.Location || e.location || "Marwadi University Auditorium").trim();
+
+  const poster =
+    e.Poster_URL ||
+    e.poster_url ||
+    e.Banner_Image ||
+    e.banner_image ||
+    e.bannerImage ||
+    e.Poster_Image ||
+    e.poster_image ||
+    "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800";
+
+  const regLink = String(e.Registration_Link || e.registration_link || e.registrationLink || "").trim();
+  const category = String(e.Category || e.category || "Hackathon / Competition").trim();
+  
+  const statusRaw = String(e.Status || e.status || "PUBLISHED").trim();
+  const statusUpper = statusRaw.toUpperCase();
+  const isPublished = statusUpper === "PUBLISHED" || (statusUpper !== "DRAFT" && statusUpper !== "CANCELLED" && e.Is_Published !== false && e.is_published !== false);
+
+  const regStatusRaw = String(e.Registration_Status || e.registration_status || "OPEN").trim();
+  
+  const capacityVal = e.Max_Participants !== undefined && e.Max_Participants !== null && e.Max_Participants !== ""
+    ? String(e.Max_Participants)
+    : (e.Capacity || e.capacity || "Open");
+
+  const organizerName = String(e.Organizer || e.organizer || e.Organizer_Name || e.organizer_name || "GeeksforGeeks × Marwadi University").trim();
+  const organizerEmail = String(e.Contact_Email || e.contact_email || e.Organizer_Email || e.organizer_email || "gfg.events@example.com").trim();
+  
+  const contactPhone = e.Contact_Phone !== undefined && e.Contact_Phone !== null
+    ? String(e.Contact_Phone).trim()
+    : (e.contact_phone !== undefined && e.contact_phone !== null ? String(e.contact_phone).trim() : "");
+
+  const regDeadline = String(e.Registration_Deadline || e.registration_deadline || "").trim();
+  const regCount = Number(e.Registration_Count || e.registration_count || 0);
+
   return {
-    id,
+    id: id || `evt_${Math.random().toString(36).substring(2, 9)}`,
     title,
-    description: e.Description || e.description || e.Desc || e.desc || "",
+    description,
     date: dateVal,
     time: timeVal,
-    location: e.Location || e.location || e.Venue || e.venue || "Marwadi University, Rajkot",
+    location: venue,
     poster_url: poster,
     poster_image: poster,
-    registration_link: e.Registration_Link || e.registration_link || e.registrationLink || "",
-    category: e.Category || e.category || "Hackathon / Competition",
-    status: e.Status || e.status || "Upcoming",
-    capacity: e.Capacity || e.capacity || "Open",
+    registration_link: regLink,
+    category,
+    status: statusRaw,
+    registration_status: regStatusRaw,
+    registration_deadline: regDeadline,
+    registration_count: regCount,
+    capacity: capacityVal,
     registration_fee: e.Registration_Fee || e.registration_fee || e.fee || "Free",
     team_size: e.Team_Size || e.team_size || "1–4 Members",
     prize_pool: e.Prize_Pool || e.prize_pool || "Exciting Rewards",
     eligibility: e.Eligibility || e.eligibility || "All College & University Students",
     expected_participation: e.Expected_Participation || e.expected_participation || "500+ Students",
     expected_colleges: e.Expected_Colleges || e.expected_colleges || "100+ Colleges",
-    organizer_name: e.Organizer_Name || e.organizer_name || e.Organizer || "MU × GFG Chapter",
-    organizer_email: e.Organizer_Email || e.organizer_email || "gfg@marwadiuniversity.ac.in",
-    is_published: e.Is_Published !== false && e.is_published !== false && e.Status !== "Draft",
+    organizer_name: organizerName,
+    organizer_email: organizerEmail,
+    organizer_phone: contactPhone,
+    contact_phone: contactPhone,
+    contact_email: organizerEmail,
+    is_published: isPublished,
     is_featured: e.Is_Featured === true || e.is_featured === true || e.featured === true,
     stages: Array.isArray(e.stages) ? e.stages : undefined,
     raw: e,
@@ -397,12 +451,14 @@ async function getGas(action: string, params: Record<string, string> = {}): Prom
     if (response.ok) {
       const data = await response.json();
       return data;
+    } else {
+      console.warn(`gasApi HTTP error for "${action}": ${response.status}`);
+      return { success: false, error: `HTTP Error ${response.status}` };
     }
   } catch (directErr: any) {
-    console.warn(`gasApi notice for "${action}":`, directErr?.message || "Using local chapter data");
+    console.warn(`gasApi fetch error for "${action}":`, directErr?.message || directErr);
+    return { success: false, error: directErr?.message || "Network error communicating with Google Apps Script" };
   }
-
-  return { success: true, count: 0, events: [], team: [], announcements: [], resources: [] };
 }
 
 /**
@@ -446,14 +502,33 @@ export const gasApi = {
    * GET ?action=events
    * Fetches all published events from Google Apps Script.
    */
-  async getEvents(): Promise<{ success: boolean; count: number; events: GasEvent[]; error?: string }> {
+  async getEvents(): Promise<{ success: boolean; count: number; events: GasEvent[]; data: GasEvent[]; error?: string }> {
+    console.log("gasApi.getEvents fetching from URL:", DIRECT_GAS_URL);
     const res = await getGas("events");
-    if (!res.success) {
-      return { success: false, count: 0, events: [], error: res.error || "Failed to load events" };
+    console.log("gasApi.getEvents raw result:", res);
+
+    if (!res || (res.success === false && !res.events && !res.data)) {
+      return { success: false, count: 0, events: [], data: [], error: res?.error || "Failed to load events" };
     }
-    const rawList = res.events || res.data || [];
-    const events = rawList.map(normalizeEvent);
-    return { success: true, count: events.length, events };
+
+    let rawList: any[] = [];
+    if (Array.isArray(res.events)) {
+      rawList = res.events;
+    } else if (Array.isArray(res.data)) {
+      rawList = res.data;
+    } else if (Array.isArray(res.records)) {
+      rawList = res.records;
+    } else if (Array.isArray(res)) {
+      rawList = res;
+    }
+
+    const events = rawList
+      .map(normalizeEvent)
+      .filter((e) => e && e.id && e.is_published !== false);
+
+    console.log("gasApi.getEvents normalized events count:", events.length, events);
+
+    return { success: true, count: events.length, events, data: events };
   },
 
   /**
