@@ -1,5 +1,5 @@
 {
-  "name": "GFG Student Login",
+  "name": "GFG Marwadi University",
   "description": "Official student login portal for GFG Student Chapter on Campus Marwadi University. Access event registrations, attendance records, study material, and certificates.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
