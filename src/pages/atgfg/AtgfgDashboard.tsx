@@ -172,7 +172,11 @@ export default function AtgfgDashboard() {
   }, [sortedRegistrations, currentPage, pageSize]);
 
   // Handle QR Scan Result or Manual Selection
-  const handleOpenVerification = async (registrationId: string) => {
+  const handleOpenVerification = async (scannedValue: string) => {
+    const registrationId = String(scannedValue || "").replace(/\u00A0/g, " ").trim();
+    console.log("SCANNED QR:", scannedValue);
+    console.log("NORMALIZED REGISTRATION ID:", registrationId);
+
     setNotFoundId(null);
     setActiveVerification(null);
     setVerificationLoading(true);
@@ -181,11 +185,14 @@ export default function AtgfgDashboard() {
     try {
       const res = await atgfgApi.getRegistrationById(registrationId);
       if (res.success && res.registration) {
+        console.log("MATCHED REGISTRATION:", res.registration);
         setActiveVerification(res.registration);
       } else {
+        console.warn("REGISTRATION NOT FOUND:", registrationId, res.error);
         setNotFoundId(registrationId);
       }
     } catch (err) {
+      console.error("REGISTRATION VERIFICATION ERROR:", err);
       setNotFoundId(registrationId);
     } finally {
       setVerificationLoading(false);

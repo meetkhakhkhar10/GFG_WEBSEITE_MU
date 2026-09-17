@@ -207,19 +207,19 @@ export default function StudentVerificationModal({
                 <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center space-x-3 text-amber-300 text-xs">
                   <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400" />
                   <div>
-                    <span className="font-bold uppercase block">Registration Not Confirmed</span>
-                    <span>Attendance cannot be marked for non-confirmed registrations.</span>
+                    <span className="font-bold uppercase block">Registration is not confirmed.</span>
+                    <span>Status: {registration.status}. Attendance can only be marked for confirmed registrations.</span>
                   </div>
                 </div>
               )}
 
               {/* Duplicate Warning */}
               {registration.attendance_status === "PRESENT" && !actionResult && (
-                <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center space-x-3 text-amber-300 text-xs">
-                  <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400" />
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center space-x-3 text-emerald-300 text-xs">
+                  <CheckCircle2 className="w-5 h-5 shrink-0 text-[#00ff88]" />
                   <div>
-                    <span className="font-bold uppercase block">Attendance already marked.</span>
-                    <span>This student has already been marked present for this registration ID.</span>
+                    <span className="font-bold uppercase block">Attendance Already Marked</span>
+                    <span>This student has already been marked PRESENT for this event.</span>
                   </div>
                 </div>
               )}

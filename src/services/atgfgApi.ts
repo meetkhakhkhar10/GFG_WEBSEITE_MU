@@ -261,20 +261,22 @@ export const atgfgApi = {
 
   /**
    * Fetch single registration by Registration_ID
-   * GET ${APPS_SCRIPT_URL}?action=registration&registration_id=REGISTRATION_ID
+   * GET ${APPS_SCRIPT_URL}?action=registration&registration_id=REGISTRATION_ID&id=REGISTRATION_ID
    */
   async getRegistrationById(registrationId: string): Promise<{
     success: boolean;
     registration?: AtgfgRegistration;
     error?: string;
   }> {
-    const cleanId = registrationId.trim();
+    const cleanId = String(registrationId || "").replace(/\u00A0/g, " ").trim();
     if (!cleanId) {
       return { success: false, error: "Registration ID is required" };
     }
 
-    const reqUrl = `${APPS_SCRIPT_URL}?action=registration&registration_id=${encodeURIComponent(cleanId)}`;
-    console.log("ATGFG REGISTRATION REQUEST:", reqUrl);
+    const reqUrl = `${APPS_SCRIPT_URL}?action=registration&registration_id=${encodeURIComponent(cleanId)}&id=${encodeURIComponent(cleanId)}&registrationId=${encodeURIComponent(cleanId)}`;
+    console.log("SCANNED QR:", registrationId);
+    console.log("NORMALIZED REGISTRATION ID:", cleanId);
+    console.log("REGISTRATION API URL:", reqUrl);
 
     try {
       const response = await fetch(reqUrl, {
@@ -284,15 +286,18 @@ export const atgfgApi = {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("ATGFG REGISTRATION RESPONSE:", data);
+        console.log("REGISTRATION API RESPONSE:", data);
 
-        const targetData = data.data || data.registration || (data.Registration_ID ? data : null);
+        const targetData = data.data || data.registration || data.result || (data.Registration_ID || data.registration_id ? data : null);
 
         if (data.success !== false && targetData) {
           const reg = normalizeAtgfgRegistration(targetData);
+          console.log("MATCHED REGISTRATION:", reg);
 
-          // Update cache
-          const idx = cachedRegistrations.findIndex((r) => r.registration_id.toLowerCase() === cleanId.toLowerCase());
+          // Update in-memory cache
+          const idx = cachedRegistrations.findIndex(
+            (r) => r.registration_id.toLowerCase() === cleanId.toLowerCase()
+          );
           if (idx >= 0) {
             cachedRegistrations[idx] = reg;
           } else if (reg.registration_id) {
@@ -301,7 +306,15 @@ export const atgfgApi = {
 
           return { success: true, registration: reg };
         } else {
-          return { success: false, error: data.message || data.error || "Registration ID not found" };
+          // Check local cache if server returned not found
+          const foundLocal = cachedRegistrations.find(
+            (r) => r.registration_id.toLowerCase() === cleanId.toLowerCase()
+          );
+          if (foundLocal) {
+            console.log("MATCHED REGISTRATION (FROM CACHE):", foundLocal);
+            return { success: true, registration: foundLocal };
+          }
+          return { success: false, error: data.message || data.error || "Registration not found" };
         }
       } else {
         console.warn("ATGFG REGISTRATION RESPONSE HTTP ERROR:", response.status);
@@ -315,6 +328,7 @@ export const atgfgApi = {
       (r) => r.registration_id.toLowerCase() === cleanId.toLowerCase()
     );
     if (foundLocal) {
+      console.log("MATCHED REGISTRATION (FROM CACHE):", foundLocal);
       return { success: true, registration: foundLocal };
     }
 
@@ -332,7 +346,7 @@ export const atgfgApi = {
     message?: string;
     error?: string;
   }> {
-    const cleanId = registrationId.trim();
+    const cleanId = String(registrationId || "").replace(/\u00A0/g, " ").trim();
     if (!cleanId) {
       return { success: false, error: "Invalid Registration ID" };
     }
@@ -340,6 +354,8 @@ export const atgfgApi = {
     const payload = {
       action: "attendance",
       registration_id: cleanId,
+      registrationId: cleanId,
+      id: cleanId,
     };
 
     console.log("ATGFG ATTENDANCE REQUEST:", payload);
@@ -372,6 +388,7 @@ export const atgfgApi = {
         params.append("action", "attendance");
         params.append("registration_id", cleanId);
         params.append("registrationId", cleanId);
+        params.append("id", cleanId);
         const res2 = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
           body: params,
@@ -390,23 +407,31 @@ export const atgfgApi = {
     );
     let reg = targetIdx >= 0 ? cachedRegistrations[targetIdx] : undefined;
 
-    if (reg) {
+    if (responseData && (responseData.data || responseData.registration)) {
+      reg = normalizeAtgfgRegistration(responseData.data || responseData.registration);
+      if (targetIdx >= 0) {
+        cachedRegistrations[targetIdx] = reg;
+      } else {
+        cachedRegistrations.unshift(reg);
+      }
+    } else if (reg) {
       reg.attendance_status = "PRESENT";
       reg.marked_at = new Date().toLocaleString("en-GB");
     }
 
     if (responseData && responseData.success === false) {
-      if (responseData.duplicate || (responseData.message && responseData.message.toLowerCase().includes("already"))) {
+      const msg = responseData.message || responseData.error || "";
+      if (responseData.duplicate || msg.toLowerCase().includes("already")) {
         return {
           success: false,
           duplicate: true,
           registration: reg,
-          message: "Attendance already marked.",
+          message: "Attendance Already Marked",
         };
       }
       return {
         success: false,
-        error: responseData.error || responseData.message || "Failed to mark attendance",
+        error: msg || "Failed to mark attendance",
         registration: reg,
       };
     }

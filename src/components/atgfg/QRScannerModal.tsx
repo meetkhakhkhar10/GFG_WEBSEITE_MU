@@ -111,12 +111,13 @@ export default function QRScannerModal({ isOpen, onClose, onScanResult }: Props)
   };
 
   const handleScannedText = (text: string) => {
-    const cleanId = String(text || "").trim();
-    console.log("ATGFG QR SCANNED:", cleanId);
+    const scannedValue = String(text || "").replace(/\u00A0/g, " ").trim();
+    console.log("SCANNED QR:", text);
+    console.log("NORMALIZED REGISTRATION ID:", scannedValue);
 
     // Stop scanner and trigger parent callback
     stopScanner();
-    onScanResult(cleanId);
+    onScanResult(scannedValue);
   };
 
   // Auto start scanner when camera tab selected and camera available
@@ -143,10 +144,11 @@ export default function QRScannerModal({ isOpen, onClose, onScanResult }: Props)
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanId = manualInput.trim();
-    if (cleanId) {
-      console.log("ATGFG QR SCANNED:", cleanId);
-      onScanResult(cleanId);
+    const scannedValue = String(manualInput || "").replace(/\u00A0/g, " ").trim();
+    if (scannedValue) {
+      console.log("SCANNED QR:", manualInput);
+      console.log("NORMALIZED REGISTRATION ID:", scannedValue);
+      onScanResult(scannedValue);
       setManualInput("");
     }
   };

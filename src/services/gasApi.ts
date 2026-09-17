@@ -584,15 +584,20 @@ export const gasApi = {
   },
 
   /**
-   * GET ?action=registration&id=REGISTRATION_ID
+   * GET ?action=registration&id=REGISTRATION_ID&registration_id=REGISTRATION_ID
    * Fetches a registration by its ID.
    */
   async getRegistration(id: string): Promise<{ success: boolean; registration?: GasRegistration; error?: string }> {
-    const res = await getGas("registration", { id });
+    const cleanId = String(id || "").replace(/\u00A0/g, " ").trim();
+    const res = await getGas("registration", {
+      id: cleanId,
+      registration_id: cleanId,
+      registrationId: cleanId,
+    });
     if (!res.success) {
       return { success: false, error: res.error || "Registration not found" };
     }
-    const registration = normalizeRegistration(res.registration || res.data);
+    const registration = normalizeRegistration(res.registration || res.data || res.result || res);
     return { success: true, registration };
   },
 
