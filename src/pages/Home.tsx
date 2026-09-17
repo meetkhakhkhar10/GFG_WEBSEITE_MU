@@ -7,6 +7,7 @@ import { useTheme } from "@/src/contexts/ThemeContext";
 import { subscribeToEvents } from "../utils/eventHelpers";
 import FeaturedCourses from "../components/FeaturedCourses";
 import Hero from "../components/Hero";
+import UpcomingEventSpotlight from "../components/UpcomingEventSpotlight";
 
 const fallbackFeaturedEvent = {
   id: "evt_intellify",
@@ -248,121 +249,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURED EVENT SPOTLIGHT (CMS-DRIVEN) */}
-      <section className="py-24 sm:py-32 bg-theme-bg relative overflow-hidden border-b border-theme-border">
-        {/* Subtle dynamic background overlays */}
-        <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
-          <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(0,255,136,0.01)_1px,transparent_1px)] bg-[size:100px_100px]" />
-          <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-gfg-primary/5 rounded-full blur-[150px]" />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center space-x-2 px-4 py-1.5 bg-gfg-primary/10 border border-gfg-primary/20 rounded-full mb-4 shadow-sm"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-gfg-primary animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gfg-primary">Featured Event • Activation</span>
-            </motion.div>
-            
-            <h2 className="text-4xl md:text-6xl font-black text-theme-text italic tracking-tighter uppercase mb-6">
-              EVENT <span className="text-gfg-primary">SPOTLIGHT</span>
-            </h2>
-            
-            <p className="text-theme-text-secondary text-base font-medium max-w-2xl mx-auto leading-relaxed">
-              Explore our flagship activation running in partnership with industry leaders and universities nationwide. Solve challenges, showcase prototype innovations, and compete for prestige.
-            </p>
-          </div>
-
-          <div className="relative max-w-5xl mx-auto bg-theme-bg-secondary/40 backdrop-blur-3xl border border-theme-border/80 hover:border-[#00ff88]/30 transition-all duration-300 rounded-[28px] overflow-hidden shadow-2xl">
-            {/* Ambient Line */}
-            <div className="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-gfg-primary via-[#00ff88] to-transparent" />
-            
-            <div className="relative flex flex-col lg:flex-row items-stretch lg:h-[550px]">
-              
-              {/* Left Side: Large Banner Image at 55% width */}
-              <div className="w-full lg:w-[55%] h-[260px] lg:h-full relative overflow-hidden rounded-[20px] lg:rounded-none shrink-0 bg-black">
-                <img 
-                  src={featuredEvent.bannerImage || featuredEvent.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"} 
-                  alt={featuredEvent.title} 
-                  className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-700"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
-                
-                {/* Floating Activation Date Tag */}
-                <div className="absolute top-6 left-6 z-10 px-4 py-2 bg-black/75 backdrop-blur-md rounded-xl border border-white/10 text-center font-mono">
-                  <p className="text-[10px] font-black text-gfg-primary uppercase tracking-widest">ACTIVATION</p>
-                  <p className="text-[9px] text-zinc-300 font-bold">{featuredEvent.date || featuredEvent.startDate}</p>
-                </div>
-              </div>
-
-              {/* Right Side: Detailed Stats Description at 45% width */}
-              <div className="w-full lg:w-[45%] p-8 sm:p-10 lg:p-12 flex flex-col justify-between relative z-10">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-3xl sm:text-4xl font-black uppercase text-theme-text leading-none tracking-tight pt-1 mb-2 italic">
-                      {featuredEvent.title}
-                    </h3>
-                    <div className="text-xs sm:text-sm font-mono tracking-wider font-extrabold uppercase text-[#00ff88] mb-4">
-                      {featuredEvent.category?.replace(" / ", " • ") || "Hackathon"} • {featuredEvent.location?.split(",")[0] || "Rajkot"}
-                    </div>
-
-                    <p className="text-theme-text-secondary text-xs sm:text-sm font-medium leading-relaxed line-clamp-3">
-                      {featuredEvent.description}
-                    </p>
-                  </div>
-
-                  {/* Core Highlights Blocks GRID */}
-                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-theme-border/40 text-left">
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Prize Pool</div>
-                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.prize_pool || "₹3,40,000+"}</div>
-                    </div>
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Team Size</div>
-                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.team_size || "2–4 Members"}</div>
-                    </div>
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Participants</div>
-                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.expected_participation || "600+ Students"}</div>
-                    </div>
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Colleges</div>
-                      <div className="text-xs sm:text-sm font-black text-white">{featuredEvent.expected_colleges || "150+ Nationwide"}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Event CTAs */}
-                <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 pt-4 border-t border-theme-border/40">
-                  <a
-                    href={featuredEvent.registration_link || featuredEvent.registrationLink || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-[#00ff88] hover:bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(0,255,136,0.15)] hover:shadow-[0_0_25px_rgba(0,255,136,0.3)] duration-300"
-                  >
-                    <span>{featuredEvent.title?.toLowerCase().includes("intellify") ? "Register on Unstop" : "Register Now"}</span>
-                    <ArrowRight className="w-3.5 h-3.5 ml-2" />
-                  </a>
-
-                  <Link
-                    to="/events"
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-theme-border text-xs font-black uppercase tracking-widest text-theme-text rounded-xl transition-all duration-300"
-                  >
-                    <span>View Details</span>
-                  </Link>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* DYNAMIC LIVE EVENT SPOTLIGHT (GOOGLE SHEETS APPS SCRIPT POWERED) */}
+      <UpcomingEventSpotlight />
 
       {/* Featured Courses Section */}
       <section className="py-24 sm:py-32 bg-theme-bg border-b border-theme-border relative">
