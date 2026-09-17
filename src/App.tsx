@@ -8,7 +8,6 @@ import Contact from "@/src/pages/Contact";
 import Courses from "@/src/pages/Courses";
 import Team from "@/src/pages/Team";
 import NetlifyDeploy from "@/src/pages/NetlifyDeploy";
-import StudentDashboard from "@/src/pages/student/StudentDashboard";
 import Login from "@/src/pages/admin/Login";
 import Dashboard from "@/src/pages/admin/Dashboard";
 import AtgfgLogin from "@/src/pages/atgfg/AtgfgLogin";
@@ -43,16 +42,15 @@ export default function App() {
             <Route path="events" element={<Events />} />
             <Route path="contact" element={<Contact />} />
             <Route path="courses" element={<Courses />} />
-            <Route path="resources" element={<StudentDashboard />} />
             <Route path="team" element={<Team />} />
             <Route path="deploy" element={<NetlifyDeploy />} />
           </Route>
 
-          {/* Student Portal redirects to public resources */}
-          <Route path="/student/portal" element={<Navigate to="/resources" replace />} />
-          <Route path="/student/dashboard" element={<Navigate to="/resources" replace />} />
-          <Route path="/student-login" element={<Navigate to="/resources" replace />} />
-          <Route path="/login" element={<Navigate to="/resources" replace />} />
+          {/* Student Portal redirects */}
+          <Route path="/student/portal" element={<Navigate to="/" replace />} />
+          <Route path="/student/dashboard" element={<Navigate to="/" replace />} />
+          <Route path="/student-login" element={<Navigate to="/" replace />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
 
           {/* Admin Login */}
           <Route path="/admin-login" element={<Login />} />

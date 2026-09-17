@@ -86,15 +86,6 @@ export interface GasAnnouncement {
   raw?: any;
 }
 
-export interface GasResource {
-  id?: string;
-  title: string;
-  description: string;
-  link: string;
-  category: string;
-  raw?: any;
-}
-
 export interface GasStats {
   total_events: number;
   published_events: number;
@@ -396,20 +387,6 @@ function normalizeAnnouncement(a: any): GasAnnouncement {
 }
 
 /**
- * Normalizes a resource from GAS sheet row
- */
-function normalizeResource(r: any): GasResource {
-  return {
-    id: String(r.Resource_ID || r.resource_id || r.id || ""),
-    title: r.Title || r.title || "Learning Resource",
-    description: r.Description || r.description || r.Desc || r.desc || "",
-    link: r.Link || r.link || r.URL || r.url || "#",
-    category: r.Category || r.category || "Practice",
-    raw: r,
-  };
-}
-
-/**
  * Normalizes a registration from GAS sheet row
  */
 function normalizeRegistration(reg: any): GasRegistration {
@@ -570,20 +547,6 @@ export const gasApi = {
     const rawList = res.announcements || res.data || [];
     const announcements = rawList.map(normalizeAnnouncement);
     return { success: true, count: announcements.length, announcements };
-  },
-
-  /**
-   * GET ?action=resources
-   * Fetches published resources.
-   */
-  async getResources(): Promise<{ success: boolean; count: number; resources: GasResource[]; error?: string }> {
-    const res = await getGas("resources");
-    if (!res.success) {
-      return { success: false, count: 0, resources: [], error: res.error || "Failed to load resources" };
-    }
-    const rawList = res.resources || res.data || [];
-    const resources = rawList.map(normalizeResource);
-    return { success: true, count: resources.length, resources };
   },
 
   /**

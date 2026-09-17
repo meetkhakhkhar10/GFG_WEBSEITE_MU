@@ -1,33 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --theme-bg: #030B1A;
-  --theme-bg-secondary: #071629;
-  --theme-bg-tertiary: #051226;
-  --theme-text: #FFFFFF;
-  --theme-text-muted: #9CA3AF;
-  --theme-text-secondary: #D1D5DB;
-  --theme-border: #0F2B46;
-  --theme-card: #071629;
-  --gfg-primary: #22C55E; /* Requested Green for Dark mode */
-  --gfg-primary-neon: #22C55E;
+  --theme-bg: #F4F4F0;
+  --theme-bg-secondary: #EBEBE6;
+  --theme-bg-tertiary: #E2E2DC;
+  --theme-surface: #FFFFFF;
+  --theme-text: #111318;
+  --theme-text-secondary: #555B63;
+  --theme-text-muted: #8B9198;
+  --theme-border: #E2E2DC;
+  --theme-card: #FFFFFF;
+  --gfg-primary: #00A86B;
+  --gfg-primary-hover: #00875A;
+  --gfg-accent: #00A86B;
 }
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-editorial: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --animate-marquee: marquee 30s linear infinite;
   
   --color-theme-bg: var(--theme-bg);
   --color-theme-bg-secondary: var(--theme-bg-secondary);
   --color-theme-bg-tertiary: var(--theme-bg-tertiary);
+  --color-theme-surface: var(--theme-surface);
   --color-theme-text: var(--theme-text);
-  --color-theme-text-muted: var(--theme-text-muted);
   --color-theme-text-secondary: var(--theme-text-secondary);
+  --color-theme-text-muted: var(--theme-text-muted);
   --color-theme-border: var(--theme-border);
   --color-theme-card: var(--theme-card);
   --color-gfg-primary: var(--gfg-primary);
-  --color-gfg-primary-neon: var(--gfg-primary-neon);
+  --color-gfg-accent: var(--gfg-accent);
 
   @keyframes marquee {
     from { transform: translateX(0); }
@@ -37,138 +41,136 @@
 
 @layer base {
   body {
-    @apply bg-theme-bg text-theme-text selection:bg-gfg-primary selection:text-black;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    selection-background-color: #00A86B;
+    selection-color: #FFFFFF;
   }
-  * {
-    user-select: none !important;
-    -webkit-user-select: none !important;
+
+  ::selection {
+    background-color: #00A86B;
+    color: #FFFFFF;
   }
 }
 
-@layer utilities {
-  .glass {
-    background: var(--theme-card);
-    backdrop-filter: blur(24px);
-    border: 1px solid var(--theme-border);
-  }
-  
-  .glass-premium {
-    background: var(--theme-card);
-    backdrop-filter: blur(24px);
-    border: 1px solid var(--theme-border);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-  }
-
-  .dark .glass-premium {
-    box-shadow: 20px 20px 60px rgba(0, 0, 0, 0.8);
-  }
-  
-  .neon-glow {
-    text-shadow: 0 0 15px var(--gfg-primary-neon);
-  }
-
-  .neon-border {
-    border: 1px solid var(--theme-border);
-  }
+/* Technical Architecture Grid */
+.bg-technical-grid {
+  background-image: 
+    linear-gradient(to right, rgba(17, 19, 24, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 19, 24, 0.045) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
 
-/* Simple Particle Background */
-.particles {
+.bg-technical-grid-dense {
+  background-image: 
+    linear-gradient(to right, rgba(17, 19, 24, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 19, 24, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Subtle Film Grain SVG */
+.paper-grain {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Editorial Serif Utility Classes */
+.font-editorial {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+}
+
+.font-editorial-italic {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-optical-sizing: auto;
+}
+
+.font-mono-tech {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Hairline borders & construction lines */
+.border-hairline {
+  border-color: #E2E2DC;
+}
+
+.border-hairline-b {
+  border-bottom: 1px solid #E2E2DC;
+}
+
+.border-hairline-t {
+  border-top: 1px solid #E2E2DC;
+}
+
+.border-hairline-l {
+  border-left: 1px solid #E2E2DC;
+}
+
+.border-hairline-r {
+  border-right: 1px solid #E2E2DC;
+}
+
+/* Precise Crosshair Markings */
+.crosshair-corner {
+  position: relative;
+}
+.crosshair-corner::before {
+  content: "+";
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  line-height: 1;
+  color: #8B9198;
+  opacity: 0.7;
+}
+
+.crosshair-corner-tr::after {
+  content: "+";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  line-height: 1;
+  color: #8B9198;
+  opacity: 0.7;
+}
+
+/* Smooth page fade transition */
+.page-fade-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-fade-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 400ms ease, transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Paper Tile Slices for Dynamic Poster Effect */
+.paper-slice-container {
+  position: relative;
   overflow: hidden;
 }
 
-.particle {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: var(--gfg-primary-neon);
-  border-radius: 50%;
-  opacity: 0.2;
-  animation: float 20s infinite linear;
-}
-
-@keyframes float {
-  0% { transform: translateY(0) translateX(0); opacity: 0; }
-  10% { opacity: 0.6; }
-  90% { opacity: 0.6; }
-  100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
-}
-
-.theme-transition {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Custom Uiverse 3D Cube Switcher Styling */
-.cube-wrapper {
-  perspective: 500px;
-  display: inline-block;
-  user-select: none;
-}
-
-.btn-cube {
-  position: relative;
-  width: 140px;
-  height: 40px;
-  transform-style: preserve-3d;
-  transition: transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  cursor: pointer;
-  user-select: none;
-}
-
-.btn-cube:active {
-  transform: scale(0.95);
-}
-
-.side {
+.paper-slice {
   position: absolute;
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  border-radius: 8px;
-  box-sizing: border-box;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: background 300ms, color 300ms, border-color 300ms, box-shadow 300ms;
-}
-
-.side.front {
-  transform: translateZ(20px);
-  background: #071629;
-  color: #FFFFFF;
-  border: 2px solid #0F2B46;
-}
-
-.side.top {
-  transform: rotateX(90deg) translateZ(20px);
-  background: #FFFFFF;
-  color: #111827;
-  border: 2px solid #E5E7EB;
-}
-
-/* Hover highlights to match premium GFG course hub styling */
-.btn-cube:hover .side.front {
-  border-color: #22C55E;
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.25);
-}
-
-.btn-cube:hover .side.top {
-  border-color: #2F8D46;
-  box-shadow: 0 0 15px rgba(47, 141, 70, 0.15);
+  left: 0;
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }

@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useSearchParams } from "react-router-dom";
 import { 
-  ArrowRight, Flame, Trophy, Terminal, Award, Cpu, 
-  Calendar, MapPin, Users, Coins, Users2, Building2, 
-  Layers, CheckCircle, Clock, Info, X, MapPinned, Play,
+  ArrowRight, Trophy, Terminal, Award, Cpu, 
+  Calendar, MapPin, Users, Building2, 
+  CheckCircle, Clock, X, 
   Loader2, Copy, Check, AlertTriangle, RefreshCw, Send, CheckCircle2,
-  Sparkles, ShieldCheck
+  Sparkles, ExternalLink
 } from "lucide-react";
-import { subscribeToEvents } from "../utils/eventHelpers";
 import { gasApi, GasEvent, RegistrationPayload, RegistrationResult } from "../services/gasApi";
+import PaperTiles from "../components/PaperTiles";
 
 interface EventItem {
   id: string;
@@ -21,10 +21,9 @@ interface EventItem {
   poster_url: string;
   poster_image?: string;
   registration_link: string;
-  qr_code_data?: string;
+  registration_status?: string;
+  registration_deadline?: string;
   is_published: boolean;
-  approvedBySuperAdmin?: boolean;
-  is_featured?: boolean;
   category?: string;
   status?: string;
   capacity?: string | number;
@@ -32,22 +31,48 @@ interface EventItem {
   team_size?: string;
   prize_pool?: string;
   eligibility?: string;
-  expected_participation?: string;
-  expected_colleges?: string;
   organizer_name?: string;
   organizer_email?: string;
-  organizer_phone?: string;
-  contact_phone?: string;
   stages?: Array<{ title: string; date: string; desc: string }>;
 }
 
-const INTELLIFY_REGISTRATION_URL = "https://unstop.com/hackathons/intellify-40-marwadi-university-mu-gujarat-1684922";
+function parseDateString(dateStr?: string): Date | null {
+  if (!dateStr || typeof dateStr !== "string") return null;
+  const cleanStr = dateStr.trim();
+  if (!cleanStr) return null;
+
+  const directDate = new Date(cleanStr);
+  if (!isNaN(directDate.getTime())) return directDate;
+
+  const deOrdinal = cleanStr.replace(/(\d+)(st|nd|rd|th)/gi, "$1");
+  const rangeMatch = deOrdinal.match(/(\d{1,2})\s*[\u2013\u2014-]\s*\d{1,2}\s+([A-Za-z]+)\s+(\d{4})/);
+  if (rangeMatch) {
+    const parsedRange = new Date(`${rangeMatch[1]} ${rangeMatch[2]} ${rangeMatch[3]}`);
+    if (!isNaN(parsedRange.getTime())) return parsedRange;
+  }
+
+  const parsedDeOrdinal = new Date(deOrdinal);
+  if (!isNaN(parsedDeOrdinal.getTime())) return parsedDeOrdinal;
+
+  const dmyMatch = cleanStr.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (dmyMatch) {
+    const d = parseInt(dmyMatch[1], 10);
+    const m = parseInt(dmyMatch[2], 10) - 1;
+    const y = parseInt(dmyMatch[3], 10);
+    const dmyDate = new Date(y, m, d);
+    if (!isNaN(dmyDate.getTime())) return dmyDate;
+  }
+
+  return null;
+}
 
 export default function Events() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [eventsList, setEventsList] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
+  
+  // Detail Modal State
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailEvent, setSelectedDetailEvent] = useState<EventItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -70,38 +95,35 @@ export default function Events() {
     college: "Marwadi University",
   });
 
-  // Local fallback events exactly matching design requirement in case Firestore is not active
+  // ICT CodeJam Contests
   const codejamEvents = [
     {
+      num: "01",
       sem: "Semester 2",
-      tag: "Beginner Friendly",
+      tag: "Freshman Foundation",
       round: "Round 1",
-      desc: "Kickstart your competitive coding journey. Built for first-year programmers ready to make their mark.",
+      desc: "Syntax fundamentals, recursion, standard libraries, and introductory algorithm puzzles.",
       link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-2-round-1",
       icon: Terminal,
-      color: "from-emerald-500/10 via-emerald-500/5 to-transparent",
-      accent: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5",
     },
     {
+      num: "02",
       sem: "Semester 4",
-      tag: "Intermediate",
+      tag: "Core Algorithms",
       round: "Round 1",
-      desc: "Level up with advanced data structures and algorithms. Challenge yourself against the best in your batch.",
+      desc: "Trees, graphs, dynamic programming, sorting optimization, and algorithmic efficiency.",
       link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-4-round-1-4819",
       icon: Cpu,
-      color: "from-gfg-primary/10 via-gfg-primary/5 to-transparent",
-      accent: "text-[#00ff88] border-[#00ff88]/20 bg-[#00ff88]/5",
-      hot: true,
+      featured: true,
     },
     {
+      num: "03",
       sem: "Semester 6",
-      tag: "Advanced",
+      tag: "Advanced Systems",
       round: "Round 1",
-      desc: "The elite arena. Solve complex challenges and compete for the top position among senior coders.",
+      desc: "Complex graph theory, advanced data structures, and high-frequency company interview puzzles.",
       link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-6-round-1",
       icon: Trophy,
-      color: "from-cyan-500/10 via-cyan-500/5 to-transparent",
-      accent: "text-cyan-400 border-cyan-500/20 bg-cyan-500/5",
     },
   ];
 
@@ -120,42 +142,40 @@ export default function Events() {
           description: e.description,
           date: e.date,
           time: e.time,
-          location: e.location,
+          location: e.location || "Marwadi University, Rajkot",
           poster_url: e.poster_url,
           poster_image: e.poster_image || e.poster_url,
-          registration_link: e.registration_link || INTELLIFY_REGISTRATION_URL,
+          registration_link: e.registration_link || "",
+          registration_status: e.registration_status || "OPEN",
+          registration_deadline: e.registration_deadline || "",
           is_published: e.is_published !== false,
-          approvedBySuperAdmin: true,
-          is_featured: e.is_featured,
-          category: e.category || "Hackathon / Workshop",
-          status: e.status || "Upcoming",
+          category: e.category || "Hackathon / Tech Workshop",
+          status: e.status || "PUBLISHED",
           capacity: e.capacity,
-          registration_fee: e.registration_fee || "Free",
+          registration_fee: e.registration_fee || "Free Entry",
           team_size: e.team_size || "1–4 Members",
-          prize_pool: e.prize_pool || "Exciting Certificates & Swag",
-          eligibility: e.eligibility || "All MU & External College Students",
-          expected_participation: e.expected_participation,
-          expected_colleges: e.expected_colleges,
-          organizer_name: e.organizer_name || "GFG × Marwadi University Chapter",
+          prize_pool: e.prize_pool || "Certificates & Merch",
+          eligibility: e.eligibility || "All MU & University Students",
+          organizer_name: e.organizer_name || "GeeksforGeeks × Marwadi University Chapter",
           organizer_email: e.organizer_email || "gfg@marwadiuniversity.ac.in",
-          organizer_phone: String(e.organizer_phone || e.contact_phone || ""),
-          contact_phone: String(e.contact_phone || e.organizer_phone || ""),
           stages: e.stages || [
             {
-              title: "Registration & Abstract",
+              title: "Online Registration",
               date: e.date,
-              desc: "Register team details and participate in the official chapter events."
+              desc: "Register team details on the chapter portal."
+            },
+            {
+              title: "Campus Activation",
+              date: e.date,
+              desc: "On-site coding and project evaluation at Marwadi University labs."
             }
           ]
         }));
-        console.log("Events.tsx setting mapped events count:", mapped.length);
         setEventsList(mapped);
       } else if (!res.success && res.error) {
-        console.warn("GAS sync notice:", res.error);
         setApiError(res.error);
       }
     } catch (err: any) {
-      console.warn("GAS Events load failed:", err);
       setApiError(err.message || "Unable to reach Google Apps Script API");
     } finally {
       setLoading(false);
@@ -165,49 +185,15 @@ export default function Events() {
   useEffect(() => {
     fetchGasEvents();
 
-    // Check if URL specifies an event ID: ?id=... or ?action=event&id=...
     const eventIdFromUrl = searchParams.get("id");
+    const openRegister = searchParams.get("register") === "true";
+
     if (eventIdFromUrl) {
       handleOpenEventDetail(eventIdFromUrl);
     }
-
-    // Dynamic database subscription for realtime fallback/compatibility
-    const unsub = subscribeToEvents((list) => {
-      if (list && list.length > 0) {
-        const mappedList: EventItem[] = list.map((e: any) => ({
-          id: e.id,
-          title: e.title,
-          description: e.description,
-          date: e.date || e.startDate,
-          time: e.time,
-          location: e.location || e.venue,
-          poster_url: e.poster_url || e.bannerImage,
-          poster_image: e.poster_image || e.poster_url || e.bannerImage,
-          registration_link: (e.id === "evt_intellify" || e.title?.includes("Intellify")) ? INTELLIFY_REGISTRATION_URL : (e.registration_link || e.registrationLink || ""),
-          is_published: e.is_published !== false,
-          approvedBySuperAdmin: e.approvedBySuperAdmin !== false,
-          is_featured: e.is_featured || e.featured || false,
-          category: e.category,
-          status: e.status,
-          capacity: e.capacity,
-          registration_fee: e.registration_fee || "Free",
-          team_size: e.team_size || "1–4 Members",
-          prize_pool: e.prize_pool || "Exciting Swag & Certificate",
-          eligibility: e.eligibility || "All MU & External College Students",
-          expected_participation: e.expected_participation || "500+ Students",
-          expected_colleges: e.expected_colleges || "100+ Colleges Across India",
-          organizer_name: e.organizer_name || e.organizer || "MU × GFG Student Chapter",
-          organizer_phone: String(e.contact_phone || e.organizer_phone || ""),
-          contact_phone: String(e.contact_phone || e.organizer_phone || ""),
-          stages: e.stages
-        }));
-        setEventsList(mappedList);
-      }
-    });
-    return () => unsub();
   }, [searchParams]);
 
-  // Fetch single event by ID (GET ?action=event&id=EVENT_ID)
+  // Open Event Details Modal
   const handleOpenEventDetail = async (eventId: string, fallback?: EventItem) => {
     if (fallback) {
       setSelectedDetailEvent(fallback);
@@ -221,785 +207,554 @@ export default function Events() {
     try {
       const res = await gasApi.getEvent(eventId);
       if (res.success && res.event) {
-        const e = res.event;
-        setSelectedDetailEvent({
-          id: e.id,
-          title: e.title,
-          description: e.description,
-          date: e.date,
-          time: e.time,
-          location: e.location,
-          poster_url: e.poster_url,
-          poster_image: e.poster_image || e.poster_url,
-          registration_link: e.registration_link || INTELLIFY_REGISTRATION_URL,
-          is_published: e.is_published !== false,
-          approvedBySuperAdmin: true,
-          is_featured: e.is_featured,
-          category: e.category || "Hackathon / Workshop",
-          status: e.status || "Upcoming",
-          capacity: e.capacity,
-          registration_fee: e.registration_fee || "Free",
-          team_size: e.team_size || "1–4 Members",
-          prize_pool: e.prize_pool || "Exciting Swag & Certificate",
-          eligibility: e.eligibility || "All College Students",
-          expected_participation: e.expected_participation,
-          expected_colleges: e.expected_colleges,
-          organizer_name: e.organizer_name || "GFG × Marwadi University Chapter",
-          organizer_email: e.organizer_email,
-          stages: e.stages
-        });
+        const full = res.event;
+        setSelectedDetailEvent(prev => ({
+          ...(prev || {}),
+          id: full.id,
+          title: full.title,
+          description: full.description || prev?.description || "",
+          date: full.date || prev?.date || "",
+          time: full.time || prev?.time,
+          location: full.location || prev?.location || "Marwadi University",
+          poster_url: full.poster_url || prev?.poster_url || "",
+          poster_image: full.poster_image || full.poster_url || prev?.poster_image,
+          registration_link: full.registration_link || prev?.registration_link || "",
+          registration_status: full.registration_status || prev?.registration_status || "OPEN",
+          registration_deadline: full.registration_deadline || prev?.registration_deadline || "",
+          is_published: full.is_published !== false,
+          category: full.category || prev?.category,
+          status: full.status || prev?.status || "PUBLISHED",
+          capacity: full.capacity || prev?.capacity,
+          registration_fee: full.registration_fee || prev?.registration_fee || "Free",
+          team_size: full.team_size || prev?.team_size || "1–4 Members",
+          prize_pool: full.prize_pool || prev?.prize_pool || "Exciting Swag & Certificate",
+          eligibility: full.eligibility || prev?.eligibility,
+          organizer_name: full.organizer_name || prev?.organizer_name || "GFG × MU Chapter",
+          organizer_email: full.organizer_email || prev?.organizer_email,
+          stages: full.stages || prev?.stages
+        }));
       }
     } catch (err) {
-      console.warn("Error fetching single event:", err);
+      console.warn("Failed to fetch detailed event metadata:", err);
     } finally {
       setDetailLoading(false);
     }
   };
 
-  // Open Registration Modal
+  // Open Quick Registration Modal
   const handleOpenRegistration = (event: EventItem) => {
     setRegEvent(event);
     setRegError(null);
     setRegSuccessData(null);
-    setCopiedRegId(false);
     setIsRegModalOpen(true);
   };
 
-  // Submit Registration via POST action=register
+  // Handle Submit Registration to Google Apps Script
   const handleRegistrationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regEvent) return;
 
     setRegSubmitting(true);
     setRegError(null);
-    setRegSuccessData(null);
-
-    const payload: RegistrationPayload = {
-      event_id: regEvent.id,
-      name: regForm.name.trim(),
-      email: regForm.email.trim(),
-      phone: regForm.phone.trim(),
-      enrollment_number: regForm.enrollment_number.trim(),
-      department: regForm.department.trim(),
-      year: regForm.year.trim(),
-      college: regForm.college.trim(),
-    };
 
     try {
-      const res = await gasApi.registerForEvent(payload);
-      if (res.success) {
-        setRegSuccessData(res);
+      const payload: RegistrationPayload = {
+        event_id: regEvent.id,
+        ...regForm,
+      };
+
+      const result = await gasApi.registerForEvent(payload);
+
+      if (result.success) {
+        setRegSuccessData(result);
       } else {
-        setRegError(res.error || "Registration request rejected by backend.");
+        setRegError(result.error || "Registration submission failed. Please try again.");
       }
     } catch (err: any) {
-      setRegError(err.message || "Failed to send registration payload to Google Apps Script.");
+      setRegError(err.message || "An unexpected error occurred during submission.");
     } finally {
       setRegSubmitting(false);
     }
   };
 
-  // Find Intellify Event or Fallback to pre-populated schema
-  const intellifyEvent: EventItem = eventsList.find(e => e.id === "evt_intellify" || e.title.includes("Intellify")) || {
-    id: "evt_intellify",
-    title: "Intellify 4.0",
-    description: "Intellify 4.0 is the flagship national-level hackathon organized at Marwadi University on 15th–16th August 2026. Building upon the success of previous editions, Intellify has evolved into a platform that promotes innovation, collaboration, creativity, and technical excellence among students across India.\n\nThe hackathon provides participants with an opportunity to solve real-world challenges through technology in a highly competitive environment. With participation expected from 600+ students representing 150+ colleges nationwide, Intellify 4.0 aims to create impactful solutions while fostering networking, learning, and innovation.",
-    date: "15th–16th August 2026",
-    location: "Marwadi University, Rajkot, Gujarat, India",
-    poster_url: "https://d8it4huxumps7.cloudfront.net/uploads/images/opportunity/banner/6a1ebf444ee51_intellify-40.jpg?d=1920x557",
-    poster_image: "https://media.licdn.com/dms/image/v2/D5622AQGX5GCF2vVchg/feedshare-shrink_480/B56Z6MtjFwI8Ag-/0/1780477211277?e=1782345600&v=beta&t=3KyigAHwI12hZAxOfpnKapHcCJl4Gi4kYyR5L0UIqeM",
-    registration_link: INTELLIFY_REGISTRATION_URL,
-    is_published: true,
-    is_featured: true,
-    category: "Hackathon / Software Development",
-    status: "Upcoming",
-    capacity: "600",
-    registration_fee: "₹250",
-    team_size: "2–4 Members",
-    prize_pool: "₹3,40,000+",
-    eligibility: "Engineering Students, Undergraduate Students, Postgraduate Students, Management Students, Medical Students, Law Students, Arts, Commerce, Science & Other Streams",
-    expected_participation: "600+ Students",
-    expected_colleges: "150+ Colleges Across India",
-    organizer_name: "Marwadi University × GeeksforGeeks Student Chapter",
-    stages: [
-      {
-        title: "Abstract Submission",
-        date: "16 June 2026 – 30 June 2026",
-        desc: "Teams must submit an abstract describing: Problem Statement, Proposed Solution, Innovation & Uniqueness, Expected Impact, Feasibility, Technologies Used"
-      },
-      {
-        title: "Concept Demonstration",
-        date: "05 July 2026 – 25 July 2026",
-        desc: "Shortlisted teams must submit a video presentation covering: Problem Understanding, Solution Approach, Algorithm Flow, System Architecture, Technical Workflow, Team Introduction"
-      },
-      {
-        title: "Grand Finale",
-        date: "15 August 2026 – 16 August 2026",
-        desc: "Finalists will develop and present a working prototype, project demonstration, and presentation before the evaluation panel at Marwadi University."
+  // Filter valid events
+  const validEvents = eventsList
+    .filter((e) => {
+      const statusUpper = (e.status || "").toUpperCase();
+      if (statusUpper !== "PUBLISHED" && statusUpper !== "ACTIVE") return false;
+
+      const regStatusUpper = (e.registration_status || "").toUpperCase();
+      if (regStatusUpper !== "OPEN") return false;
+
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+      if (e.registration_deadline) {
+        const deadlineDate = parseDateString(e.registration_deadline);
+        if (deadlineDate) {
+          deadlineDate.setHours(23, 59, 59, 999);
+          if (now > deadlineDate) return false;
+        }
       }
-    ]
-  };
+
+      if (e.date) {
+        const eventDate = parseDateString(e.date);
+        if (eventDate) {
+          eventDate.setHours(23, 59, 59, 999);
+          if (eventDate < todayStart) return false;
+        }
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      const timeA = parseDateString(a.date)?.getTime() ?? Infinity;
+      const timeB = parseDateString(b.date)?.getTime() ?? Infinity;
+      return timeA - timeB;
+    });
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="py-24 bg-theme-bg min-h-screen text-theme-text theme-transition overflow-hidden relative"
-    >
-      {/* Absolute Ambient Cyberpunk Glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gfg-primary/5 via-[#0c141d]/0 to-transparent pointer-events-none" />
-      <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-gfg-primary/2 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-40 right-1/4 w-[500px] h-[500px] bg-[#00ff88]/2 rounded-full blur-[160px] pointer-events-none" />
+    <div className="bg-[#F4F4F0] min-h-screen text-[#111318] select-none">
+      
+      {/* Background Architectural Grid */}
+      <div className="absolute inset-0 bg-technical-grid opacity-50 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-24">
+      {/* TOP HERO SPECIFICATION */}
+      <section className="relative py-16 md:py-24 border-b border-[#E2E2DC] bg-[#F4F4F0]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#8B9198]">
+            <div className="flex items-center space-x-2">
+              <span className="text-[#00A86B] font-bold">02 / EVENTS REPOSITORY</span>
+              <span>·</span>
+              <span className="text-[#111318]">LIVE GOOGLE SHEETS API</span>
+            </div>
 
-        {/* 1. FEATURED HACKATHON ZONE - INTELLIFY 4.0 */}
-        <section className="relative w-full max-w-6xl mx-auto">
-          {/* Header Tagline & Official Badges */}
-          <div className="flex flex-wrap items-center gap-2.5 mb-6">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-bold text-[#00ff88]">
-              <span className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-ping" />
-              <span>Registration Open</span>
-            </span>
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-[10px] font-bold text-cyan-400">
-              <Award className="w-3.5 h-3.5 text-cyan-400" />
-              <span>National Level Hackathon</span>
-            </span>
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[10px] font-bold text-purple-400">
-              <Building2 className="w-3.5 h-3.5 text-purple-400" />
-              <span>Powered by Marwadi University</span>
-            </span>
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full text-[10px] font-bold text-[#00ff88]">
-              <Flame className="w-3.5 h-3.5 text-[#00ff88] animate-pulse" />
-              <span>GeeksforGeeks Collaboration</span>
-            </span>
-          </div>
-
-          <div className="group relative rounded-[2.5rem] bg-theme-bg-secondary/40 backdrop-blur-2xl border border-theme-border/80 overflow-hidden shadow-2xl transition-all duration-500 hover:border-[#00ff88]/30">
-            {/* Ambient Line */}
-            <div className="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-[#00ff88] via-[#00E676] to-transparent" />
-            
-            {/* Diagonal Grid Accents */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,136,0.015)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none opacity-60" />
-
-            {/* Split Banner & Content */}
-            <div className="flex flex-col lg:flex-row items-stretch">
-              {/* Left Side: Visual Banner Banner (Clickable to view stages) */}
-              <div 
-                onClick={() => {
-                  setIsDetailModalOpen(true);
-                  setActiveTab("timeline");
-                }}
-                className="lg:w-[45%] relative min-h-[260px] lg:min-h-auto overflow-hidden cursor-pointer group/poster"
-                title="Click to view local timeline & stages"
+            <div className="flex items-center space-x-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-pulse" />
+              <span>SYNCHRONIZED FEED</span>
+              <button
+                onClick={fetchGasEvents}
+                disabled={loading}
+                className="px-2.5 py-1 bg-[#FFFFFF] border border-[#E2E2DC] hover:border-[#111318] text-[#111318] transition-colors cursor-pointer flex items-center space-x-1"
               >
-                <img 
-                  src={intellifyEvent.poster_url} 
-                  alt="Intellify Header" 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 group-hover/poster:brightness-[0.85]"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-                
-                {/* Floating Meta */}
-                <div className="absolute top-6 left-6 z-10 px-4 py-2 bg-black/70 backdrop-blur-md rounded-2xl border border-white/10 flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-[#00ff88] animate-ping" />
-                  <span className="text-[10px] font-mono font-black text-white uppercase tracking-widest">9 Days Left</span>
-                </div>
-
-                <div className="absolute bottom-8 left-8 z-10 space-y-1.5 max-w-sm hidden sm:block">
-                  <p className="text-[10px] font-mono font-bold tracking-widest text-[#00ff88]/80 uppercase">Joint Collaboration</p>
-                  <p className="text-xl font-black text-white uppercase italic tracking-tight">Marwadi University × GeeksforGeeks</p>
-                  <p className="text-[9px] font-mono font-bold text-zinc-400 mt-2 uppercase tracking-wider group-hover/poster:text-[#00ff88] transition-colors">
-                    ⚡ Click picture to view stages & timeline modal
-                  </p>
-                </div>
-              </div>
-
-              {/* Right Side: Detailed Stats Description */}
-              <div className="lg:w-[55%] p-8 sm:p-12 flex flex-col justify-between relative z-10 bg-theme-bg-secondary/20">
-                <div className="space-y-6">
-                  {/* Title Info */}
-                  <div>
-                    <div className="flex items-center space-x-3 mb-2 text-xs font-mono font-bold tracking-wider text-theme-text-secondary">
-                      <span className="text-[#00ff88]">{intellifyEvent.category}</span>
-                      <span>•</span>
-                      <span className="flex items-center"><MapPin className="w-3.5 h-3.5 mr-1" /> Rajkot, Gujarat</span>
-                    </div>
-
-                    <h2 className="text-4xl sm:text-5xl font-black italic uppercase tracking-tighter text-theme-text leading-none mb-4 group-hover:text-[#00ff88] transition-colors">
-                      {intellifyEvent.title}
-                    </h2>
-
-                    <p className="text-theme-text-secondary text-sm leading-relaxed font-semibold line-clamp-3">
-                      {intellifyEvent.description}
-                    </p>
-                  </div>
-
-                  {/* Core Highlights Blocks GRID featuring all required details */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 pt-4 border-t border-theme-border/40 text-left">
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Registration Fee</div>
-                      <div className="text-sm font-black text-white">₹250</div>
-                    </div>
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Team Size</div>
-                      <div className="text-sm font-black text-white">2–4 Members</div>
-                    </div>
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Prize Pool</div>
-                      <div className="text-sm font-black text-white">₹3,40,000+</div>
-                    </div>
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Participation</div>
-                      <div className="text-sm font-black text-white">600+ Students</div>
-                    </div>
-                    <div className="bg-black/30 border border-theme-border/50 p-3 rounded-2xl col-span-2 md:col-span-1">
-                      <div className="text-[8px] font-mono font-black text-[#00ff88]/60 uppercase tracking-wider mb-1">Colleges</div>
-                      <div className="text-sm font-black text-white">150+ Nationwide</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Event CTAs */}
-                <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 pt-6 border-t border-theme-border/40">
-                  <button
-                    onClick={() => handleOpenRegistration(intellifyEvent)}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-[#00ff88] text-black font-black uppercase text-xs tracking-widest rounded-2xl hover:bg-white hover:shadow-[0_0_25px_rgba(0,255,136,0.25)] transition-all duration-300"
-                    id="intellify-quick-register-btn"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    <span>Quick Register</span>
-                  </button>
-
-                  <a
-                    href={INTELLIFY_REGISTRATION_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-white/5 border border-theme-border hover:bg-white/10 hover:border-white/25 text-theme-text font-black uppercase text-xs tracking-widest rounded-2xl transition-all"
-                  >
-                    <span>Unstop Portal</span>
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </a>
-
-                  <button
-                    onClick={() => handleOpenEventDetail(intellifyEvent.id, intellifyEvent)}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-white/5 border border-theme-border hover:bg-white/10 hover:border-white/25 text-theme-text font-black uppercase text-xs tracking-widest rounded-2xl transition-all"
-                    id="intellify-details-btn"
-                  >
-                    <Info className="w-4 h-4 mr-2" />
-                    <span>View Event Details</span>
-                  </button>
-                </div>
-
-              </div>
+                <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin text-[#00A86B]" : ""}`} />
+                <span>SYNC</span>
+              </button>
             </div>
           </div>
-        </section>
 
-        {/* 1.5 PUBLISHED CHAPTER EVENTS (LIVE FROM GOOGLE APPS SCRIPT) */}
-        <section className="relative w-full max-w-6xl mx-auto" id="chapter-events-feed">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 border-b border-theme-border/60 pb-6">
-            <div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/25 rounded-full text-[10px] font-mono font-bold text-[#00ff88] uppercase tracking-wider mb-2">
-                <span className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-ping" />
-                <span>Google Apps Script Sync</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white italic">
-                Chapter <span className="text-[#00ff88]">Events</span>
-              </h2>
-              <p className="text-theme-text-secondary text-xs sm:text-sm font-semibold mt-1">
-                Active events published and synchronized directly from the chapter Google Sheet database.
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+            <div className="lg:col-span-8 space-y-4">
+              <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-black text-[#111318] tracking-tight leading-[0.98]">
+                Chapter Events & <br />
+                <span className="font-editorial-italic font-normal text-[#00A86B]">
+                  Technical Sprints
+                </span>
+              </h1>
+              <p className="font-sans text-sm sm:text-base text-[#555B63] max-w-2xl leading-relaxed border-l-2 border-[#111318] pl-4">
+                Explore official GeeksforGeeks hackathons, algorithm marathons, masterclasses, and coding competitions 
+                hosted live across Marwadi University campus venues.
               </p>
             </div>
-            
-            <button
-              onClick={fetchGasEvents}
-              disabled={loading}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-mono font-bold transition-all disabled:opacity-50"
-              title="Sync with Google Apps Script"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#00ff88]" : ""}`} />
-              <span>{loading ? "Syncing..." : "Refresh Feed"}</span>
-            </button>
+
+            <div className="lg:col-span-4 font-mono text-[11px] space-y-2 bg-[#FFFFFF] border border-[#E2E2DC] p-5 shadow-sm">
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
+                <span>DATABASE STATUS</span>
+                <span className="text-[#00A86B] font-bold">LIVE ONLINE</span>
+              </div>
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
+                <span>ACTIVE CALENDAR</span>
+                <span className="text-[#111318] font-bold">{validEvents.length} Events Listed</span>
+              </div>
+              <div className="flex justify-between text-[#8B9198]">
+                <span>LOCATION</span>
+                <span className="text-[#111318]">Rajkot, Gujarat</span>
+              </div>
+            </div>
           </div>
 
-          {/* Loading State */}
+        </div>
+      </section>
+
+      {/* CHAPTER EVENTS FEED */}
+      <section className="py-16 md:py-24 border-b border-[#E2E2DC] bg-[#FAF9F5]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex items-center justify-between pb-4 mb-10 border-b border-[#E2E2DC]">
+            <div className="font-mono text-xs uppercase tracking-widest text-[#111318] font-bold">
+              OPEN REGISTRATIONS
+            </div>
+            <div className="font-mono text-xs text-[#8B9198]">
+              SORTED BY NEAREST UPCOMING DATE
+            </div>
+          </div>
+
+          {/* LOADING STATE */}
           {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="p-6 rounded-[2rem] bg-theme-bg-secondary/40 border border-theme-border animate-pulse space-y-4">
-                  <div className="h-44 bg-white/5 rounded-2xl" />
-                  <div className="h-4 bg-white/10 rounded w-1/3" />
-                  <div className="h-6 bg-white/15 rounded w-3/4" />
-                  <div className="h-3 bg-white/5 rounded w-full" />
-                  <div className="h-10 bg-white/10 rounded-xl mt-4" />
-                </div>
-              ))}
+            <div className="p-16 bg-[#FFFFFF] border border-[#E2E2DC] text-center space-y-4">
+              <div className="font-mono text-xs uppercase tracking-widest text-[#8B9198] animate-pulse">
+                PARSING APPS SCRIPT RECORDS...
+              </div>
             </div>
           )}
 
-          {/* Error State */}
+          {/* ERROR STATE */}
           {!loading && apiError && (
-            <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center space-x-3">
-                <AlertTriangle className="w-6 h-6 text-rose-400 shrink-0" />
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider font-mono">Backend Synchronization Notice</p>
-                  <p className="text-xs text-rose-200/80 font-medium">{apiError}</p>
-                </div>
-              </div>
+            <div className="p-8 bg-[#FFFFFF] border border-[#E2E2DC] text-center space-y-3 max-w-lg mx-auto">
+              <AlertTriangle className="w-8 h-8 text-amber-600 mx-auto" />
+              <div className="font-editorial text-lg text-[#111318]">Backend Synchronizing</div>
+              <p className="font-mono text-xs text-[#555B63]">{apiError}</p>
               <button
                 onClick={fetchGasEvents}
-                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded-xl text-xs font-bold text-white transition-all shrink-0"
+                className="px-5 py-2.5 bg-[#111318] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest hover:bg-[#00A86B] transition-colors"
               >
-                Retry Connection
+                Retry
               </button>
             </div>
           )}
 
-          {/* Live Events Grid */}
-          {!loading && !apiError && eventsList.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {eventsList.map((evt) => (
-                <motion.div
+          {/* EVENTS GRID */}
+          {!loading && !apiError && validEvents.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {validEvents.map((evt, idx) => (
+                <div
                   key={evt.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="group relative flex flex-col h-full bg-theme-bg-secondary/50 backdrop-blur-xl border border-theme-border rounded-[2rem] overflow-hidden hover:border-[#00ff88]/40 transition-all duration-300 shadow-xl"
+                  className="bg-[#FFFFFF] border border-[#E2E2DC] flex flex-col justify-between hover:border-[#111318] transition-colors group shadow-[0_4px_20px_rgba(17,19,24,0.03)]"
                 >
-                  {/* Poster Image */}
-                  <div className="h-48 w-full relative bg-black/40 overflow-hidden">
-                    <img
-                      src={evt.poster_url || evt.poster_image}
-                      alt={evt.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                    
-                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                      <span className="px-2.5 py-1 bg-black/70 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-mono font-black uppercase text-[#00ff88] tracking-wider">
-                        {evt.category || "Event"}
-                      </span>
-                      {evt.status && (
-                        <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-full text-[9px] font-mono font-bold uppercase text-emerald-300">
-                          {evt.status}
-                        </span>
-                      )}
+                  <div>
+                    {/* Visual Area */}
+                    <div className="relative aspect-[16/10] overflow-hidden border-b border-[#E2E2DC] bg-[#F4F4F0]">
+                      <img
+                        src={evt.poster_url || evt.poster_image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"}
+                        alt={evt.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        referrerPolicy="no-referrer"
+                      />
+                      
+                      <div className="absolute top-3 left-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase tracking-widest text-[#111318] font-bold">
+                        {evt.category || "TECH EVENT"}
+                      </div>
+
+                      <div className="absolute top-3 right-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase text-[#00A86B] font-bold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-ping" />
+                        <span>OPEN</span>
+                      </div>
                     </div>
 
-                    <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-[11px] font-mono text-zinc-300">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-[#00ff88]" />
-                        {evt.date}
-                      </span>
-                      {evt.location && (
-                        <span className="flex items-center gap-1 truncate max-w-[150px]">
-                          <MapPin className="w-3.5 h-3.5 text-[#00ff88]" />
-                          {evt.location}
+                    {/* Metadata Header */}
+                    <div className="p-6 pb-2 space-y-4">
+                      <div className="flex items-center justify-between font-mono text-[10px] text-[#8B9198] border-b border-[#E2E2DC] pb-3">
+                        <span className="flex items-center gap-1.5 text-[#111318] font-bold">
+                          <Calendar className="w-3.5 h-3.5 text-[#00A86B]" />
+                          {evt.date}
                         </span>
-                      )}
-                    </div>
-                  </div>
+                        <span>{evt.id}</span>
+                      </div>
 
-                  {/* Body Content */}
-                  <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                    <div>
-                      <h3 className="text-xl font-black uppercase text-white tracking-tight leading-tight group-hover:text-[#00ff88] transition-colors">
+                      <h3 className="font-editorial text-2xl font-bold text-[#111318] tracking-tight group-hover:text-[#00A86B] transition-colors leading-snug">
                         {evt.title}
                       </h3>
-                      <p className="text-theme-text-secondary text-xs font-medium leading-relaxed mt-2 line-clamp-3">
-                        {evt.description}
-                      </p>
-                    </div>
 
-                    <div className="pt-4 border-t border-theme-border/60 flex items-center justify-between gap-3">
-                      <button
-                        onClick={() => handleOpenEventDetail(evt.id, evt)}
-                        className="flex-1 py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white transition-all text-center"
-                      >
-                        Details
-                      </button>
-                      <button
-                        onClick={() => handleOpenRegistration(evt)}
-                        className="flex-1 py-2.5 px-3 bg-[#00ff88] hover:bg-white text-black font-black uppercase text-xs tracking-wider rounded-xl transition-all text-center flex items-center justify-center gap-1"
-                      >
-                        <span>Register</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
+                      <p className="font-sans text-xs text-[#555B63] leading-relaxed line-clamp-3">
+                        {evt.description || "Join fellow developers at Marwadi University for hands-on problem solving and project building."}
+                      </p>
+
+                      <div className="pt-2 flex items-center gap-2 font-mono text-[10px] text-[#8B9198] truncate">
+                        <MapPin className="w-3.5 h-3.5 text-[#00A86B] shrink-0" />
+                        <span className="truncate">{evt.location}</span>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
+
+                  {/* Action Buttons */}
+                  <div className="p-6 pt-4 border-t border-[#E2E2DC] flex items-center gap-3">
+                    <button
+                      onClick={() => handleOpenEventDetail(evt.id, evt)}
+                      className="flex-1 py-3 px-4 bg-transparent hover:bg-[#F4F4F0] border border-[#E2E2DC] hover:border-[#111318] text-[#111318] font-mono text-xs uppercase tracking-widest transition-colors text-center cursor-pointer"
+                    >
+                      Specifications
+                    </button>
+
+                    <button
+                      onClick={() => handleOpenRegistration(evt)}
+                      className="flex-1 py-3 px-4 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors text-center flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <span>Register</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                </div>
               ))}
             </div>
           )}
 
-          {/* Empty State */}
-          {!loading && !apiError && eventsList.length === 0 && (
-            <div className="p-8 rounded-[2rem] bg-theme-bg-secondary/40 border border-theme-border text-center max-w-xl mx-auto space-y-3">
-              <Sparkles className="w-8 h-8 text-[#00ff88] mx-auto opacity-75" />
-              <h3 className="text-lg font-bold text-white uppercase">Backend Connected & Active</h3>
-              <p className="text-xs text-zinc-400 font-medium">
-                No extra events are currently published in the Google Sheet. Use our flagship registration buttons above or add rows to the Google Sheet backend!
+          {/* EMPTY STATE */}
+          {!loading && !apiError && validEvents.length === 0 && (
+            <div className="p-16 bg-[#FFFFFF] border border-[#E2E2DC] text-center space-y-3 max-w-xl mx-auto">
+              <Sparkles className="w-8 h-8 text-[#00A86B] mx-auto opacity-75" />
+              <h3 className="font-editorial text-2xl text-[#111318]">No Active Upcoming Events</h3>
+              <p className="font-sans text-xs text-[#555B63]">
+                There are currently no open event registrations published on Google Sheets. Please check back shortly or click the Sync button above.
               </p>
             </div>
           )}
-        </section>
 
-        {/* 2. ICT CODEJAM SECTION */}
-        <section className="relative w-full max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-16 relative">
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 bg-gfg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center space-x-2.5 px-5 py-2 mb-6 text-xs font-black tracking-[0.25em] text-[#00ff88] uppercase bg-[#00ff88]/10 border border-[#00ff88]/25 rounded-full shadow-lg shadow-[#00ff88]/5 select-none"
-            >
-              <span className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-ping" />
-              <span>COMPETE • SOLVE • INNOVATE</span>
-            </motion.div>
-            
-            <motion.h1 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-5xl sm:text-7xl font-black mb-8 tracking-tighter uppercase leading-[0.9] italic"
-            >
-              ICT <span className="text-transparent bg-clip-text bg-gradient-to-r from-gfg-primary via-emerald-400 to-[#00ff88]">CODEJAM</span>
-            </motion.h1>
+        </div>
+      </section>
 
-            <motion.p 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-theme-text-secondary max-w-3xl mx-auto text-sm sm:text-base font-semibold leading-relaxed text-center px-4"
-            >
-              A university-wide competitive programming initiative powered by GeeksforGeeks to help students sharpen problem-solving skills, improve coding efficiency, and compete with the best minds across semesters.
-            </motion.p>
+      {/* ICT CODEJAM COMPETITIVE PROGRAMMING SECTION */}
+      <section className="py-20 md:py-28 border-b border-[#E2E2DC] bg-[#F4F4F0]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 mb-12 border-b border-[#E2E2DC] gap-4">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#00A86B] font-bold mb-2">
+                03 / COMPETITIVE ARENA
+              </div>
+              <h2 className="font-editorial text-4xl sm:text-5xl font-black text-[#111318] tracking-tight">
+                ICT CodeJam Contests
+              </h2>
+            </div>
+            <p className="font-mono text-xs text-[#8B9198] max-w-sm">
+              Official GeeksforGeeks practice contest tracks configured by semester for Marwadi University students.
+            </p>
           </div>
 
-          {/* 3-Column Responsive Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch mt-12">
-            {codejamEvents.map((card, idx) => {
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {codejamEvents.map((card) => {
               const Icon = card.icon;
               return (
-                <motion.div
+                <div
                   key={card.sem}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1, duration: 0.5 }}
-                  className="group relative flex flex-col h-full bg-theme-bg-secondary/40 backdrop-blur-xl border border-theme-border rounded-[2.25rem] overflow-hidden hover:border-[#00ff88]/40 transition-all duration-300 shadow-xl"
+                  className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 flex flex-col justify-between hover:border-[#111318] transition-colors shadow-[0_4px_20px_rgba(17,19,24,0.03)] group"
                 >
-                  {/* Neon top highlights */}
-                  <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-[#00ff88] to-transparent opacity-30 group-hover:opacity-100 transition-opacity" />
-                  
-                  {/* Soft Background Gradient */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-30 pointer-events-none`} />
-
-                  <div className="p-8 sm:p-10 flex-grow flex flex-col justify-between relative z-10 w-full h-full">
-                    <div className="space-y-6">
-                      {/* Brand Label and Icon Header */}
-                      <div className="flex justify-between items-start w-full">
-                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl">
-                          <Icon className="w-6 h-6 text-[#00ff88]" />
-                        </div>
-                        
-                        {card.hot && (
-                          <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full flex items-center space-x-1.5 shadow-[0_0_12px_rgba(239,68,68,0.15)] animate-pulse">
-                            <Flame className="w-3.5 h-3.5 text-red-500" />
-                            <span className="text-[9px] font-black text-red-500 uppercase tracking-widest font-mono">HOT 🔥</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-[10px] font-mono tracking-widest text-[#00ff88] uppercase font-bold">
-                          <span className={`px-2 py-0.5 rounded border ${card.accent}`}>{card.tag}</span>
-                          <span className="opacity-60">•</span>
-                          <span className="opacity-85">{card.round}</span>
-                        </div>
-                        
-                        <h3 className="text-2xl md:text-3xl font-black uppercase text-theme-text italic tracking-tight leading-none pt-1">
-                          {card.sem}
-                        </h3>
-                      </div>
-
-                      <p className="text-theme-text-secondary text-xs sm:text-sm font-semibold leading-relaxed">
-                        {card.desc}
-                      </p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between font-mono text-[10px] text-[#8B9198] pb-4 border-b border-[#E2E2DC]">
+                      <span className="font-bold text-[#111318]">{card.num}</span>
+                      <span className="text-[#00A86B]">{card.tag}</span>
                     </div>
 
-                    {/* Button CTA */}
-                    <div className="pt-8 mt-8 border-t border-theme-border/60">
-                      <a
-                        href={card.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center px-6 py-3.5 bg-[#17222f]/80 border border-[#00ff88]/30 group-hover:bg-[#00ff88] group-hover:text-black group-hover:border-transparent text-[#00ff88] font-black uppercase text-xs tracking-widest rounded-2xl transition-all duration-300 shadow-sm group-hover:shadow-[0_0_20px_rgba(0,255,136,0.25)]"
-                      >
-                        <span>Register Now</span>
-                        <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-                      </a>
+                    <div className="w-10 h-10 border border-[#E2E2DC] bg-[#FAF9F5] flex items-center justify-center text-[#111318] group-hover:text-[#00A86B] transition-colors">
+                      <Icon className="w-5 h-5" />
                     </div>
+
+                    <h3 className="font-editorial text-2xl font-bold text-[#111318] tracking-tight">
+                      {card.sem}
+                    </h3>
+
+                    <p className="font-sans text-xs text-[#555B63] leading-relaxed">
+                      {card.desc}
+                    </p>
                   </div>
-                </motion.div>
+
+                  <div className="pt-6 border-t border-[#E2E2DC] mt-8">
+                    <a
+                      href={card.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3.5 px-4 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 text-center"
+                    >
+                      <span>Enter Contest</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
               );
             })}
           </div>
-        </section>
 
-      </div>
+        </div>
+      </section>
 
-      {/* 3. PREMIUM SLIDE-OUT PANEL FOR INTELLIFY 4.0 DETAILS */}
+      {/* DETAIL MODAL (EDITORIAL DESIGN) */}
       <AnimatePresence>
-        {isDetailModalOpen && (
-          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
-            {/* Backdrop slide blur */}
+        {isDetailModalOpen && selectedDetailEvent && (
+          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6 select-none">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDetailModalOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-lg"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             />
 
-            {/* Modal Body Card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 30 }}
+              initial={{ opacity: 0, scale: 0.98, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 30 }}
-              className="relative w-full max-w-5xl bg-[#0c141d]/95 border border-theme-border/80 rounded-[2.5rem] overflow-hidden shadow-2xl z-10 max-h-[90vh] flex flex-col"
+              exit={{ opacity: 0, scale: 0.98, y: 15 }}
+              className="relative w-full max-w-4xl bg-[#FFFFFF] border border-[#111318] shadow-2xl z-10 overflow-hidden my-8"
             >
-              {/* Cover Top Accent */}
-              <div className="absolute top-0 left-0 w-full h-[5px] bg-gradient-to-r from-[#00ff88] via-[#00E676] to-transparent z-20" />
+              {/* Header Bar */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E2DC] bg-[#FAF9F5] font-mono text-[10px] uppercase tracking-widest">
+                <span className="font-bold text-[#111318]">EVENT SPECIFICATION SHEET</span>
+                <button
+                  onClick={() => setIsDetailModalOpen(false)}
+                  className="p-1 hover:bg-[#E2E2DC] transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4 text-[#111318]" />
+                </button>
+              </div>
 
-              {/* Close Button Button */}
-              <button
-                onClick={() => setIsDetailModalOpen(false)}
-                className="absolute top-6 right-6 z-30 p-3 bg-black/60 hover:bg-white text-zinc-400 hover:text-black rounded-full border border-white/10 transition-colors"
-                id="close-modal-btn"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {/* Body */}
+              <div className="p-6 sm:p-10 max-h-[80vh] overflow-y-auto space-y-8">
+                
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                  {/* Visual */}
+                  <div className="md:col-span-5 space-y-4">
+                    <div className="aspect-[4/3] relative border border-[#E2E2DC] overflow-hidden bg-[#F4F4F0]">
+                      <img
+                        src={selectedDetailEvent.poster_image || selectedDetailEvent.poster_url}
+                        alt={selectedDetailEvent.title}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
 
-              {/* Dynamic Event Detail Content */}
-              {(() => {
-                const currentDetail = selectedDetailEvent || intellifyEvent;
-                return (
-                  <div className="flex-grow overflow-y-auto w-full p-6 sm:p-10 md:p-12">
-                    {detailLoading && (
-                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center space-x-3">
-                        <Loader2 className="w-8 h-8 text-[#00ff88] animate-spin" />
-                        <span className="text-white text-xs font-mono font-bold uppercase tracking-wider">Syncing Event Details...</span>
+                    <div className="p-4 bg-[#FAF9F5] border border-[#E2E2DC] font-mono text-[10px] space-y-2">
+                      <div className="flex justify-between border-b border-[#E2E2DC] pb-1 text-[#8B9198]">
+                        <span>EVENT REF</span>
+                        <span className="text-[#111318] font-bold">{selectedDetailEvent.id}</span>
                       </div>
-                    )}
-
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                      
-                      {/* Left Column: Visual Poster & Direct Details */}
-                      <div className="lg:col-span-5 space-y-6">
-                        <div className="aspect-[3/4] relative rounded-3xl overflow-hidden border border-theme-border shadow-xl bg-black">
-                          <img 
-                            src={currentDetail.poster_image || currentDetail.poster_url} 
-                            alt={currentDetail.title} 
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                        </div>
-
-                        {/* Collaboration Zone */}
-                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
-                          <p className="text-[10px] font-mono font-black text-[#00ff88] uppercase tracking-widest">Event Coordination</p>
-                          
-                          <div className="flex flex-col space-y-3">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                                <Building2 className="w-5 h-5 text-emerald-400" />
-                              </div>
-                              <div>
-                                <p className="text-[11px] font-mono text-zinc-400 leading-tight">Organizer</p>
-                                <p className="text-xs font-black text-white uppercase">{currentDetail.organizer_name || "Marwadi University"}</p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                                <Trophy className="w-5 h-5 text-gfg-primary" />
-                              </div>
-                              <div>
-                                <p className="text-[11px] font-mono text-zinc-400 leading-tight">Host Chapter</p>
-                                <p className="text-xs font-black text-white uppercase">GeeksforGeeks MU Chapter</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="flex justify-between border-b border-[#E2E2DC] pb-1 text-[#8B9198]">
+                        <span>ORGANIZER</span>
+                        <span className="text-[#111318]">{selectedDetailEvent.organizer_name}</span>
                       </div>
-
-                      {/* Right Column: Tabbed Content & Timelines */}
-                      <div className="lg:col-span-7 flex flex-col justify-between space-y-8">
-                        <div className="space-y-6">
-                          
-                          {/* Meta header */}
-                          <div>
-                            <span className="px-3.5 py-1.5 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full text-[9px] font-mono font-black uppercase text-[#00ff88] tracking-widest">
-                              {currentDetail.category || "Hackathon / Competition"}
-                            </span>
-                            
-                            <h2 className="text-3xl sm:text-4xl font-extrabold uppercase italic tracking-tighter text-white mt-4 leading-none">
-                              {currentDetail.title}
-                            </h2>
-                            
-                            <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-zinc-400 mt-3">
-                              <span className="flex items-center text-[#00ff88]">
-                                <Calendar className="w-3.5 h-3.5 mr-1" /> {currentDetail.date}
-                              </span>
-                              {currentDetail.time && (
-                                <span className="flex items-center">
-                                  <Clock className="w-3.5 h-3.5 mr-1 text-[#00ff88]" /> {currentDetail.time}
-                                </span>
-                              )}
-                              <span className="flex items-center">
-                                <MapPin className="w-3.5 h-3.5 mr-1 text-[#00ff88]" /> {currentDetail.location}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Premium Tabs Selection */}
-                          <div className="flex border-b border-theme-border/60">
-                            {["about", "timeline", "eligibility"].map((tab) => (
-                              <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab as any)}
-                                className={`px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
-                                  activeTab === tab 
-                                    ? "border-[#00ff88] text-[#00ff88]" 
-                                    : "border-transparent text-zinc-400 hover:text-white"
-                                }`}
-                              >
-                                {tab}
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Tab Content Display */}
-                          <div className="min-h-[220px]">
-                            {activeTab === "about" && (
-                              <div className="space-y-4">
-                                <p className="text-theme-text-secondary text-sm leading-relaxed font-semibold whitespace-pre-line">
-                                  {currentDetail.description}
-                                </p>
-
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4">
-                                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
-                                    <p className="text-[10px] font-mono text-zinc-400">Prize Pool</p>
-                                    <p className="text-xs font-black text-[#00ff88] uppercase">{currentDetail.prize_pool || "Exciting Swag"}</p>
-                                  </div>
-
-                                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5">
-                                    <p className="text-[10px] font-mono text-zinc-400">Team Size</p>
-                                    <p className="text-xs font-black text-white uppercase">{currentDetail.team_size || "1–4 Members"}</p>
-                                  </div>
-
-                                  <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 col-span-2 sm:col-span-1">
-                                    <p className="text-[10px] font-mono text-zinc-400">Registration Fee</p>
-                                    <p className="text-xs font-black text-white uppercase">{currentDetail.registration_fee || "Free"}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {activeTab === "timeline" && (
-                              <div className="space-y-4 relative pl-4 border-l-2 border-emerald-500/10">
-                                {(currentDetail.stages && currentDetail.stages.length > 0 ? currentDetail.stages : [
-                                  { title: "Registration Window", date: currentDetail.date, desc: "Team registrations open on chapter portal." },
-                                  { title: "Event Day", date: currentDetail.date, desc: "Reporting at Marwadi University campus." }
-                                ]).map((stage, idx) => (
-                                  <div key={idx} className="relative space-y-1 pb-6 last:pb-0">
-                                    <div className="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full bg-[#00ff88] border-2 border-black" />
-                                    <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-400 font-bold">
-                                      <span>Stage {idx + 1}: {stage.title}</span>
-                                      <span>•</span>
-                                      <span className="text-white/60">{stage.date}</span>
-                                    </div>
-                                    <p className="text-theme-text-secondary text-xs font-semibold leading-relaxed">
-                                      {stage.desc}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {activeTab === "eligibility" && (
-                              <div className="space-y-4">
-                                <p className="text-xs font-mono text-zinc-400">{currentDetail.eligibility || "Open to all university students."}</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {[
-                                    "Engineering Students",
-                                    "Undergraduate Students",
-                                    "Postgraduate Students",
-                                    "Computer Science & IT",
-                                    "Management & Sciences",
-                                    "All Universities Across India"
-                                  ].map((item, index) => (
-                                    <div key={index} className="flex items-center space-x-2.5 text-xs text-white bg-white/5 border border-white/5 p-3.5 rounded-xl">
-                                      <CheckCircle className="w-4 h-4 text-[#00ff88] shrink-0" />
-                                      <span className="font-semibold">{item}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                        </div>
-
-                        {/* Modal Action Buttons */}
-                        <div className="pt-6 border-t border-theme-border/60 flex flex-col sm:flex-row items-center gap-3">
-                          <button
-                            onClick={() => {
-                              setIsDetailModalOpen(false);
-                              handleOpenRegistration(currentDetail);
-                            }}
-                            className="w-full sm:w-1/2 inline-flex items-center justify-center px-8 py-4.5 bg-[#00ff88] hover:bg-white text-black font-black uppercase text-xs tracking-widest rounded-2xl hover:shadow-[0_0_20px_rgba(0,255,136,0.25)] transition-all duration-300"
-                            id="detail-modal-quick-reg-btn"
-                          >
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            <span>Quick Register</span>
-                          </button>
-
-                          {currentDetail.registration_link && (
-                            <a
-                              href={currentDetail.registration_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-full sm:w-1/2 inline-flex items-center justify-center px-8 py-4.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black uppercase text-xs tracking-widest rounded-2xl transition-all duration-300"
-                            >
-                              <span>External Portal</span>
-                              <ArrowRight className="w-4 h-4 ml-2" />
-                            </a>
-                          )}
-                        </div>
-
+                      <div className="flex justify-between text-[#8B9198]">
+                        <span>FEE</span>
+                        <span className="text-[#00A86B] font-bold">{selectedDetailEvent.registration_fee}</span>
                       </div>
-
                     </div>
                   </div>
-                );
-              })()}
 
+                  {/* Info */}
+                  <div className="md:col-span-7 space-y-6">
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-[#00A86B] mb-2 font-bold">
+                        ● {selectedDetailEvent.category}
+                      </div>
+                      <h2 className="font-editorial text-3xl font-black text-[#111318] tracking-tight leading-tight">
+                        {selectedDetailEvent.title}
+                      </h2>
+                      <div className="flex flex-wrap gap-4 font-mono text-xs text-[#8B9198] mt-3">
+                        <span className="flex items-center gap-1 text-[#111318]">
+                          <Calendar className="w-3.5 h-3.5 text-[#00A86B]" /> {selectedDetailEvent.date}
+                        </span>
+                        {selectedDetailEvent.time && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-[#00A86B]" /> {selectedDetailEvent.time}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-[#00A86B]" /> {selectedDetailEvent.location}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex border-b border-[#E2E2DC] font-mono text-xs uppercase tracking-wider">
+                      {["about", "timeline", "eligibility"].map((tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab as any)}
+                          className={`py-2 px-4 border-b-2 transition-colors cursor-pointer ${
+                            activeTab === tab
+                              ? "border-[#111318] text-[#111318] font-bold"
+                              : "border-transparent text-[#8B9198] hover:text-[#111318]"
+                          }`}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="min-h-[160px]">
+                      {activeTab === "about" && (
+                        <div className="space-y-4">
+                          <p className="font-sans text-xs sm:text-sm text-[#555B63] leading-relaxed whitespace-pre-line">
+                            {selectedDetailEvent.description}
+                          </p>
+                          <div className="grid grid-cols-2 gap-3 pt-2 font-mono text-xs">
+                            <div className="p-3 bg-[#FAF9F5] border border-[#E2E2DC]">
+                              <span className="text-[9px] text-[#8B9198] block uppercase">PRIZE POOL</span>
+                              <span className="font-bold text-[#00A86B]">{selectedDetailEvent.prize_pool || "Official Certificates"}</span>
+                            </div>
+                            <div className="p-3 bg-[#FAF9F5] border border-[#E2E2DC]">
+                              <span className="text-[9px] text-[#8B9198] block uppercase">TEAM SIZE</span>
+                              <span className="font-bold text-[#111318]">{selectedDetailEvent.team_size || "1–4 Members"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeTab === "timeline" && (
+                        <div className="space-y-4 border-l border-[#E2E2DC] pl-4">
+                          {(selectedDetailEvent.stages || []).map((stage, idx) => (
+                            <div key={idx} className="space-y-1">
+                              <div className="font-mono text-[10px] text-[#00A86B] font-bold">
+                                PHASE {idx + 1} // {stage.title} · {stage.date}
+                              </div>
+                              <p className="font-sans text-xs text-[#555B63]">{stage.desc}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {activeTab === "eligibility" && (
+                        <div className="space-y-3 font-sans text-xs text-[#555B63]">
+                          <p>{selectedDetailEvent.eligibility || "Open to all students enrolled across universities."}</p>
+                          <div className="grid grid-cols-2 gap-2 font-mono text-[10px]">
+                            {["Undergraduate Students", "Engineering Disciplines", "Postgraduate Students", "All Colleges Across India"].map(item => (
+                              <div key={item} className="p-2.5 bg-[#FAF9F5] border border-[#E2E2DC] flex items-center gap-1.5">
+                                <CheckCircle className="w-3.5 h-3.5 text-[#00A86B]" />
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="pt-4 border-t border-[#E2E2DC] flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setIsDetailModalOpen(false);
+                          handleOpenRegistration(selectedDetailEvent);
+                        }}
+                        className="flex-1 py-4 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors cursor-pointer"
+                      >
+                        [ REGISTER FOR EVENT → ]
+                      </button>
+
+                      {selectedDetailEvent.registration_link && (
+                        <a
+                          href={selectedDetailEvent.registration_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="py-4 px-6 bg-transparent hover:bg-[#FAF9F5] border border-[#111318] text-[#111318] font-mono text-xs uppercase tracking-widest transition-colors flex items-center gap-1"
+                        >
+                          <span>External Portal</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* 4. INTERACTIVE GOOGLE APPS SCRIPT REGISTRATION MODAL */}
+      {/* QUICK REGISTRATION MODAL (EDITORIAL DESIGN) */}
       <AnimatePresence>
         {isRegModalOpen && regEvent && (
-          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6 select-none">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1007,104 +762,76 @@ export default function Events() {
               onClick={() => {
                 if (!regSubmitting) setIsRegModalOpen(false);
               }}
-              className="fixed inset-0 bg-black/85 backdrop-blur-md"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.98, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-xl bg-[#0c141d] border border-theme-border rounded-[2.5rem] overflow-hidden shadow-2xl z-10 my-8 flex flex-col"
+              exit={{ opacity: 0, scale: 0.98, y: 15 }}
+              className="relative w-full max-w-lg bg-[#FFFFFF] border border-[#111318] shadow-2xl z-10 my-8 overflow-hidden"
             >
-              {/* Top Accent Line */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00ff88] via-emerald-400 to-[#00ff88]" />
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E2DC] bg-[#FAF9F5] font-mono text-[10px] uppercase tracking-widest">
+                <span className="font-bold text-[#111318]">OFFICIAL REGISTRATION TRANSMISSION</span>
+                <button
+                  onClick={() => setIsRegModalOpen(false)}
+                  disabled={regSubmitting}
+                  className="p-1 hover:bg-[#E2E2DC] transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-4 h-4 text-[#111318]" />
+                </button>
+              </div>
 
-              {/* Close Button */}
-              <button
-                onClick={() => setIsRegModalOpen(false)}
-                disabled={regSubmitting}
-                className="absolute top-5 right-5 z-20 p-2.5 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full border border-white/10 transition-colors disabled:opacity-50"
-                id="close-reg-modal-btn"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="p-8 sm:p-10">
-                {/* Header info */}
-                <div className="mb-6">
-                  <span className="px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/25 rounded-full text-[9px] font-mono font-black uppercase text-[#00ff88] tracking-wider">
-                    Official Registration • {regEvent.category || "Event"}
-                  </span>
-                  <h3 className="text-2xl font-black uppercase tracking-tight text-white mt-2">
+              <div className="p-6 sm:p-8 space-y-6">
+                
+                {/* Event info */}
+                <div>
+                  <div className="font-mono text-[10px] text-[#00A86B] uppercase font-bold">
+                    EVENT: {regEvent.id}
+                  </div>
+                  <h3 className="font-editorial text-2xl font-black text-[#111318] tracking-tight">
                     {regEvent.title}
                   </h3>
-                  <p className="text-xs text-zinc-400 font-mono mt-1">
-                    Date: {regEvent.date} {regEvent.time ? `• ${regEvent.time}` : ""}
+                  <p className="font-mono text-xs text-[#8B9198] mt-1">
+                    Date: {regEvent.date} · {regEvent.location}
                   </p>
                 </div>
 
-                {/* SUCCESS STATE */}
+                {/* SUCCESS */}
                 {regSuccessData ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="space-y-6 text-center py-4"
-                  >
-                    <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center text-[#00ff88]">
-                      <CheckCircle2 className="w-10 h-10" />
+                  <div className="space-y-6 text-center py-4">
+                    <div className="w-12 h-12 bg-[#00A86B]/10 border border-[#00A86B] mx-auto flex items-center justify-center text-[#00A86B]">
+                      <Check className="w-6 h-6" />
                     </div>
 
-                    <div>
-                      <h4 className="text-2xl font-black uppercase tracking-tight text-white">
-                        Registration Confirmed!
+                    <div className="space-y-1">
+                      <h4 className="font-editorial text-2xl font-bold text-[#111318]">
+                        Registration Confirmed
                       </h4>
-                      <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
-                        Your registration has been securely synced to the Google Apps Script Web App backend.
+                      <p className="font-sans text-xs text-[#555B63]">
+                        Stored directly into the Google Sheets chapter database.
                       </p>
                     </div>
 
-                    {/* Registration ID Details Card */}
-                    <div className="p-5 bg-white/5 border border-white/10 rounded-2xl text-left space-y-3">
-                      <div>
-                        <span className="text-[10px] font-mono text-zinc-400 uppercase">Registration ID</span>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-lg font-mono font-black text-[#00ff88]" id="reg-id-display">
-                            {regSuccessData.registration_id || `REG-${Date.now()}`}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const idToCopy = regSuccessData.registration_id || "";
-                              navigator.clipboard.writeText(idToCopy);
-                              setCopiedRegId(true);
-                              setTimeout(() => setCopiedRegId(false), 2000);
-                            }}
-                            className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono text-zinc-300 flex items-center gap-1.5 transition-all"
-                            title="Copy Registration ID"
-                          >
-                            {copiedRegId ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-[#00ff88]" />
-                                <span className="text-[#00ff88]">Copied</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5" />
-                                <span>Copy</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
+                    <div className="p-4 bg-[#FAF9F5] border border-[#E2E2DC] text-left font-mono text-xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#8B9198] text-[10px] uppercase">REGISTRATION ID</span>
+                        <button
+                          onClick={() => {
+                            const idToCopy = regSuccessData.registration_id || "";
+                            navigator.clipboard.writeText(idToCopy);
+                            setCopiedRegId(true);
+                            setTimeout(() => setCopiedRegId(false), 2000);
+                          }}
+                          className="text-[10px] text-[#00A86B] uppercase flex items-center gap-1 cursor-pointer"
+                        >
+                          {copiedRegId ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedRegId ? "COPIED" : "COPY"}</span>
+                        </button>
                       </div>
-
-                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5 text-xs">
-                        <div>
-                          <span className="text-[10px] font-mono text-zinc-400 uppercase">Participant</span>
-                          <p className="font-bold text-white mt-0.5">{regForm.name}</p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-mono text-zinc-400 uppercase">Event</span>
-                          <p className="font-bold text-white mt-0.5 truncate">{regEvent.title}</p>
-                        </div>
+                      <div className="text-lg font-bold text-[#111318]">
+                        {regSuccessData.registration_id || `REG-${Date.now()}`}
                       </div>
                     </div>
 
@@ -1113,94 +840,85 @@ export default function Events() {
                         setIsRegModalOpen(false);
                         setRegSuccessData(null);
                       }}
-                      className="w-full py-4 bg-[#00ff88] text-black font-black uppercase text-xs tracking-widest rounded-xl hover:bg-white transition-all shadow-lg"
+                      className="w-full py-3.5 bg-[#111318] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest hover:bg-[#00A86B] transition-colors"
                     >
                       Done
                     </button>
-                  </motion.div>
+                  </div>
                 ) : (
-                  /* REGISTRATION FORM */
+                  /* FORM */
                   <form onSubmit={handleRegistrationSubmit} className="space-y-4">
-                    {/* Error Notice */}
                     {regError && (
-                      <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
-                        <span>{regError}</span>
+                      <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs font-mono">
+                        {regError}
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-name">
+                      <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
                         Full Name *
                       </label>
                       <input
-                        id="reg-name"
                         type="text"
                         required
                         value={regForm.name}
                         onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
                         placeholder="e.g. Meet Khakhkhar"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-email">
+                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
                           Email Address *
                         </label>
                         <input
-                          id="reg-email"
                           type="email"
                           required
                           value={regForm.email}
                           onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
                           placeholder="student@marwadiuniversity.ac.in"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
                         />
                       </div>
-
                       <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-phone">
+                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
                           Phone Number *
                         </label>
                         <input
-                          id="reg-phone"
                           type="tel"
                           required
                           value={regForm.phone}
                           onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
                           placeholder="+91 98765 43210"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-enrollment">
+                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
                           Enrollment No. *
                         </label>
                         <input
-                          id="reg-enrollment"
                           type="text"
                           required
                           value={regForm.enrollment_number}
                           onChange={(e) => setRegForm({ ...regForm, enrollment_number: e.target.value })}
-                          placeholder="e.g. 92200103001"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
+                          placeholder="92200103001"
+                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
                         />
                       </div>
-
                       <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-year">
+                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
                           Year of Study *
                         </label>
                         <select
-                          id="reg-year"
                           value={regForm.year}
                           onChange={(e) => setRegForm({ ...regForm, year: e.target.value })}
-                          className="w-full px-4 py-3 bg-[#111c27] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#00ff88] transition-colors"
+                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
                         >
                           <option value="1">1st Year (Freshman)</option>
                           <option value="2">2nd Year (Sophomore)</option>
@@ -1210,54 +928,35 @@ export default function Events() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-department">
-                          Department / Branch *
-                        </label>
-                        <input
-                          id="reg-department"
-                          type="text"
-                          required
-                          value={regForm.department}
-                          onChange={(e) => setRegForm({ ...regForm, department: e.target.value })}
-                          placeholder="Computer Science & Engineering"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5" htmlFor="reg-college">
-                          College / University *
-                        </label>
-                        <input
-                          id="reg-college"
-                          type="text"
-                          required
-                          value={regForm.college}
-                          onChange={(e) => setRegForm({ ...regForm, college: e.target.value })}
-                          placeholder="Marwadi University"
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-[#00ff88] transition-colors"
-                        />
-                      </div>
+                    <div>
+                      <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
+                        Department *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={regForm.department}
+                        onChange={(e) => setRegForm({ ...regForm, department: e.target.value })}
+                        placeholder="Computer Science & Engineering"
+                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
+                      />
                     </div>
 
-                    <div className="pt-4">
+                    <div className="pt-2">
                       <button
                         type="submit"
                         disabled={regSubmitting}
-                        className="w-full py-4 bg-[#00ff88] hover:bg-white text-black font-black uppercase text-xs tracking-widest rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
-                        id="reg-submit-btn"
+                        className="w-full py-4 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
                       >
                         {regSubmitting ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin text-black" />
-                            <span>Syncing with Google Apps Script...</span>
+                            <Loader2 className="w-4 h-4 animate-spin text-[#00A86B]" />
+                            <span>TRANSMITTING TO APPS SCRIPT...</span>
                           </>
                         ) : (
                           <>
-                            <Send className="w-4 h-4 text-black" />
-                            <span>Complete Registration</span>
+                            <Send className="w-3.5 h-3.5" />
+                            <span>SUBMIT REGISTRATION</span>
                           </>
                         )}
                       </button>
@@ -1271,59 +970,6 @@ export default function Events() {
         )}
       </AnimatePresence>
 
-      {/* 3. PREMIUM CALL TO ACTION SECTION */}
-      <section className="relative w-full max-w-5xl mx-auto pt-16 pb-8 px-6">
-        <div className="relative rounded-[2.5rem] bg-gradient-to-br from-theme-bg-secondary/80 to-theme-bg-secondary/40 border-2 border-[#00ff88]/20 p-10 md:p-14 overflow-hidden text-center shadow-2xl">
-          {/* Cyber background effects */}
-          <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#00ff88]/5 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-emerald-500/5 rounded-full blur-[90px] pointer-events-none" />
-          
-          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-[#00ff88]/15 border border-[#00ff88]/30 rounded-full text-[10px] font-black uppercase text-[#00ff88] tracking-widest">
-              <span>LIMITED SEATS REMAINING</span>
-            </span>
-
-            <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-white">
-              Ready to Build the Future?
-            </h2>
-
-            <p className="text-zinc-400 text-sm sm:text-base font-semibold leading-relaxed">
-              Join Intellify 4.0 and compete with innovators from across India. Showcase your skills, solve real-world challenges, and win exciting prizes.
-            </p>
-
-            <div className="pt-6">
-              <a
-                href={INTELLIFY_REGISTRATION_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-10 py-5 bg-[#00ff88] text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,136,0.35)]"
-              >
-                <span>Register on Unstop</span>
-                <ArrowRight className="w-4.5 h-4.5 ml-2.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Sticky Bottom Floating Mobile Registration Bar */}
-      <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
-        <div className="bg-theme-bg-secondary/95 backdrop-blur-lg border border-[#00ff88]/30 rounded-2xl p-4 flex items-center justify-between shadow-2xl">
-          <div className="text-left">
-            <div className="text-[10px] font-black uppercase tracking-widest text-[#00ff88]">Intellify 4.0</div>
-            <div className="text-[9px] text-zinc-400 font-bold uppercase">National Hackathon</div>
-          </div>
-          <a
-            href={INTELLIFY_REGISTRATION_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-[#00ff88] text-black font-black uppercase text-[10px] tracking-wider rounded-xl hover:bg-white transition-all shadow-[0_0_15px_rgba(0,255,136,0.25)]"
-          >
-            Register on Unstop
-          </a>
-        </div>
-      </div>
-
-    </motion.div>
+    </div>
   );
 }

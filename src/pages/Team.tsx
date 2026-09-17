@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { 
   Github, Linkedin, Twitter, Users, ArrowRight, Mail, Globe, 
-  Terminal, Sparkles, Loader2, Compass
+  Terminal, Sparkles, Loader2, Compass, ArrowUpRight
 } from "lucide-react";
 import { gasApi } from "../services/gasApi";
+import PaperTiles from "../components/PaperTiles";
 
 export default function Team() {
   const [members, setMembers] = useState<any[]>([]);
@@ -13,12 +14,10 @@ export default function Team() {
   useEffect(() => {
     async function loadTeam() {
       try {
-        // Fetch active team members from Google Apps Script Web App
         const res = await gasApi.getTeam();
         if (res.success && Array.isArray(res.team) && res.team.length > 0) {
           setMembers(res.team);
         } else {
-          // Fallback to local endpoint if needed
           const response = await fetch("/api/team");
           const data = await response.json();
           if (data.success) {
@@ -34,7 +33,6 @@ export default function Team() {
     loadTeam();
   }, []);
 
-  // Filter out spotlighted leaders from dynamic list to avoid duplication
   const coreCommittee = members.filter((m) => {
     if (m.active === false) return false;
     const name = (m.name || "").toLowerCase().trim();
@@ -47,258 +45,283 @@ export default function Team() {
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="py-32 bg-[#070707] min-h-screen text-white relative overflow-hidden font-sans"
-    >
-      {/* Background cyber glows */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#00ff88]/3 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-500/1 blur-[120px] rounded-full pointer-events-none" />
+    <div className="bg-[#F4F4F0] min-h-screen text-[#111318] select-none">
+      
+      {/* Background Architectural Grid */}
+      <div className="absolute inset-0 bg-technical-grid opacity-50 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-        
-        {/* SECTION 1: HERO SECTION */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 mb-6 text-[10px] font-black tracking-widest text-[#00ff88] uppercase bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full shadow-sm font-mono">
-            <span className="w-1.5 h-1.5 bg-[#00ff88] rounded-full animate-pulse" />
-            <span>GFG Chapter Directors</span>
+      {/* TOP HEADER */}
+      <section className="relative py-16 md:py-24 border-b border-[#E2E2DC] bg-[#F4F4F0]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#8B9198]">
+            <div className="flex items-center space-x-2">
+              <span className="text-[#00A86B] font-bold">03 / CHAPTER DIRECTORY</span>
+              <span>·</span>
+              <span className="text-[#111318]">CAMPUS LEADERSHIP</span>
+            </div>
+            <div>TENURE 2025–2026</div>
           </div>
-          <h1 className="text-4xl md:text-7xl font-black text-white mb-6 tracking-tighter uppercase leading-none italic">
-            Meet the <span className="text-[#00ff88]">Team</span>
-          </h1>
-          <p className="text-white/40 max-w-2xl mx-auto text-sm md:text-base mb-8 font-semibold leading-relaxed">
-            The passionate students, leaders, innovators, and community builders driving the GeeksforGeeks Student Chapter at Marwadi University.
-          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+            <div className="lg:col-span-8 space-y-4">
+              <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-black text-[#111318] tracking-tight leading-[0.98]">
+                Meet the <br />
+                <span className="font-editorial-italic font-normal text-[#00A86B]">
+                  Organizing Circle
+                </span>
+              </h1>
+              <p className="font-sans text-sm sm:text-base text-[#555B63] max-w-2xl leading-relaxed border-l-2 border-[#111318] pl-4">
+                The student leaders, community builders, competitive programmers, and laboratory mentors powering 
+                the GeeksforGeeks Chapter at Marwadi University.
+              </p>
+            </div>
+
+            <div className="lg:col-span-4 font-mono text-[11px] space-y-2 bg-[#FFFFFF] border border-[#E2E2DC] p-5 shadow-sm">
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
+                <span>CHAPTER STATUS</span>
+                <span className="text-[#00A86B] font-bold">ACTIVE OFFICIAL</span>
+              </div>
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
+                <span>INSTITUTION</span>
+                <span className="text-[#111318]">Marwadi University</span>
+              </div>
+              <div className="flex justify-between text-[#8B9198]">
+                <span>COMMITTEE</span>
+                <span className="text-[#111318] font-bold">Student Council</span>
+              </div>
+            </div>
+          </div>
+
         </div>
+      </section>
 
-        {/* SECTION 2: MAIN LEADER SPOTLIGHT */}
-        <div className="max-w-4xl mx-auto mb-24">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="relative p-8 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-[#0c0c0c] via-black to-[#0e0e0e] border border-white/5 hover:border-[#00ff88]/20 transition-all shadow-2xl overflow-hidden group"
-          >
-            {/* Background green glow effect */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-[#00ff88]/4 blur-3xl rounded-full" />
-            <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-emerald-500/2 blur-2xl rounded-full" />
+      {/* MAIN LEADER SPOTLIGHT: MEET KHAKHKHAR */}
+      <section className="py-16 md:py-24 border-b border-[#E2E2DC] bg-[#FAF9F5]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex items-center justify-between pb-4 mb-10 border-b border-[#E2E2DC]">
+            <div className="font-mono text-xs uppercase tracking-widest text-[#111318] font-bold">
+              CAMPUS MANTRI · EXECUTIVE SPOTLIGHT
+            </div>
+            <div className="font-mono text-xs text-[#8B9198]">
+              STUDENT CHAPTER FOUNDATION
+            </div>
+          </div>
 
-            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 relative z-10">
+          <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 md:p-12 shadow-[0_4px_20px_rgba(17,19,24,0.04)]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               
-              {/* Circle Photo Frame */}
-              <div className="relative shrink-0 w-44 h-44 rounded-full p-1 bg-gradient-to-tr from-[#00ff88]/30 via-transparent to-white/10 group-hover:from-[#00ff88] transition-all duration-700">
-                <div className="w-full h-full rounded-full overflow-hidden bg-black/40 border border-white/15">
-                  <img 
-                    src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/meet_khakhkhar_photo.png"
-                    alt="Meet Khakhkhar"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                {/* Glow indicator */}
-                <span className="absolute bottom-2 right-2 w-4.5 h-4.5 bg-[#00ff88] rounded-full border-4 border-[#070707] animate-pulse" />
+              {/* Leader Photo with Paper Tile Styling */}
+              <div className="lg:col-span-4">
+                <PaperTiles
+                  src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/meet_khakhkhar_photo.png"
+                  alt="Meet Khakhkhar - Campus Mantri"
+                  stripsCount={3}
+                  tag="LEADERSHIP"
+                  overlayBadge="MEET KHAKHKHAR · CAMPUS MANTRI"
+                  aspectClassName="aspect-[3/4]"
+                />
               </div>
 
-              {/* Content details */}
-              <div className="flex-1 text-center md:text-left space-y-4">
-                <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-md">
-                  <Sparkles className="w-3.5 h-3.5 text-[#00ff88]" />
-                  <span className="text-[9px] font-black uppercase tracking-wider text-[#00ff88] font-mono">Campus Mantri • Main Leader</span>
+              {/* Leader Bio & Metadata */}
+              <div className="lg:col-span-8 space-y-6">
+                
+                <div className="inline-flex items-center space-x-2 font-mono text-[10px] uppercase tracking-[0.25em] text-[#00A86B] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-pulse" />
+                  <span>CAMPUS MANTRI · MAIN CHAPTER LEADER</span>
                 </div>
 
                 <div>
-                  <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight uppercase">
+                  <h2 className="font-editorial text-4xl sm:text-5xl font-black text-[#111318] tracking-tight">
                     Meet Khakhkhar
                   </h2>
-                  <p className="text-[#00ff88] font-semibold text-xs md:text-sm mt-1 uppercase tracking-widest font-mono">
-                    Campus Mantri | GeeksforGeeks Student Chapter | Marwadi University
+                  <p className="font-mono text-xs text-[#00A86B] uppercase tracking-widest mt-1">
+                    GeeksforGeeks Student Chapter · Marwadi University
                   </p>
                 </div>
 
-                <p className="text-white/70 text-sm md:text-base leading-relaxed italic font-medium max-w-xl">
-                  "Building a stronger tech community through innovation, leadership, collaboration, and student empowerment."
-                </p>
+                <blockquote className="font-editorial-italic text-lg sm:text-xl text-[#111318] leading-relaxed border-l-2 border-[#111318] pl-5">
+                  "Building an enduring developer culture at Marwadi University through algorithmic discipline, national hackathon collaborations, and hands-on peer mentorship."
+                </blockquote>
 
-                {/* Core Mission Sub-Block */}
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5 text-xs text-white/50">
-                  <div>
-                    <span className="text-[9px] uppercase font-black text-gray-400 block font-mono">Core Department</span>
-                    <span className="text-white font-semibold mt-0.5 block">Computer Science Engineering</span>
+                {/* Detailed Clearance Blocks */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs pt-2">
+                  <div className="p-3.5 bg-[#FAF9F5] border border-[#E2E2DC]">
+                    <span className="text-[9px] text-[#8B9198] uppercase block">DEPARTMENT</span>
+                    <span className="font-bold text-[#111318] mt-0.5 block">Computer Science Engineering</span>
                   </div>
-                  <div>
-                    <span className="text-[9px] uppercase font-black text-gray-400 block font-mono">Email Clearance</span>
-                    <span className="text-[#00ff88] font-semibold font-mono mt-0.5 break-all block">meetkhakhkhar05@gmail.com</span>
+                  <div className="p-3.5 bg-[#FAF9F5] border border-[#E2E2DC]">
+                    <span className="text-[9px] text-[#8B9198] uppercase block">CONTACT CLEARANCE</span>
+                    <span className="font-bold text-[#00A86B] mt-0.5 block">meetkhakhkhar05@gmail.com</span>
                   </div>
                 </div>
 
-                {/* Social connections toolbar */}
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-3">
+                {/* Social links */}
+                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-[#E2E2DC]">
                   <a
                     href="https://www.linkedin.com/in/meet-khakhkhar23/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 bg-white/5 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 rounded-xl transition-all shadow-sm"
-                    title="LinkedIn profile"
+                    className="px-4 py-2 bg-[#FAF9F5] hover:bg-[#111318] text-[#111318] hover:text-[#F4F4F0] border border-[#E2E2DC] font-mono text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1.5"
                   >
-                    <Linkedin className="w-4.5 h-4.5" />
+                    <Linkedin className="w-3.5 h-3.5" />
+                    <span>LinkedIn</span>
                   </a>
+
                   <a
                     href="https://github.com/meetkhakhkhar"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 bg-white/5 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 rounded-xl transition-all shadow-sm"
-                    title="GitHub profile"
+                    className="px-4 py-2 bg-[#FAF9F5] hover:bg-[#111318] text-[#111318] hover:text-[#F4F4F0] border border-[#E2E2DC] font-mono text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1.5"
                   >
-                    <Github className="w-4.5 h-4.5" />
+                    <Github className="w-3.5 h-3.5" />
+                    <span>GitHub</span>
                   </a>
+
                   <a
                     href="https://write.geeksforgeeks.org/user/meetkhakhkhar05/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 bg-white/5 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 rounded-xl transition-all shadow-sm flex items-center gap-1.5 font-mono text-[10px] font-black uppercase tracking-wider"
-                    title="GeeksforGeeks Hub"
+                    className="px-4 py-2 bg-[#FAF9F5] hover:bg-[#111318] text-[#111318] hover:text-[#F4F4F0] border border-[#E2E2DC] font-mono text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1.5"
                   >
-                    <Globe className="w-4.5 h-4.5" />
-                    <span>GFG</span>
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>GFG Profile</span>
                   </a>
+
                   <a
                     href="mailto:meetkhakhkhar05@gmail.com"
-                    className="p-3 bg-white/5 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 rounded-xl transition-all shadow-sm"
-                    title="Direct Mail"
+                    className="px-4 py-2 bg-[#FAF9F5] hover:bg-[#111318] text-[#111318] hover:text-[#F4F4F0] border border-[#E2E2DC] font-mono text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1.5"
                   >
-                    <Mail className="w-4.5 h-4.5" />
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Email</span>
                   </a>
                 </div>
 
               </div>
-            </div>
-          </motion.div>
-        </div>
 
-        {/* SECTION: CAMPUS MANTRI 2026 */}
-        <div className="mb-24">
-          <div className="text-center mb-14">
-            <div className="inline-flex items-center space-x-2 px-4 py-1.5 mb-4 text-[10px] font-black tracking-widest text-[#00ff88] uppercase bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-full shadow-sm font-mono">
-              <Sparkles className="w-3.5 h-3.5 text-[#00ff88]" />
-              <span>Leadership Category</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-extrabold uppercase text-white tracking-widest font-mono">
-              CAMPUS MANTRI <span className="text-[#00ff88]">2026</span>
-            </h2>
-            <div className="w-28 h-1 bg-[#00ff88] mx-auto mt-4 rounded-full opacity-70" />
-            <p className="text-white/50 max-w-xl mx-auto text-xs md:text-sm mt-3 font-semibold">
-              Official Campus Mantri leaders selected for the 2026 tenure at GeeksforGeeks Marwadi University Chapter.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* 1. Ravi Gohel */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="relative p-8 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-[#0c0c0c] via-black to-[#0e0e0e] border border-white/10 hover:border-[#00ff88]/30 transition-all shadow-2xl overflow-hidden group flex flex-col items-center text-center"
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00ff88]/5 blur-3xl rounded-full pointer-events-none" />
-
-              {/* Profile Photo - Ravi Gohel */}
-              <div className="relative w-36 h-36 rounded-full p-1 bg-gradient-to-tr from-[#00ff88]/40 via-transparent to-white/10 group-hover:from-[#00ff88] transition-all duration-700 mb-6">
-                <div className="w-full h-full rounded-full overflow-hidden bg-black/40 border border-white/15">
-                  <img 
-                    src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/1788464711991.png"
-                    alt="Ravi Gohel"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <span className="absolute bottom-1 right-1 w-4 h-4 bg-[#00ff88] rounded-full border-4 border-[#070707] animate-pulse" />
-              </div>
-
-              <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-md mb-3">
-                <span className="text-[9px] font-black uppercase tracking-wider text-[#00ff88] font-mono">Campus Mantri 2026</span>
-              </div>
-
-              <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-1">
-                Ravi Gohel
-              </h3>
-              <p className="text-[#00ff88] text-xs font-mono font-bold tracking-wider uppercase mb-3">
-                Campus Mantri 2026 | GFG MU Chapter
-              </p>
-              <p className="text-white/60 text-xs font-medium leading-relaxed max-w-sm">
-                Empowering the campus community with technical skills, mentoring, competitive programming, and collaborative innovation.
-              </p>
-            </motion.div>
-
-            {/* 2. Sri Vyshnavi Y */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="relative p-8 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-[#0c0c0c] via-black to-[#0e0e0e] border border-white/10 hover:border-[#00ff88]/30 transition-all shadow-2xl overflow-hidden group flex flex-col items-center text-center"
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00ff88]/5 blur-3xl rounded-full pointer-events-none" />
-
-              {/* Profile Photo - Sri Vyshnavi Y */}
-              <div className="relative w-36 h-36 rounded-full p-1 bg-gradient-to-tr from-[#00ff88]/40 via-transparent to-white/10 group-hover:from-[#00ff88] transition-all duration-700 mb-6">
-                <div className="w-full h-full rounded-full overflow-hidden bg-black/40 border border-white/15">
-                  <img 
-                    src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/bf037374-c847-4e3a-8dd2-1cb5496da19b.png"
-                    alt="Sri Vyshnavi Y"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <span className="absolute bottom-1 right-1 w-4 h-4 bg-[#00ff88] rounded-full border-4 border-[#070707] animate-pulse" />
-              </div>
-
-              <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-[#00ff88]/10 border border-[#00ff88]/20 rounded-md mb-3">
-                <span className="text-[9px] font-black uppercase tracking-wider text-[#00ff88] font-mono">Campus Mantri 2026</span>
-              </div>
-
-              <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-1">
-                Sri Vyshnavi Y
-              </h3>
-              <p className="text-[#00ff88] text-xs font-mono font-bold tracking-wider uppercase mb-3">
-                Campus Mantri 2026 | GFG MU Chapter
-              </p>
-              <p className="text-white/60 text-xs font-medium leading-relaxed max-w-sm">
-                Championing student development, organizing flagship hackathons, and fostering an inclusive environment for developers.
-              </p>
-            </motion.div>
-          </div>
         </div>
+      </section>
 
-        {/* SECTION 3 & TEAM LISTING AREA */}
-        <div className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-extrabold uppercase text-white tracking-widest font-mono">
-              Core <span className="text-[#00ff88]">Committee</span>
-            </h2>
-            <div className="w-24 h-1 bg-[#00ff88] mx-auto mt-3 rounded-full opacity-60" />
+      {/* CAMPUS MANTRI 2026 TENURE */}
+      <section className="py-16 md:py-24 border-b border-[#E2E2DC] bg-[#F4F4F0]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex items-center justify-between pb-4 mb-10 border-b border-[#E2E2DC]">
+            <div className="font-mono text-xs uppercase tracking-widest text-[#111318] font-bold">
+              CAMPUS MANTRI 2026
+            </div>
+            <div className="font-mono text-xs text-[#8B9198]">
+              SELECTED STUDENT DIRECTORS
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Ravi Gohel */}
+            <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 flex flex-col justify-between hover:border-[#111318] transition-colors shadow-[0_4px_20px_rgba(17,19,24,0.03)]">
+              <div className="space-y-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 border border-[#E2E2DC] overflow-hidden bg-[#FAF9F5] shrink-0">
+                    <img 
+                      src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/1788464711991.png"
+                      alt="Ravi Gohel"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div>
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-[#00A86B] font-bold block mb-1">
+                      CAMPUS MANTRI 2026
+                    </span>
+                    <h3 className="font-editorial text-2xl font-black text-[#111318]">
+                      Ravi Gohel
+                    </h3>
+                    <p className="font-mono text-[10px] text-[#8B9198] uppercase">
+                      GFG MU Chapter
+                    </p>
+                  </div>
+                </div>
+
+                <p className="font-sans text-xs sm:text-sm text-[#555B63] leading-relaxed">
+                  Empowering the campus community with technical skills, mentoring, competitive programming, and collaborative innovation.
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-[#E2E2DC] mt-6 font-mono text-[10px] text-[#8B9198] flex items-center justify-between">
+                <span>TENURE 2026</span>
+                <span className="text-[#00A86B] font-bold">ACTIVE DIRECTOR</span>
+              </div>
+            </div>
+
+            {/* Sri Vyshnavi Y */}
+            <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 flex flex-col justify-between hover:border-[#111318] transition-colors shadow-[0_4px_20px_rgba(17,19,24,0.03)]">
+              <div className="space-y-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 border border-[#E2E2DC] overflow-hidden bg-[#FAF9F5] shrink-0">
+                    <img 
+                      src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/bf037374-c847-4e3a-8dd2-1cb5496da19b.png"
+                      alt="Sri Vyshnavi Y"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div>
+                    <span className="font-mono text-[9px] uppercase tracking-widest text-[#00A86B] font-bold block mb-1">
+                      CAMPUS MANTRI 2026
+                    </span>
+                    <h3 className="font-editorial text-2xl font-black text-[#111318]">
+                      Sri Vyshnavi Y
+                    </h3>
+                    <p className="font-mono text-[10px] text-[#8B9198] uppercase">
+                      GFG MU Chapter
+                    </p>
+                  </div>
+                </div>
+
+                <p className="font-sans text-xs sm:text-sm text-[#555B63] leading-relaxed">
+                  Championing student development, organizing flagship hackathons, and fostering an inclusive environment for developers.
+                </p>
+              </div>
+
+              <div className="pt-6 border-t border-[#E2E2DC] mt-6 font-mono text-[10px] text-[#8B9198] flex items-center justify-between">
+                <span>TENURE 2026</span>
+                <span className="text-[#00A86B] font-bold">ACTIVE DIRECTOR</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* CORE COMMITTEE DIRECTORY (DYNAMIC) */}
+      <section className="py-16 md:py-24 border-b border-[#E2E2DC] bg-[#FAF9F5]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex items-center justify-between pb-4 mb-10 border-b border-[#E2E2DC]">
+            <div className="font-mono text-xs uppercase tracking-widest text-[#111318] font-bold">
+              CORE COMMITTEE DIRECTORY
+            </div>
+            <div className="font-mono text-xs text-[#8B9198]">
+              STUDENT MENTORS & LEADS
+            </div>
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-4">
-              <Loader2 className="w-10 h-10 text-[#00ff88] animate-spin" />
-              <p className="text-white/40 font-mono text-xs uppercase tracking-widest animate-pulse">Syncing core indexes...</p>
+            <div className="p-16 bg-[#FFFFFF] border border-[#E2E2DC] text-center font-mono text-xs text-[#8B9198] animate-pulse">
+              SYNCING CHAPTER COMMITTEE DIRECTORY...
             </div>
           ) : coreCommittee.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {coreCommittee.map((member, i) => (
-                <motion.div
+                <div
                   key={member.id || i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                  className="group relative p-6 rounded-[2rem] bg-[#0c0c0c] border border-white/5 hover:border-[#00ff88]/20 transition-all text-center flex flex-col justify-between h-full"
+                  className="bg-[#FFFFFF] border border-[#E2E2DC] p-6 flex flex-col justify-between hover:border-[#111318] transition-colors group shadow-[0_4px_20px_rgba(17,19,24,0.03)]"
                 >
                   <div>
-                    {/* Circle Photo */}
-                    <div className="w-24 h-24 mx-auto mb-5 rounded-full overflow-hidden border-2 border-white/5 group-hover:border-[#00ff88]/30 transition-all shrink-0">
+                    <div className="w-20 h-20 border border-[#E2E2DC] overflow-hidden bg-[#FAF9F5] mb-4">
                       {member.profilePhoto ? (
                         <img 
                           src={member.profilePhoto} 
@@ -307,36 +330,42 @@ export default function Team() {
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <div className="w-full h-full bg-white/5 flex items-center justify-center text-white/20">
-                          <Users className="w-8 h-8" />
+                        <div className="w-full h-full flex items-center justify-center text-[#8B9198]">
+                          <Users className="w-6 h-6" />
                         </div>
                       )}
                     </div>
 
-                    <h3 className="text-lg font-black text-white mb-1 group-hover:text-[#00ff88] transition-colors leading-tight uppercase tracking-tight">
+                    <h3 className="font-editorial text-xl font-bold text-[#111318] group-hover:text-[#00A86B] transition-colors leading-snug">
                       {member.name}
                     </h3>
-                    <p className="text-[#00ff88]/90 text-[9px] font-mono font-bold tracking-widest uppercase mb-2">{member.position}</p>
-                    <p className="text-white/40 text-[10px] font-mono mb-3 uppercase">{member.department}</p>
-                    
+
+                    <p className="font-mono text-[9px] uppercase tracking-widest text-[#00A86B] mt-1 font-bold">
+                      {member.position || "Core Committee"}
+                    </p>
+
+                    <p className="font-mono text-[10px] text-[#8B9198] uppercase mt-0.5">
+                      {member.department || "Computer Science"}
+                    </p>
+
                     {member.bio && (
-                      <p className="text-white/60 text-xs leading-relaxed mb-6 font-semibold line-clamp-3">
+                      <p className="font-sans text-xs text-[#555B63] mt-3 line-clamp-3 leading-relaxed">
                         {member.bio}
                       </p>
                     )}
                   </div>
 
-                  {/* Social icons block */}
-                  <div className="flex items-center justify-center gap-2 pt-4 border-t border-white/5">
+                  {/* Links */}
+                  <div className="pt-4 border-t border-[#E2E2DC] mt-6 flex items-center gap-2">
                     {member.linkedinUrl && (
                       <a 
                         href={member.linkedinUrl} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="p-2.5 rounded-lg bg-white/3 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 transition-all"
-                        title="LinkedIn Profile"
+                        className="p-2 border border-[#E2E2DC] hover:border-[#111318] text-[#111318] transition-colors"
+                        title="LinkedIn"
                       >
-                        <Linkedin className="w-4 h-4" />
+                        <Linkedin className="w-3.5 h-3.5" />
                       </a>
                     )}
                     {member.githubUrl && (
@@ -344,83 +373,64 @@ export default function Team() {
                         href={member.githubUrl} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="p-2.5 rounded-lg bg-white/3 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 transition-all"
-                        title="GitHub Profile"
+                        className="p-2 border border-[#E2E2DC] hover:border-[#111318] text-[#111318] transition-colors"
+                        title="GitHub"
                       >
-                        <Github className="w-4 h-4" />
-                      </a>
-                    )}
-                    {member.xUrl && (
-                      <a 
-                        href={member.xUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="p-2.5 rounded-lg bg-white/3 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 transition-all"
-                        title="X Profile"
-                      >
-                        <Twitter className="w-4 h-4" />
-                      </a>
-                    )}
-                    {member.gfgUrl && (
-                      <a 
-                        href={member.gfgUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="p-2.5 rounded-lg bg-white/3 border border-white/5 text-[9px] font-black uppercase tracking-wider font-mono text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 transition-all px-3"
-                        title="GFG Profile"
-                      >
-                        GFG
+                        <Github className="w-3.5 h-3.5" />
                       </a>
                     )}
                     {member.email && (
                       <a 
                         href={`mailto:${member.email}`}
-                        className="p-2.5 rounded-lg bg-white/3 border border-white/5 text-gray-400 hover:text-[#00ff88] hover:bg-[#00ff88]/10 hover:border-[#00ff88]/20 transition-all"
-                        title="Send Mail"
+                        className="p-2 border border-[#E2E2DC] hover:border-[#111318] text-[#111318] transition-colors"
+                        title="Email"
                       >
-                        <Mail className="w-4 h-4" />
+                        <Mail className="w-3.5 h-3.5" />
                       </a>
                     )}
                   </div>
 
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center bg-[#0c0c0c] border border-white/5 rounded-[2rem] max-w-2xl mx-auto text-white/30 font-mono text-xs">
-              Chapters dynamic cores are currently offline. Check back shortly as our administrators configure live listings.
+            <div className="p-12 bg-[#FFFFFF] border border-[#E2E2DC] text-center font-mono text-xs text-[#8B9198]">
+              Directory indexing is in progress. Check back shortly.
             </div>
           )}
+
         </div>
+      </section>
 
-        {/* SECTION 4: CALL TO ACTION */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="p-10 md:p-12 rounded-[2.5rem] bg-[#0c0c0c] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-2xl"
-        >
-          <div className="absolute top-0 left-0 w-64 h-64 bg-[#00ff88]/2 rounded-full blur-[120px] pointer-events-none" />
-          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8 text-left relative z-10">
-            <div className="w-16 h-16 rounded-2xl bg-[#00ff88]/10 border border-[#00ff88]/20 flex items-center justify-center text-[#00ff88] shrink-0 shadow-sm">
-              <Users className="w-8 h-8 animate-pulse" />
+      {/* JOIN COMMITTEE CTA */}
+      <section className="py-20 bg-[#111318] text-[#F4F4F0] select-none">
+        <div className="max-w-[1400px] mx-auto px-6 w-full">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-l-2 border-[#00A86B] pl-6">
+            <div className="space-y-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#00A86B]">
+                RECRUITMENT APPLICATION
+              </span>
+              <h3 className="font-editorial text-3xl sm:text-4xl font-bold">
+                Aspiring to Join the Core Team?
+              </h3>
+              <p className="font-sans text-xs sm:text-sm text-[#8B9198] max-w-xl">
+                We accept applications each semester for technical leads, event organizers, design leads, and contest moderators.
+              </p>
             </div>
-            <div>
-              <h3 className="text-2xl font-black text-white mb-1 tracking-tighter uppercase leading-tight">Want to join us?</h3>
-              <p className="text-white/40 text-sm font-semibold">We are always looking for passionate individuals to join our core team.</p>
-            </div>
+
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdRFDcPsYn5rVtF3kIB3CAJ4rKPTsYHCY6YbQNkihsb3rvXDg/viewform?usp=publish-editor"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-[#00A86B] hover:bg-[#FFFFFF] text-[#111318] font-mono text-xs uppercase tracking-widest transition-colors inline-flex items-center space-x-2 shrink-0"
+            >
+              <span>Submit Application</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </a>
           </div>
-          <a
-            href="https://docs.google.com/forms/d/e/1FAIpQLSdRFDcPsYn5rVtF3kIB3CAJ4rKPTsYHCY6YbQNkihsb3rvXDg/viewform?usp=publish-editor"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative z-10 px-8 py-4.5 bg-[#00ff88] text-black font-black rounded-xl hover:scale-105 active:scale-95 transition-all shadow-sm uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 font-bold"
-          >
-            Apply Now <ArrowRight className="w-4.5 h-4.5 text-black" />
-          </a>
-        </motion.div>
+        </div>
+      </section>
 
-      </div>
-    </motion.div>
+    </div>
   );
 }

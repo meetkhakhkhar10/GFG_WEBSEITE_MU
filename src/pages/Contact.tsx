@@ -1,21 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Send,
-  AlertCircle,
-  Database,
-  Sparkles,
-  RefreshCw,
-  Terminal,
-  Activity,
-  ShieldCheck,
-  Cpu,
-  Fingerprint
+import { 
+  Mail, Phone, MapPin, Send, AlertCircle, Sparkles, 
+  Terminal, ArrowUpRight, CheckCircle2, MessageSquare, Clock
 } from "lucide-react";
-import { cn } from "../lib/utils";
 import { apiService } from "../services/apiService";
 
 export default function Contact() {
@@ -40,168 +27,187 @@ export default function Contact() {
   }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="bg-theme-bg min-h-screen text-theme-text relative overflow-hidden theme-transition"
-    >
-      {/* Cybernetic Grid & Ambient Neon Radial Glows */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(0,255,136,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,136,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
-        <div className="absolute top-1/4 -left-60 w-[700px] h-[700px] bg-gfg-primary/3 rounded-full blur-[220px] pointer-events-none" />
-      </div>
+    <div className="bg-[#F4F4F0] min-h-screen text-[#111318] select-none">
+      
+      {/* Background Architectural Grid */}
+      <div className="absolute inset-0 bg-technical-grid opacity-50 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 pt-32 pb-24 relative z-10 w-full">
-        {/* Dynamic Header Section */}
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center space-x-2 px-5 py-2 bg-gfg-primary/10 border border-gfg-primary/20 rounded-full mb-6 shadow-sm"
-          >
-            <Sparkles className="w-4 h-4 text-gfg-primary animate-pulse" />
-            <span className="text-[9px] font-mono font-black uppercase tracking-[0.35em] text-gfg-primary">
-              INTEGRATED SECURE TRANSMISSION CHANNEL
-            </span>
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl font-black text-theme-text mb-4 uppercase tracking-tight italic leading-none"
-          >
-            Contact <span className="text-gfg-primary">Us</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-theme-text-muted max-w-xl mx-auto text-sm font-sans tracking-wide leading-relaxed"
-          >
-            Have questions, suggestions, or collaboration ideas? Reach out using the form below.
-          </motion.p>
-        </div>
+      {/* HEADER SECTION */}
+      <section className="relative py-16 md:py-24 border-b border-[#E2E2DC] bg-[#F4F4F0]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#8B9198]">
+            <div className="flex items-center space-x-2">
+              <span className="text-[#00A86B] font-bold">05 / CORRESPONDENCE DESK</span>
+              <span>·</span>
+              <span className="text-[#111318]">OFFICIAL TRANSMISSION</span>
+            </div>
+            <div>STATUS: ONLINE</div>
+          </div>
 
-        {/* Core Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 max-w-6xl mx-auto">
-          {/* Left Block: Communication Node Stats */}
-          <div className="lg:col-span-12 xl:col-span-5 space-y-6 text-left">
-            <div className="p-8 rounded-[2.5rem] bg-theme-bg-secondary border border-theme-border shadow-sm relative overflow-hidden group hover:border-gfg-primary/15 transition-all duration-300">
-              <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                <Terminal className="w-36 h-36 text-gfg-primary" />
-              </div>
-              <h3 className="text-xs font-mono font-black uppercase tracking-[0.25em] text-gfg-primary mb-6 flex items-center gap-2">
-                <Cpu className="w-4 h-4" /> Node Telemetry Signals
-              </h3>
-
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-xl bg-theme-bg border border-theme-border text-gfg-primary flex items-center justify-center shadow-sm shrink-0">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-mono text-theme-text-muted uppercase tracking-wider">SMTP Coordinate</div>
-                    <div className="text-xs font-mono font-bold text-theme-text select-all">meetkhakhkhar05@gmail.com</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-xl bg-theme-bg border border-theme-border text-gfg-primary flex items-center justify-center shadow-sm shrink-0">
-                    <Phone className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-mono text-theme-text-muted uppercase tracking-wider">SECURE SIGNAL LINE</div>
-                    <a href="tel:+918849607999" className="text-xs font-mono font-bold text-theme-text hover:text-gfg-primary transition-colors block">+91 88496 07999</a>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-xl bg-theme-bg border border-theme-border text-gfg-primary flex items-center justify-center shadow-sm shrink-0">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-mono text-theme-text-muted uppercase tracking-wider">Geographic Anchor</div>
-                    <div className="text-xs font-mono font-bold text-theme-text">Marwadi University, Rajkot, Gujarat</div>
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+            <div className="lg:col-span-8 space-y-4">
+              <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-black text-[#111318] tracking-tight leading-[0.98]">
+                Connect with our <br />
+                <span className="font-editorial-italic font-normal text-[#00A86B]">
+                  Campus Secretariat
+                </span>
+              </h1>
+              <p className="font-sans text-sm sm:text-base text-[#555B63] max-w-2xl leading-relaxed border-l-2 border-[#111318] pl-4">
+                Have questions regarding upcoming hackathons, speaker invitations, chapter memberships, 
+                or technical event partnerships? Reach out directly using the official transmission channels below.
+              </p>
             </div>
 
-            {/* Subsystem Health Dashboard style block */}
-            <div className="p-8 rounded-[2.5rem] bg-theme-bg-secondary border border-theme-border shadow-sm relative overflow-hidden group hover:border-gfg-primary/15 transition-all duration-300">
-              <h3 className="text-xs font-mono font-black uppercase tracking-[0.25em] text-theme-text-muted mb-6 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-gfg-primary animate-pulse" /> Network Security Matrix
-              </h3>
-
-              <div className="space-y-4 font-mono text-[10px]">
-                <div className="flex justify-between border-b border-theme-border pb-2.5">
-                  <span className="text-theme-text-muted">SYSTEM STATUS:</span>
-                  <span className="text-gfg-primary font-bold flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-gfg-primary rounded-full animate-pulse" /> ACTIVE SYNC
-                  </span>
-                </div>
-                <div className="flex justify-between border-b border-theme-border pb-2.5">
-                  <span className="text-theme-text-muted">BACKGROUND COURIER:</span>
-                  <span className="text-gfg-primary">GOOGLE FORMS IFRAME</span>
-                </div>
-                <div className="flex justify-between border-b border-theme-border pb-2.5">
-                  <span className="text-theme-text-muted">ENCRYPTION TYPE:</span>
-                  <span className="text-theme-text flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-gfg-primary" /> TLS v1.3 Secure</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-theme-text-muted">INTEGRITY HASH:</span>
-                  <span className="text-theme-text-secondary select-all font-mono font-bold">SHA-256#GFG-MU</span>
-                </div>
+            <div className="lg:col-span-4 font-mono text-[11px] space-y-2 bg-[#FFFFFF] border border-[#E2E2DC] p-5 shadow-sm">
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
+                <span>RESPONSE CADENCE</span>
+                <span className="text-[#00A86B] font-bold">&lt; 24 HOURS</span>
+              </div>
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
+                <span>LOCATION</span>
+                <span className="text-[#111318]">Rajkot, Gujarat</span>
+              </div>
+              <div className="flex justify-between text-[#8B9198]">
+                <span>PRIMARY CLEARANCE</span>
+                <span className="text-[#111318] font-bold">Campus Mantri</span>
               </div>
             </div>
           </div>
 
-          {/* Right Block: Embedded Google Form */}
-          <div className="lg:col-span-12 xl:col-span-7">
-            <div className="p-8 md:p-10 rounded-[2.5rem] bg-theme-bg-secondary border border-theme-border shadow-sm relative overflow-hidden group hover:border-gfg-primary/20 transition-all duration-300 text-left">
-              <div className="absolute top-0 left-0 w-[3px] h-[70px] bg-gradient-to-b from-gfg-primary to-transparent" />
+        </div>
+      </section>
+
+      {/* CORE CONTACT MATRIX & EMBEDDED FORM */}
+      <section className="py-16 md:py-24 border-b border-[#E2E2DC] bg-[#FAF9F5]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            {/* Left 5 Cols: Technical Telemetry & Addresses */}
+            <div className="lg:col-span-5 space-y-6">
               
-              {/* Status Header Block */}
-              <div className="flex justify-between items-center border-b border-theme-border pb-6 mb-8 gap-3">
-                <div className="flex items-center space-x-2.5">
-                  <Fingerprint className="w-5 h-5 text-gfg-primary animate-pulse" />
+              <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 space-y-6 shadow-[0_4px_20px_rgba(17,19,24,0.03)]">
+                <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#00A86B] font-bold border-b border-[#E2E2DC] pb-3">
+                  NODE TELEMETRY & CHANNELS
+                </div>
+
+                {/* Campus Address */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 border border-[#E2E2DC] bg-[#FAF9F5] flex items-center justify-center text-[#111318] shrink-0">
+                    <MapPin className="w-4 h-4 text-[#00A86B]" />
+                  </div>
                   <div>
-                    <div className="text-[9px] font-mono text-theme-text-muted uppercase tracking-widest">TRANSMISSION ID</div>
-                    <div className="text-xs font-mono text-gfg-primary font-black uppercase tracking-wider">MATRIX SECURED</div>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-[#8B9198] block">CAMPUS VENUE</span>
+                    <p className="font-sans text-xs text-[#111318] font-semibold mt-0.5 leading-relaxed">
+                      Marwadi University, Rajkot-Morbi Highway, Gauridad, Rajkot, Gujarat 360003, India
+                    </p>
                   </div>
                 </div>
-                <div className="px-3 py-1 bg-theme-bg border border-theme-border text-theme-text-muted rounded-full text-[9px] font-mono tracking-widest uppercase shadow-sm">
-                  Google Form Integrated
+
+                {/* Chapter Email */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 border border-[#E2E2DC] bg-[#FAF9F5] flex items-center justify-center text-[#111318] shrink-0">
+                    <Mail className="w-4 h-4 text-[#00A86B]" />
+                  </div>
+                  <div>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-[#8B9198] block">OFFICIAL DISPATCH EMAIL</span>
+                    <a 
+                      href="mailto:gfg@marwadiuniversity.ac.in"
+                      className="font-mono text-xs text-[#111318] hover:text-[#00A86B] font-bold mt-0.5 block transition-colors"
+                    >
+                      gfg@marwadiuniversity.ac.in
+                    </a>
+                  </div>
+                </div>
+
+                {/* Campus Mantri Direct Contact */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 border border-[#E2E2DC] bg-[#FAF9F5] flex items-center justify-center text-[#111318] shrink-0">
+                    <Terminal className="w-4 h-4 text-[#00A86B]" />
+                  </div>
+                  <div>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-[#8B9198] block">CAMPUS MANTRI CLEARANCE</span>
+                    <p className="font-sans text-xs text-[#111318] font-bold mt-0.5">Meet Khakhkhar</p>
+                    <a 
+                      href="mailto:meetkhakhkhar05@gmail.com"
+                      className="font-mono text-[11px] text-[#00A86B] hover:underline block"
+                    >
+                      meetkhakhkhar05@gmail.com
+                    </a>
+                  </div>
+                </div>
+
+                {/* WhatsApp Community */}
+                <div className="pt-4 border-t border-[#E2E2DC]">
+                  <a
+                    href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 px-4 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 text-center"
+                  >
+                    <span>[ JOIN OFFICIAL WHATSAPP HUB ]</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               </div>
 
-              {/* Form Embed Area */}
-              <div className="relative w-full overflow-hidden rounded-2xl bg-theme-bg border border-theme-border/30 min-h-[1601px] h-[1601px]">
-                {isLoading ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-theme-bg space-y-3" style={{ minHeight: "500px" }}>
-                    <RefreshCw className="w-8 h-8 animate-spin text-gfg-primary" />
-                    <span className="text-xs font-mono text-theme-text-muted font-black tracking-widest">ESTABLISHING TRANSMISSION...</span>
+              {/* Technical Operating Hours */}
+              <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-6 font-mono text-xs space-y-3">
+                <div className="flex items-center space-x-2 text-[#00A86B] font-bold text-[10px] uppercase">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>CAMPUS LAB HOURS</span>
+                </div>
+                <div className="space-y-1 text-[#555B63]">
+                  <div className="flex justify-between">
+                    <span>Monday – Friday:</span>
+                    <span className="text-[#111318]">09:00 – 17:30 IST</span>
                   </div>
-                ) : (
+                  <div className="flex justify-between">
+                    <span>Saturday (Hackathons):</span>
+                    <span className="text-[#111318]">10:00 – 16:00 IST</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Sunday:</span>
+                    <span className="text-[#8B9198]">Remote Community</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right 7 Cols: Embedded Google Form in Paper Frame */}
+            <div className="lg:col-span-7">
+              <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-6 sm:p-8 shadow-[0_4px_20px_rgba(17,19,24,0.03)] space-y-4">
+                
+                <div className="flex items-center justify-between border-b border-[#E2E2DC] pb-3 font-mono text-[10px] uppercase tracking-widest text-[#8B9198]">
+                  <span>TRANSMISSION PORTAL / GOOGLE FORMS</span>
+                  <span className="text-[#00A86B] font-bold">SECURE SSL</span>
+                </div>
+
+                <div className="w-full overflow-hidden border border-[#E2E2DC] bg-[#FAF9F5] min-h-[640px]">
                   <iframe
                     src={formUrl}
                     width="100%"
-                    height="1601"
+                    height="680"
                     frameBorder="0"
                     marginHeight={0}
                     marginWidth={0}
-                    className="rounded-2xl border-none w-full h-[1601px] min-h-[1601px]"
-                    title="Contact Us Google Form"
-                    referrerPolicy="no-referrer"
+                    className="w-full bg-[#FFFFFF]"
+                    title="GeeksforGeeks Marwadi University Chapter Contact Form"
                   >
-                    Loading…
+                    Loading Transmission Interface…
                   </iframe>
-                )}
+                </div>
+
               </div>
             </div>
+
           </div>
+
         </div>
-      </div>
-    </motion.div>
+      </section>
+
+    </div>
   );
 }
