@@ -1,6 +1,6 @@
 {
-  "name": "GFG Student Login",
-  "short_name": "GFG Login",
+  "name": "GFG Marwadi University",
+  "short_name": "GFG Marwadi University",
   "description": "Official student portal for GFG Student Chapter on Campus Marwadi University",
   "start_url": "/",
   "display": "standalone",
