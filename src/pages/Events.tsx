@@ -10,6 +10,24 @@ import {
 } from "lucide-react";
 import { gasApi, GasEvent, RegistrationPayload, RegistrationResult } from "../services/gasApi";
 import PaperTiles from "../components/PaperTiles";
+import ChapterArchive from "../components/ChapterArchive";
+
+const GFG_CONNECT_BANNER_IMAGE = "/images/gfg-connect-banner.jpg";
+
+function getEventCardImage(evt?: { id?: string; title?: string; poster_url?: string; poster_image?: string } | null): string {
+  if (!evt) return "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800";
+  const idStr = String(evt.id || "").toLowerCase();
+  const titleStr = String(evt.title || "").toLowerCase();
+  if (
+    idStr === "evt-0001" ||
+    titleStr.includes("marwadi university connect") ||
+    (titleStr.includes("connect") && titleStr.includes("marwadi")) ||
+    (titleStr.includes("connect") && titleStr.includes("gfg"))
+  ) {
+    return GFG_CONNECT_BANNER_IMAGE;
+  }
+  return evt.poster_url || evt.poster_image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800";
+}
 
 interface EventItem {
   id: string;
@@ -94,38 +112,6 @@ export default function Events() {
     year: "3",
     college: "Marwadi University",
   });
-
-  // ICT CodeJam Contests
-  const codejamEvents = [
-    {
-      num: "01",
-      sem: "Semester 2",
-      tag: "Freshman Foundation",
-      round: "Round 1",
-      desc: "Syntax fundamentals, recursion, standard libraries, and introductory algorithm puzzles.",
-      link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-2-round-1",
-      icon: Terminal,
-    },
-    {
-      num: "02",
-      sem: "Semester 4",
-      tag: "Core Algorithms",
-      round: "Round 1",
-      desc: "Trees, graphs, dynamic programming, sorting optimization, and algorithmic efficiency.",
-      link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-4-round-1-4819",
-      icon: Cpu,
-      featured: true,
-    },
-    {
-      num: "03",
-      sem: "Semester 6",
-      tag: "Advanced Systems",
-      round: "Round 1",
-      desc: "Complex graph theory, advanced data structures, and high-frequency company interview puzzles.",
-      link: "https://practice.geeksforgeeks.org/contest/ict-codejam-semester-6-round-1",
-      icon: Trophy,
-    },
-  ];
 
   // Fetch events from Google Apps Script Web App
   const fetchGasEvents = async () => {
@@ -424,19 +410,19 @@ export default function Events() {
                 >
                   <div>
                     {/* Visual Area */}
-                    <div className="relative aspect-[16/10] overflow-hidden border-b border-[#E2E2DC] bg-[#F4F4F0]">
+                    <div className="relative border-b border-[#E2E2DC] bg-[#FAF9F5]">
                       <img
-                        src={evt.poster_url || evt.poster_image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"}
+                        src={getEventCardImage(evt)}
                         alt={evt.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-auto block object-contain"
                         referrerPolicy="no-referrer"
                       />
                       
-                      <div className="absolute top-3 left-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase tracking-widest text-[#111318] font-bold">
+                      <div className="absolute top-3 left-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase tracking-widest text-[#111318] font-bold shadow-sm">
                         {evt.category || "TECH EVENT"}
                       </div>
 
-                      <div className="absolute top-3 right-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase text-[#00A86B] font-bold flex items-center gap-1">
+                      <div className="absolute top-3 right-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase text-[#00A86B] font-bold flex items-center gap-1 shadow-sm">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-ping" />
                         <span>OPEN</span>
                       </div>
@@ -504,69 +490,8 @@ export default function Events() {
         </div>
       </section>
 
-      {/* ICT CODEJAM COMPETITIVE PROGRAMMING SECTION */}
-      <section className="py-20 md:py-28 border-b border-[#E2E2DC] bg-[#F4F4F0]">
-        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 mb-12 border-b border-[#E2E2DC] gap-4">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#00A86B] font-bold mb-2">
-                03 / COMPETITIVE ARENA
-              </div>
-              <h2 className="font-editorial text-4xl sm:text-5xl font-black text-[#111318] tracking-tight">
-                ICT CodeJam Contests
-              </h2>
-            </div>
-            <p className="font-mono text-xs text-[#8B9198] max-w-sm">
-              Official GeeksforGeeks practice contest tracks configured by semester for Marwadi University students.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {codejamEvents.map((card) => {
-              const Icon = card.icon;
-              return (
-                <div
-                  key={card.sem}
-                  className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 flex flex-col justify-between hover:border-[#111318] transition-colors shadow-[0_4px_20px_rgba(17,19,24,0.03)] group"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between font-mono text-[10px] text-[#8B9198] pb-4 border-b border-[#E2E2DC]">
-                      <span className="font-bold text-[#111318]">{card.num}</span>
-                      <span className="text-[#00A86B]">{card.tag}</span>
-                    </div>
-
-                    <div className="w-10 h-10 border border-[#E2E2DC] bg-[#FAF9F5] flex items-center justify-center text-[#111318] group-hover:text-[#00A86B] transition-colors">
-                      <Icon className="w-5 h-5" />
-                    </div>
-
-                    <h3 className="font-editorial text-2xl font-bold text-[#111318] tracking-tight">
-                      {card.sem}
-                    </h3>
-
-                    <p className="font-sans text-xs text-[#555B63] leading-relaxed">
-                      {card.desc}
-                    </p>
-                  </div>
-
-                  <div className="pt-6 border-t border-[#E2E2DC] mt-8">
-                    <a
-                      href={card.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-3.5 px-4 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 text-center"
-                    >
-                      <span>Enter Contest</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-      </section>
+      {/* 03 / CHAPTER ARCHIVE: WHAT WE'VE BUILT */}
+      <ChapterArchive />
 
       {/* DETAIL MODAL (EDITORIAL DESIGN) */}
       <AnimatePresence>
@@ -603,11 +528,11 @@ export default function Events() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                   {/* Visual */}
                   <div className="md:col-span-5 space-y-4">
-                    <div className="aspect-[4/3] relative border border-[#E2E2DC] overflow-hidden bg-[#F4F4F0]">
+                    <div className="relative border border-[#E2E2DC] bg-[#FAF9F5]">
                       <img
-                        src={selectedDetailEvent.poster_image || selectedDetailEvent.poster_url}
+                        src={getEventCardImage(selectedDetailEvent)}
                         alt={selectedDetailEvent.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto block object-contain"
                         referrerPolicy="no-referrer"
                       />
                     </div>

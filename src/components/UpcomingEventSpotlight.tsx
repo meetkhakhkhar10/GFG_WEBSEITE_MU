@@ -132,7 +132,7 @@ function normalizeSheetEvent(e: any): GasEventNormalized {
   const regStatusRaw = String(e.Registration_Status || e.registration_status || "OPEN").trim().toUpperCase();
   const statusRaw = String(e.Status || e.status || "PUBLISHED").trim().toUpperCase();
 
-  const poster =
+  let poster =
     e.Image_URL ||
     e.image_url ||
     e.Poster_URL ||
@@ -142,6 +142,16 @@ function normalizeSheetEvent(e: any): GasEventNormalized {
     e.Banner_Image ||
     e.banner_image ||
     "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800";
+
+  // Specific event image mapping for GFG × Marwadi University Connect
+  const isGfgConnect = 
+    id === "EVT-0001" || 
+    title.toLowerCase().includes("marwadi university connect") ||
+    (title.toLowerCase().includes("connect") && title.toLowerCase().includes("marwadi"));
+
+  if (isGfgConnect) {
+    poster = "/images/gfg-connect-banner.jpg";
+  }
 
   const regLink = String(e.Registration_Link || e.registration_link || e.registrationLink || "").trim();
   const fee = String(e.Registration_Fee || e.registration_fee || e.Fee || "Free Entry").trim();
@@ -203,18 +213,42 @@ export default function UpcomingEventSpotlight() {
     setError(null);
 
     try {
-      const fetchUrl = `${GAS_EVENTS_URL}?action=events&t=${Date.now()}`;
-      const res = await fetch(fetchUrl, { redirect: "follow" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const resJson = await res.json();
-      console.log("GAS EVENTS API RESPONSE:", resJson);
-
       let rawList: any[] = [];
-      if (Array.isArray(resJson.events)) rawList = resJson.events;
-      else if (Array.isArray(resJson.data)) rawList = resJson.data;
-      else if (Array.isArray(resJson.records)) rawList = resJson.records;
-      else if (Array.isArray(resJson)) rawList = resJson;
+      let fetchSuccess = false;
+
+      // 1. Try direct Google Apps Script endpoint
+      try {
+        const fetchUrl = `${GAS_EVENTS_URL}?action=events&t=${Date.now()}`;
+        const res = await fetch(fetchUrl, { redirect: "follow" });
+        if (res.ok) {
+          const resJson = await res.json();
+          console.log("GAS EVENTS API RESPONSE:", resJson);
+          if (Array.isArray(resJson.events)) rawList = resJson.events;
+          else if (Array.isArray(resJson.data)) rawList = resJson.data;
+          else if (Array.isArray(resJson.records)) rawList = resJson.records;
+          else if (Array.isArray(resJson)) rawList = resJson;
+          if (rawList.length > 0) fetchSuccess = true;
+        }
+      } catch (gasErr) {
+        console.warn("Direct GAS fetch notice, attempting /api/events fallback:", gasErr);
+      }
+
+      // 2. Fallback to server proxy /api/events if direct fetch did not succeed
+      if (!fetchSuccess) {
+        try {
+          const localRes = await fetch("/api/events");
+          if (localRes.ok) {
+            const localJson = await localRes.json();
+            const list = Array.isArray(localJson) ? localJson : (localJson.data || localJson.events || []);
+            if (Array.isArray(list) && list.length > 0) {
+              rawList = list;
+              fetchSuccess = true;
+            }
+          }
+        } catch (localErr) {
+          console.warn("/api/events fallback notice:", localErr);
+        }
+      }
 
       const normalized = rawList.map(normalizeSheetEvent);
 

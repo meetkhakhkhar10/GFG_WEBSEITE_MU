@@ -347,7 +347,9 @@ app.get("/api/events", async (req, res) => {
             date: String(e.Date || e.date || "Upcoming"),
             time: String(e.Start_Time || e.time || ""),
             venue: String(e.Venue || e.venue || e.Location || e.location || "Marwadi University"),
-            poster_url: e.Poster_URL || e.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
+            poster_url: (String(e.Event_ID || e.event_id || "") === "EVT-0001" || String(e.Event_Name || e.Title || "").toLowerCase().includes("connect"))
+              ? "/images/gfg-connect-banner.jpg"
+              : (e.Poster_URL || e.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"),
             registration_link: e.Registration_Link || e.registration_link || "",
             status: e.Status || e.status || "PUBLISHED",
             registration_status: e.Registration_Status || e.registration_status || "OPEN",

@@ -266,7 +266,7 @@ function normalizeEvent(e: any): GasEvent {
 
   const venue = String(e.Venue || e.venue || e.Location || e.location || "Marwadi University Auditorium").trim();
 
-  const poster =
+  let poster =
     e.Poster_URL ||
     e.poster_url ||
     e.Banner_Image ||
@@ -275,6 +275,16 @@ function normalizeEvent(e: any): GasEvent {
     e.Poster_Image ||
     e.poster_image ||
     "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800";
+
+  // Specific event image mapping for GFG × Marwadi University Connect
+  const isGfgConnect = 
+    id === "EVT-0001" || 
+    title.toLowerCase().includes("marwadi university connect") ||
+    (title.toLowerCase().includes("connect") && title.toLowerCase().includes("marwadi"));
+
+  if (isGfgConnect) {
+    poster = "/images/gfg-connect-banner.jpg";
+  }
 
   const regLink = String(e.Registration_Link || e.registration_link || e.registrationLink || "").trim();
   const category = String(e.Category || e.category || "Hackathon / Competition").trim();
@@ -434,6 +444,29 @@ async function getGas(action: string, params: Record<string, string> = {}): Prom
     }
   } catch (directErr: any) {
     console.warn(`gasApi fetch error for "${action}":`, directErr?.message || directErr);
+    if (action === "events") {
+      try {
+        const localRes = await fetch("/api/events");
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          const list = Array.isArray(localData) ? localData : (localData.data || localData.events || []);
+          return { success: true, count: list.length, events: list, data: list };
+        }
+      } catch (proxyErr) {
+        console.warn("gasApi fallback to /api/events error:", proxyErr);
+      }
+    } else if (action === "team") {
+      try {
+        const localRes = await fetch("/api/team");
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          const list = Array.isArray(localData) ? localData : (localData.data || localData.team || []);
+          return { success: true, count: list.length, team: list, data: list };
+        }
+      } catch (proxyErr) {
+        console.warn("gasApi fallback to /api/team error:", proxyErr);
+      }
+    }
     return { success: false, error: directErr?.message || "Network error communicating with Google Apps Script" };
   }
 }

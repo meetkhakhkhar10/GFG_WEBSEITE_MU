@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
-import Chatbot from "@/src/components/Chatbot";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -61,7 +60,6 @@ export default function Layout() {
           <Outlet />
         </main>
         <Footer />
-        <Chatbot />
       </div>
     </div>
   );
