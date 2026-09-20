@@ -46,7 +46,7 @@ export const LINKEDIN_HIGHLIGHTS: LinkedInHighlightItem[] = [
     index: "LINKEDIN / 01",
     badge: "OFFICIAL UPDATE",
     category: "CODING CONTEST 2026",
-    title: "Celebrating Excellence in Competitive Programming",
+    title: "MARWADI UNIVERSITY CODING CONTEST 2026",
     organization: "GeeksforGeeks Marwadi University × Department of AI, ML & DS",
     description:
       "Official chapter update recognizing student problem-solvers, algorithmic competence, and competitive programming achievements at Marwadi University.",

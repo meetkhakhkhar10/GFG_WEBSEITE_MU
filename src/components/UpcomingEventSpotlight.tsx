@@ -15,7 +15,6 @@ import {
   Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import PaperTiles from "./PaperTiles";
 
 // Exact hardcoded Google Apps Script URL as instructed
 const GAS_EVENTS_URL = "https://script.google.com/macros/s/AKfycbwXI6rB6TB2dGPvAUEN8OPNeISND5fmWbsnQu4TtI0bz5UsbKrh4X8zfm6pIMozXSVpDw/exec";
@@ -462,14 +461,16 @@ export default function UpcomingEventSpotlight() {
                     <span>FIG. EVT-01</span>
                   </div>
 
-                  <PaperTiles
-                    src={selectedEvent.poster_url}
-                    alt={selectedEvent.title}
-                    stripsCount={4}
-                    tag={selectedEvent.category}
-                    overlayBadge={`${selectedEvent.venue.split(",")[0]} · MARWADI UNIV`}
-                    aspectClassName="aspect-[4/3]"
-                  />
+                  {/* Responsive Event Poster Container */}
+                  <div className="relative w-full aspect-[4/3] flex items-center justify-center overflow-hidden border border-[#E2E2DC] bg-[#111318] shadow-[0_4px_24px_rgba(17,19,24,0.06)]">
+                    <img
+                      src={selectedEvent.poster_url}
+                      alt={selectedEvent.title}
+                      className="w-full h-full object-contain object-center block"
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                    />
+                  </div>
                 </div>
 
                 {/* COUNTDOWN BANNER (EDITORIAL LARGE NUMERALS) */}
