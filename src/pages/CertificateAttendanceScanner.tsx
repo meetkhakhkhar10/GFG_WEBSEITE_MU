@@ -175,8 +175,16 @@ export default function CertificateAttendanceScanner() {
     if (rawText.startsWith("{") && rawText.endsWith("}")) {
       try {
         const parsed = JSON.parse(rawText);
-        if (parsed && parsed.registration_id) {
-          regId = String(parsed.registration_id).trim();
+        if (parsed && (parsed.registration_id || parsed.id || parsed.registrationId)) {
+          regId = String(parsed.registration_id || parsed.id || parsed.registrationId).trim();
+        }
+      } catch {}
+    } else if (rawText.includes("?") || rawText.includes("&")) {
+      try {
+        const urlObj = new URL(rawText.startsWith("http") ? rawText : `https://dummy.com/${rawText}`);
+        const qId = urlObj.searchParams.get("registration_id") || urlObj.searchParams.get("id") || urlObj.searchParams.get("registrationId");
+        if (qId) {
+          regId = qId.trim();
         }
       } catch {}
     }
@@ -217,6 +225,9 @@ export default function CertificateAttendanceScanner() {
           message: "ALREADY VERIFIED",
           timestamp: currentTime
         });
+      } else if (res && res.unauthorized) {
+        handleLogout();
+        setLoginError("Scanner session expired. Please log in again.");
       } else if (res && res.notFound) {
         setLastScanResult({
           type: "not_found",
@@ -554,7 +565,7 @@ export default function CertificateAttendanceScanner() {
                     disabled={processingScan}
                     value={manualRegId}
                     onChange={(e) => setManualRegId(e.target.value)}
-                    placeholder="e.g. REG-CERT-363967"
+                    placeholder="e.g. REG-1790444202912-450"
                     className="flex-1 px-3.5 py-3 bg-[#FFFFFF] border border-[#E2E2DC] text-[#111318] font-mono text-xs sm:text-sm focus:outline-none focus:border-[#111318]"
                   />
                   <button
@@ -683,7 +694,7 @@ export default function CertificateAttendanceScanner() {
                       <span>REGISTRATION NOT FOUND</span>
                     </div>
                     <p className="font-sans text-xs text-red-800">
-                      No certificate data entry was found for Registration ID: <strong className="font-mono">{lastScanResult.registration_id}</strong>.
+                      No certificate data entry was found for Registration ID: <strong className="font-mono">{lastScanResult.registration_id}</strong>. Please check the Registration ID and try again.
                     </p>
                   </div>
                 )}

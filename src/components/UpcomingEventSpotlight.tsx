@@ -18,7 +18,7 @@ import { Link } from "react-router-dom";
 import EditorialImage from "./EditorialImage";
 
 // Exact hardcoded Google Apps Script URL as instructed
-const GAS_EVENTS_URL = "https://script.google.com/macros/s/AKfycbwXI6rB6TB2dGPvAUEN8OPNeISND5fmWbsnQu4TtI0bz5UsbKrh4X8zfm6pIMozXSVpDw/exec";
+const GAS_EVENTS_URL = "https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec";
 
 export interface GasEventNormalized {
   id: string;

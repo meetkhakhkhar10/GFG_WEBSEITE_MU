@@ -19,9 +19,11 @@
  */
 
 // Central API configuration constant
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXI6rB6TB2dGPvAUEN8OPNeISND5fmWbsnQu4TtI0bz5UsbKrh4X8zfm6pIMozXSVpDw/exec";
-export const DIRECT_GAS_URL = APPS_SCRIPT_URL;
-export const API_BASE_URL = APPS_SCRIPT_URL;
+// Google Apps Script Web App /exec URL.
+export const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec";
+export const APPS_SCRIPT_URL = GAS_WEB_APP_URL;
+export const DIRECT_GAS_URL = GAS_WEB_APP_URL;
+export const API_BASE_URL = GAS_WEB_APP_URL;
 
 export interface GasEvent {
   id: string;
@@ -548,22 +550,21 @@ async function getGas(action: string, params: Record<string, string> = {}): Prom
 async function postGas(payload: Record<string, any>): Promise<any> {
   try {
     invalidateGasCache();
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(payload)) {
-      if (value !== undefined && value !== null) {
-        params.append(key, String(value));
-      }
-    }
-
     const response = await fetch(DIRECT_GAS_URL, {
       method: "POST",
-      body: params,
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
       redirect: "follow",
     });
 
     if (response.ok) {
-      const data = await response.json();
-      return data;
+      const text = await response.text();
+      try {
+        const data = JSON.parse(text);
+        return data;
+      } catch {
+        return { success: true, message: "Request processed." };
+      }
     }
     return { success: false, error: `HTTP Error: ${response.status}` };
   } catch (err: any) {
@@ -798,171 +799,122 @@ export const gasApi = {
   },
 
   /**
-   * POST action=certificate_data_entry
+   * Action 1: certificate_data_entry
    * Appends participant certificate entry directly into Google Sheets Attendance sheet.
    */
   async submitCertificateData(payload: CertificateDataPayload): Promise<CertificateDataResult> {
-    const body = {
-      action: "certificate_data_entry",
-      name: payload.name.trim(),
-      email: payload.email.trim(),
-      event_id: (payload.event_id || "GFG-MU-CERT-2026").trim(),
-    };
+    const cleanName = payload.name.trim();
+    const cleanEmail = payload.email.trim();
+    const cleanEventId = (payload.event_id || "").trim();
 
-    try {
-      const serverRes = await fetch("/api/certificate-data-entry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-
-      if (serverRes.ok) {
-        const data = await serverRes.json();
-        if (data && data.success) {
-          return {
-            success: true,
-            registration_id: data.registration_id || data.id,
-            attendance_id: data.attendance_id,
-            message: data.message || "Certificate data submitted successfully."
-          };
-        } else if (data && data.error) {
-          return {
-            success: false,
-            error: data.error
-          };
-        }
-      }
-    } catch (proxyErr) {
-      console.warn("Server endpoint notice, falling back to direct postGas:", proxyErr);
+    if (!cleanEventId) {
+      return { success: false, code: "SUBMISSION_FAILED", error: "Event ID is required." };
+    }
+    if (!cleanName) {
+      return { success: false, code: "SUBMISSION_FAILED", error: "Full Name is required." };
+    }
+    if (!cleanEmail) {
+      return { success: false, code: "SUBMISSION_FAILED", error: "A valid email address is required." };
     }
 
+    const body = {
+      action: "certificate_data_entry",
+      name: cleanName,
+      email: cleanEmail,
+      event_id: cleanEventId,
+    };
+
     const res = await postGas(body);
-    if (res && res.success) {
+
+    if (res && (res.success || res.code === "CREATED")) {
       return {
         success: true,
-        registration_id: res.registration_id || res.id,
+        code: res.code || "CREATED",
+        registration_id: res.registration_id,
         attendance_id: res.attendance_id,
-        message: res.message || "Certificate data submitted successfully."
+        event_id: res.event_id || cleanEventId,
+        name: res.name || cleanName,
+        email: res.email || cleanEmail,
+        date: res.date,
+        time: res.time,
+        message: res.message || "Certificate data submitted successfully.",
+      };
+    } else if (res && (res.code === "ALREADY_SUBMITTED" || res.status === "ALREADY_SUBMITTED")) {
+      return {
+        success: false,
+        code: "ALREADY_SUBMITTED",
+        registration_id: res.registration_id,
+        attendance_id: res.attendance_id,
+        error: res.message || "Certificate data already submitted for this event.",
       };
     }
 
     return {
       success: false,
-      error: res?.error || res?.message || "Submission failed. Please try again."
+      code: res?.code || "SUBMISSION_FAILED",
+      error: res?.message || res?.error || "Network error communicating with Google Apps Script",
     };
   },
 
   /**
-   * POST /api/certificate-scanner/login
-   * Authenticates against the TWO allowed scanner accounts (meet123/meet, vyshnavi/vyshnavi123)
+   * Action 2: scanner_login
+   * Authenticates against the two designated coordinator accounts and retrieves session token.
    */
   async certificateScannerLogin(login_id: string, password: string): Promise<{
     success: boolean;
+    code?: string;
     token?: string;
     scannerIdentity?: string;
+    identity?: string;
     error?: string;
   }> {
     const cleanId = String(login_id || "").trim();
     const cleanPass = String(password || "").trim();
 
-    // 1. Verify exact credential match for the TWO allowed scanner accounts
-    let scannerIdentity: string | null = null;
-    if (cleanId === "meet123" && cleanPass === "meet") {
-      scannerIdentity = "Meet Khakhkhar";
-    } else if (cleanId === "vyshnavi" && cleanPass === "vyshnavi123") {
-      scannerIdentity = "Vyshnavi";
+    const res = await postGas({
+      action: "scanner_login",
+      username: cleanId,
+      login_id: cleanId,
+      password: cleanPass,
+    });
+
+    if (res && (res.success || res.code === "LOGIN_SUCCESS") && res.token) {
+      return {
+        success: true,
+        code: res.code || "LOGIN_SUCCESS",
+        token: res.token,
+        identity: res.identity || res.scanner_name || res.scannerIdentity,
+        scannerIdentity: res.identity || res.scanner_name || res.scannerIdentity,
+      };
     }
-
-    if (!scannerIdentity) {
-      return { success: false, error: "INVALID LOGIN ID OR PASSWORD" };
-    }
-
-    // 2. Attempt server endpoint if available
-    try {
-      const res = await fetch("/api/certificate-scanner/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ login_id: cleanId, password: cleanPass })
-      });
-      
-      const contentType = res.headers.get("content-type") || "";
-      if (res.ok && contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data && data.success && data.token) {
-          return data;
-        }
-      }
-    } catch (netErr) {
-      console.warn("Server auth endpoint notice, using secure client session token:", netErr);
-    }
-
-    // 3. Construct client session token for static deployments (Netlify/Vite)
-    const sessionData = {
-      certScanner: true,
-      scannerIdentity,
-      loginId: cleanId,
-      ts: Date.now()
-    };
-
-    const clientToken = "CS_" + btoa(JSON.stringify(sessionData));
 
     return {
-      success: true,
-      token: clientToken,
-      scannerIdentity
+      success: false,
+      code: res?.code || "INVALID_CREDENTIALS",
+      error: res?.message || res?.error || "Invalid username or password.",
     };
   },
 
   /**
-   * POST /api/certificate-scanner/scan
-   * Verifies participant QR Registration_ID and updates Marked_By to logged-in scanner identity
+   * Action 3: certificate_qr_scan
+   * Verifies participant QR Registration_ID using session token.
    */
   async scanCertificateQr(registration_id: string, token: string): Promise<{
     success: boolean;
+    code?: string;
     alreadyVerified?: boolean;
     notFound?: boolean;
     invalidQr?: boolean;
+    unauthorized?: boolean;
     registration_id?: string;
     name?: string;
     email?: string;
+    event_id?: string;
     status?: string;
     marked_by?: string;
     error?: string;
     message?: string;
   }> {
-    // 1. Extract scannerIdentity from token
-    let scannerIdentity = "";
-    if (token) {
-      try {
-        if (token.startsWith("CS_")) {
-          const jsonStr = atob(token.substring(3));
-          const parsed = JSON.parse(jsonStr);
-          if (parsed && parsed.certScanner) {
-            scannerIdentity = parsed.scannerIdentity;
-          }
-        } else {
-          const parts = token.split(".");
-          if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            if (payload && payload.scannerIdentity) {
-              scannerIdentity = payload.scannerIdentity;
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("Token decoding notice:", err);
-      }
-    }
-
-    if (!scannerIdentity) {
-      const localIdent = localStorage.getItem("cert_scanner_identity");
-      if (localIdent === "Meet Khakhkhar" || localIdent === "Vyshnavi") {
-        scannerIdentity = localIdent;
-      } else {
-        return { success: false, error: "Unauthorized scanner session." };
-      }
-    }
-
     let cleanRegId = String(registration_id || "").trim();
     if (cleanRegId.startsWith("{") && cleanRegId.endsWith("}")) {
       try {
@@ -973,57 +925,69 @@ export const gasApi = {
       } catch {}
     }
 
-    if (!cleanRegId || (!cleanRegId.toUpperCase().startsWith("REG-") && !cleanRegId.toUpperCase().startsWith("ATT-"))) {
-      return { success: false, invalidQr: true, error: "INVALID QR CODE" };
+    if (!cleanRegId || !cleanRegId.toUpperCase().startsWith("REG-")) {
+      return {
+        success: false,
+        invalidQr: true,
+        code: "INVALID_QR",
+        error: cleanRegId.toUpperCase().startsWith("ATT-")
+          ? "Attendance ID (ATT-) cannot be scanned. Please scan a valid Registration ID (REG-)."
+          : "INVALID QR CODE. Must be a Registration ID starting with REG-.",
+      };
     }
 
-    // 2. Try server endpoint first if available
-    try {
-      const res = await fetch("/api/certificate-scanner/scan", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ registration_id: cleanRegId })
-      });
-
-      const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data && typeof data.success === "boolean") {
-          return data;
-        }
-      }
-    } catch (netErr) {
-      console.warn("Server scan endpoint notice, sending directly to Google Apps Script:", netErr);
-    }
-
-    // 3. Forward directly to Google Apps Script
     const gasRes = await postGas({
       action: "certificate_qr_scan",
       registration_id: cleanRegId,
-      marked_by: scannerIdentity
+      token: token,
     });
 
-    if (gasRes && typeof gasRes.success === "boolean") {
-      return {
-        success: gasRes.success,
-        alreadyVerified: gasRes.alreadyVerified,
-        notFound: gasRes.notFound,
-        invalidQr: gasRes.invalidQr,
-        registration_id: gasRes.registration_id || cleanRegId,
-        name: gasRes.name || gasRes.participant_name || "Participant",
-        email: gasRes.email || "",
-        status: gasRes.status || "DONE",
-        marked_by: gasRes.marked_by || scannerIdentity,
-        message: gasRes.message || (gasRes.success ? "ATTENDANCE VERIFIED" : "Verification failed")
-      };
+    if (gasRes) {
+      if (gasRes.code === "VERIFIED" || gasRes.success) {
+        return {
+          success: true,
+          code: "VERIFIED",
+          registration_id: gasRes.registration_id || cleanRegId,
+          name: gasRes.name || "Participant",
+          email: gasRes.email || "",
+          event_id: gasRes.event_id || "",
+          status: "DONE",
+          marked_by: gasRes.marked_by,
+          message: gasRes.message || "Certificate attendance verified successfully.",
+        };
+      } else if (gasRes.code === "ALREADY_VERIFIED" || gasRes.status === "ALREADY_VERIFIED") {
+        return {
+          success: false,
+          alreadyVerified: true,
+          code: "ALREADY_VERIFIED",
+          registration_id: gasRes.registration_id || cleanRegId,
+          name: gasRes.name || "Participant",
+          email: gasRes.email || "",
+          event_id: gasRes.event_id || "",
+          marked_by: gasRes.marked_by || "Coordinator",
+          message: gasRes.message || "This registration has already been verified.",
+        };
+      } else if (gasRes.code === "REGISTRATION_NOT_FOUND" || gasRes.status === "REGISTRATION_NOT_FOUND") {
+        return {
+          success: false,
+          notFound: true,
+          code: "REGISTRATION_NOT_FOUND",
+          registration_id: cleanRegId,
+          message: gasRes.message || "Registration ID not found.",
+        };
+      } else if (gasRes.code === "UNAUTHORIZED" || gasRes.status === "UNAUTHORIZED") {
+        return {
+          success: false,
+          unauthorized: true,
+          code: "UNAUTHORIZED",
+          message: gasRes.message || "Invalid or expired scanner session.",
+        };
+      }
     }
 
     return {
       success: false,
-      error: gasRes?.error || gasRes?.message || "Verification failed. Please try again."
+      error: gasRes?.message || gasRes?.error || "Network error communicating with Google Apps Script",
     };
   }
 };
