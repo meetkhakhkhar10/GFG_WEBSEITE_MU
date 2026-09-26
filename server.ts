@@ -1343,10 +1343,11 @@ app.post("/api/certificate-data-entry", async (req: any, res: any) => {
 
 // Dedicated Certificate Scanner Authentication (EXACTLY TWO ACCOUNTS)
 app.post("/api/certificate-scanner/login", (req: any, res: any) => {
-  const { login_id, password } = req.body;
+  const login_id = req.body.login_id || req.body.loginId || req.body.username || "";
+  const password = req.body.password || req.body.pass || "";
 
-  const cleanId = (login_id || "").trim();
-  const cleanPass = (password || "").trim();
+  const cleanId = String(login_id).trim();
+  const cleanPass = String(password).trim();
 
   let scannerIdentity: string | null = null;
 
@@ -1357,11 +1358,14 @@ app.post("/api/certificate-scanner/login", (req: any, res: any) => {
   }
 
   if (!scannerIdentity) {
+    console.warn(`[CertScannerAuth] Authentication rejected for login ID: "${cleanId}"`);
     return res.status(401).json({
       success: false,
       error: "INVALID LOGIN ID OR PASSWORD"
     });
   }
+
+  console.log(`[CertScannerAuth] Authenticated scanner session for "${scannerIdentity}" (${cleanId})`);
 
   const token = jwt.sign(
     { certScanner: true, scannerIdentity, loginId: cleanId },
