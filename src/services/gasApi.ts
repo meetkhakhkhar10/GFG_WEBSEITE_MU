@@ -178,8 +178,14 @@ export interface CertificateDataPayload {
 
 export interface CertificateDataResult {
   success: boolean;
+  code?: string;
   registration_id?: string;
   attendance_id?: string;
+  event_id?: string;
+  name?: string;
+  email?: string;
+  date?: string;
+  time?: string;
   message?: string;
   error?: string;
 }
