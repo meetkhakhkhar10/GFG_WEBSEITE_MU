@@ -15,6 +15,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import EditorialImage from "./EditorialImage";
 
 // Exact hardcoded Google Apps Script URL as instructed
 const GAS_EVENTS_URL = "https://script.google.com/macros/s/AKfycbwXI6rB6TB2dGPvAUEN8OPNeISND5fmWbsnQu4TtI0bz5UsbKrh4X8zfm6pIMozXSVpDw/exec";
@@ -453,25 +454,18 @@ export default function UpcomingEventSpotlight() {
             {/* Asymmetric 2-Column Poster */}
             <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#E2E2DC]">
               
-              {/* LEFT 5 COLS: MOVING TILE PAPER ARTWORK */}
+              {/* LEFT 5 COLS: EDITORIAL POSTER SYSTEM */}
               <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-[#FAF9F5]">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between font-mono text-[9px] text-[#8B9198] uppercase tracking-widest">
-                    <span>VISUAL SPECIFICATION</span>
-                    <span>FIG. EVT-01</span>
-                  </div>
-
-                  {/* Responsive Event Poster Container */}
-                  <div className="relative w-full aspect-[4/3] flex items-center justify-center overflow-hidden border border-[#E2E2DC] bg-[#111318] shadow-[0_4px_24px_rgba(17,19,24,0.06)]">
-                    <img
-                      src={selectedEvent.poster_url}
-                      alt={selectedEvent.title}
-                      className="w-full h-full object-contain object-center block"
-                      referrerPolicy="no-referrer"
-                      loading="lazy"
-                    />
-                  </div>
-                </div>
+                <EditorialImage
+                  src={selectedEvent.poster_url}
+                  alt={selectedEvent.title}
+                  variant="poster"
+                  figLabel="VISUAL SPECIFICATION"
+                  figNumber="FIG. EVT-01"
+                  badge={selectedEvent.category}
+                  caption={`${selectedEvent.venue.split(",")[0]} · MARWADI UNIVERSITY`}
+                  aspectClassName="aspect-[4/3]"
+                />
 
                 {/* COUNTDOWN BANNER (EDITORIAL LARGE NUMERALS) */}
                 <div className="border border-[#E2E2DC] bg-[#FFFFFF] p-4 space-y-3">

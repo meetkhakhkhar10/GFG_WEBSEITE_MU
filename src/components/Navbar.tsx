@@ -178,68 +178,88 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-40 bg-[#F4F4F0] pt-24 px-8 pb-12 flex flex-col justify-between overflow-y-auto lg:hidden"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-50 bg-[#F4F4F0] flex flex-col justify-between overflow-y-auto lg:hidden"
           >
             {/* Background architectural grid */}
             <div className="absolute inset-0 bg-technical-grid opacity-60 pointer-events-none" />
 
-            <div className="relative z-10 space-y-6">
-              <div className="border-b border-[#E2E2DC] pb-4 flex justify-between items-center">
-                <div className="flex items-center space-x-2.5">
-                  <div className="h-5 w-auto flex items-center">
-                    <img src={gfgLogo} alt="GeeksforGeeks" className="h-full w-auto object-contain" />
-                  </div>
-                  <span className="font-mono text-xs text-[#8B9198]">×</span>
-                  <div className="h-5 w-auto flex items-center">
-                    <img src={muLogo} alt="Marwadi University" className="h-full w-auto object-contain" />
-                  </div>
+            <div className="relative z-10">
+              {/* Mobile Menu Header - Single Top Branding Row */}
+              <header className="mobile-menu-header h-18 px-6 border-b border-[#E2E2DC] bg-[#F4F4F0]/95 backdrop-blur-md">
+                <div className="mobile-branding">
+                  <img 
+                    src={gfgLogo} 
+                    alt="GeeksforGeeks" 
+                    className="gfg-logo"
+                    referrerPolicy="no-referrer"
+                    onError={() => setGfgLogo(GFG_LOGO_FALLBACK)}
+                  />
+                  <span className="brand-separator">×</span>
+                  <img 
+                    src={muLogo} 
+                    alt="Marwadi University" 
+                    className="marwadi-logo"
+                    referrerPolicy="no-referrer"
+                    onError={() => setMuLogo(MU_LOGO_FALLBACK)}
+                  />
                 </div>
-                <span className="font-mono text-[10px] text-[#00A86B] uppercase tracking-wider">CH. 2026</span>
-              </div>
 
-              <nav className="flex flex-col space-y-3">
-                {navLinks.map((link) => {
-                  const isActive = location.pathname === link.path;
-                  return (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      onClick={() => setIsOpen(false)}
-                      className="group flex items-baseline justify-between py-2 border-b border-[#E2E2DC]/60"
-                    >
-                      <span
-                        className={cn(
-                          "font-editorial text-3xl sm:text-4xl transition-colors tracking-tight",
-                          isActive ? "text-[#00A86B] italic" : "text-[#111318] group-hover:text-[#00A86B]"
-                        )}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="mobile-menu-close p-2 text-[#111318] hover:text-[#00A86B] transition-colors focus:outline-none"
+                  aria-label="Close Navigation"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </header>
+
+              {/* Navigation links directly below the single header */}
+              <div className="px-8 py-6 space-y-6">
+                <nav className="flex flex-col space-y-3">
+                  {navLinks.map((link) => {
+                    const isActive = location.pathname === link.path;
+                    return (
+                      <Link
+                        key={link.path}
+                        to={link.path}
+                        onClick={() => setIsOpen(false)}
+                        className="group flex items-baseline justify-between py-2 border-b border-[#E2E2DC]/60"
                       >
-                        {link.name}
-                      </span>
-                      <span className="font-mono text-xs text-[#8B9198] tracking-widest">
-                        {link.num}
-                      </span>
-                    </Link>
-                  );
-                })}
+                        <span
+                          className={cn(
+                            "font-editorial text-3xl sm:text-4xl transition-colors tracking-tight",
+                            isActive ? "text-[#00A86B] italic" : "text-[#111318] group-hover:text-[#00A86B]"
+                          )}
+                        >
+                          {link.name}
+                        </span>
+                        <span className="font-mono text-xs text-[#8B9198] tracking-widest">
+                          {link.num}
+                        </span>
+                      </Link>
+                    );
+                  })}
 
-                {isAdmin && (
-                  <Link
-                    to="/admin/dashboard"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-baseline justify-between py-2 text-[#00A86B] border-b border-[#E2E2DC]/60"
-                  >
-                    <span className="font-editorial text-2xl">Admin Dashboard</span>
-                    <span className="font-mono text-xs">ROOT</span>
-                  </Link>
-                )}
-              </nav>
+                  {isAdmin && (
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-baseline justify-between py-2 text-[#00A86B] border-b border-[#E2E2DC]/60"
+                    >
+                      <span className="font-editorial text-2xl">Admin Dashboard</span>
+                      <span className="font-mono text-xs">ROOT</span>
+                    </Link>
+                  )}
+                </nav>
+              </div>
             </div>
 
-            <div className="relative z-10 pt-8 border-t border-[#E2E2DC] space-y-4">
+            {/* Bottom CTA & Coordinates */}
+            <div className="relative z-10 px-8 pb-10 pt-4 border-t border-[#E2E2DC] space-y-4">
               <a
                 href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
                 target="_blank"

@@ -1,9 +1,19 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   Github, Linkedin, Twitter, Mail, ArrowUpRight, ArrowRight 
 } from "lucide-react";
 
+const GFG_LOGO_PRIMARY = "/gfg-logo.png";
+const GFG_LOGO_FALLBACK = "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png";
+
+const MU_LOGO_PRIMARY = "/marwadi-university-logo.svg";
+const MU_LOGO_FALLBACK = "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg";
+
 export default function Footer() {
+  const [gfgLogo, setGfgLogo] = useState(GFG_LOGO_PRIMARY);
+  const [muLogo, setMuLogo] = useState(MU_LOGO_PRIMARY);
+
   return (
     <footer className="bg-[#EAEAE5] border-t border-[#E2E2DC] py-16 sm:py-20 relative select-none">
       <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
@@ -13,17 +23,22 @@ export default function Footer() {
           
           {/* Brand & Manifesto */}
           <div className="md:col-span-5 space-y-6">
-            <div className="flex items-center space-x-3">
+            <div className="footer-branding">
               <img 
-                src="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png" 
+                src={gfgLogo} 
                 alt="GeeksforGeeks" 
-                className="h-7 w-auto object-contain"
+                className="gfg-logo"
                 referrerPolicy="no-referrer"
+                onError={() => setGfgLogo(GFG_LOGO_FALLBACK)}
               />
-              <span className="font-mono text-sm text-[#8B9198]">×</span>
-              <span className="font-editorial text-lg font-semibold tracking-tight text-[#111318]">
-                Marwadi University
-              </span>
+              <span className="brand-separator">×</span>
+              <img 
+                src={muLogo} 
+                alt="Marwadi University" 
+                className="marwadi-logo"
+                referrerPolicy="no-referrer"
+                onError={() => setMuLogo(MU_LOGO_FALLBACK)}
+              />
             </div>
 
             <p className="font-editorial italic text-2xl text-[#111318] leading-snug max-w-md">

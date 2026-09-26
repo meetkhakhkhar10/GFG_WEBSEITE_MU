@@ -560,16 +560,18 @@ export default function Dashboard() {
       index + 1,
       r.userName || "Student",
       r.userEmail || "N/A",
+      r.program || "CSE-AI&ML",
+      r.program === "Other" ? (r.otherDepartment || r.other_department || "Other") : (r.department || "Computer Engineering"),
       r.eventTitle || "N/A",
       r.registeredAt ? new Date(r.registeredAt).toLocaleDateString() : "N/A",
       r.status || "Approved"
     ]);
 
     autoTable(doc, {
-      head: [["ID", "Student Name", "Email Address", "Target Event", "Registered At", "Roster Status"]],
+      head: [["#", "Student Name", "Email Address", "Program / Branch", "Department", "Target Event", "Date", "Status"]],
       body: tableData,
       startY: 32,
-      styles: { fontSize: 8 },
+      styles: { fontSize: 7 },
       headStyles: { fillColor: [0, 210, 100] }
     });
 
@@ -577,12 +579,32 @@ export default function Dashboard() {
   };
 
   const exportCSVRoster = () => {
-    const headers = ["Student Name", "Email", "Event Title", "Registered At", "Roster Status"];
+    const headers = [
+      "Registration ID",
+      "Student Name", 
+      "Email", 
+      "Phone", 
+      "Enrollment Number",
+      "Program / Branch", 
+      "Other Department / Program", 
+      "Department", 
+      "Year", 
+      "Event Title", 
+      "Registered At", 
+      "Roster Status"
+    ];
     const csvContent = [
       headers.join(","),
       ...registrations.map(r => [
-        `"${r.userName || 'Student'}"`,
-        `"${r.userEmail || ''}"`,
+        `"${r.id || r.registration_id || ''}"`,
+        `"${r.userName || r.name || 'Student'}"`,
+        `"${r.userEmail || r.email || ''}"`,
+        `"${r.phone || ''}"`,
+        `"${r.enrollmentNumber || r.enrollment_number || ''}"`,
+        `"${r.program || 'CSE-AI&ML'}"`,
+        `"${r.otherDepartment || r.other_department || ''}"`,
+        `"${r.department || ''}"`,
+        `"${r.year || ''}"`,
         `"${r.eventTitle || ''}"`,
         `"${r.registeredAt || ''}"`,
         `"${r.status || 'Approved'}"`
@@ -605,10 +627,16 @@ export default function Dashboard() {
     let result = [...registrations];
     
     if (regSearch) {
+      const q = regSearch.toLowerCase();
       result = result.filter(r => 
-        (r.userName || "").toLowerCase().includes(regSearch.toLowerCase()) ||
-        (r.userEmail || "").toLowerCase().includes(regSearch.toLowerCase()) ||
-        (r.eventTitle || "").toLowerCase().includes(regSearch.toLowerCase())
+        (r.userName || "").toLowerCase().includes(q) ||
+        (r.userEmail || "").toLowerCase().includes(q) ||
+        (r.eventTitle || "").toLowerCase().includes(q) ||
+        (r.program || "").toLowerCase().includes(q) ||
+        (r.otherDepartment || "").toLowerCase().includes(q) ||
+        (r.other_department || "").toLowerCase().includes(q) ||
+        (r.department || "").toLowerCase().includes(q) ||
+        (r.enrollmentNumber || "").toLowerCase().includes(q)
       );
     }
 
@@ -1026,6 +1054,8 @@ export default function Dashboard() {
                         <th className="p-5 font-mono">UID ID</th>
                         <th className="p-5">Student Full Name</th>
                         <th className="p-5">University Email Handle</th>
+                        <th className="p-5">Program / Branch</th>
+                        <th className="p-5">Other Dept / Program</th>
                         <th className="p-5">Event Subject Title</th>
                         <th className="p-5">Ledger Recorded Timestamp</th>
                         <th className="p-5 text-center">Status</th>
@@ -1036,9 +1066,17 @@ export default function Dashboard() {
                       {processedRegistrations.map((reg) => (
                         <tr key={reg.id} className="hover:bg-white/2 text-white/80">
                           <td className="p-5 font-mono text-white/30 uppercase">{reg.id.substring(0, 10)}</td>
-                          <td className="p-5 font-black text-white uppercase">{reg.userName || "Student"}</td>
-                          <td className="p-5 text-white/50">{reg.userEmail}</td>
-                          <td className="p-5 font-bold uppercase text-[#00ff88]/95">{reg.eventTitle}</td>
+                          <td className="p-5 font-black text-white uppercase">{reg.userName || reg.name || "Student"}</td>
+                          <td className="p-5 text-white/50">{reg.userEmail || reg.email}</td>
+                          <td className="p-5">
+                            <span className="px-2 py-0.5 bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/20 rounded text-[10px] font-mono font-bold">
+                              {reg.program || reg.branch || "CSE-AI&ML"}
+                            </span>
+                          </td>
+                          <td className="p-5 text-white/60 font-mono text-[11px]">
+                            {reg.otherDepartment || reg.other_department || (reg.program === "Other" ? reg.department : "—")}
+                          </td>
+                          <td className="p-5 font-bold uppercase text-[#00ff88]/95">{reg.eventTitle || reg.eventName || "Event"}</td>
                           <td className="p-5 text-white/40">{reg.registeredAt ? new Date(reg.registeredAt).toLocaleString() : "N/A"}</td>
                           <td className="p-4 text-center">
                             <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-[#00ff88] text-[9px] font-black uppercase tracking-wider rounded-md">
@@ -1057,7 +1095,7 @@ export default function Dashboard() {
                       ))}
                       {processedRegistrations.length === 0 && (
                         <tr>
-                          <td colSpan={7} className="p-10 text-center text-white/20 uppercase font-mono tracking-widest italic">
+                          <td colSpan={9} className="p-10 text-center text-white/20 uppercase font-mono tracking-widest italic">
                             No student registrants match current query terms.
                           </td>
                         </tr>

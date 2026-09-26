@@ -682,32 +682,73 @@ app.get("/api/registrations", authenticate, async (req, res) => {
   }
 });
 
-app.post("/api/events/register", authenticate, async (req: any, res) => {
-  const { event_id } = req.body;
+app.post("/api/events/register", async (req: any, res) => {
+  const { 
+    event_id, 
+    name, 
+    email, 
+    phone, 
+    enrollment_number, 
+    program, 
+    otherDepartment, 
+    other_department, 
+    department, 
+    year, 
+    college 
+  } = req.body;
+
+  let userId = "guest_" + Math.random().toString(36).substring(7);
+  const token = req.headers.authorization?.split(" ")[1];
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, SECRET_KEY) as any;
+      if (decoded?.userId) userId = decoded.userId;
+    } catch {}
+  }
+
   try {
     const list = await getFirebaseRegistrations();
-    const existing = list.find(r => r.userId === req.userId && r.eventId === event_id);
-    if (existing) return res.status(400).json({ success: false, message: "Already registered" });
+    const cleanEmail = (email || "").toLowerCase().trim();
+    const existing = list.find(r => 
+      (r.eventId === event_id && cleanEmail && r.userEmail?.toLowerCase() === cleanEmail) ||
+      (token && r.userId === userId && r.eventId === event_id)
+    );
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Already registered for this event" });
+    }
 
-    const users = await getFirebaseUsers();
-    const user = users.find(u => u.uid === req.userId || u.id === req.userId);
     const events = await getFirebaseEvents();
     const event = events.find(e => e.id === event_id);
+
+    const selectedProgram = program || "CSE-AI&ML";
+    const otherDept = otherDepartment || other_department || "";
+    const effectiveDept = selectedProgram === "Other" 
+      ? otherDept 
+      : (department || "Computer Science & Engineering");
 
     const regId = "reg_" + Math.random().toString(36).substring(7);
     const newReg = {
       id: regId,
-      userId: req.userId,
-      userName: user?.name || "Student Name",
-      userEmail: user?.email || "",
+      registration_id: regId,
+      userId,
+      userName: name || "Student Name",
+      userEmail: cleanEmail,
+      phone: phone || "",
+      enrollmentNumber: enrollment_number || "",
+      program: selectedProgram,
+      otherDepartment: otherDept,
+      other_department: otherDept,
+      department: effectiveDept,
+      year: year || "3",
+      college: college || "Marwadi University",
       eventId: event_id,
-      eventTitle: event?.title || "Chapter Event",
+      eventTitle: event?.title || req.body.event_name || "Chapter Event",
       registeredAt: new Date().toISOString(),
       status: "Approved"
     };
 
     await saveFirebaseRegistration(regId, newReg);
-    res.json({ success: true });
+    res.json({ success: true, registration_id: regId, data: newReg });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
   }

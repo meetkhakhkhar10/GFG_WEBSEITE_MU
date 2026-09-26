@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Hero from "../components/Hero";
 import UpcomingEventSpotlight from "../components/UpcomingEventSpotlight";
 import FeaturedCourses from "../components/FeaturedCourses";
-import PaperTiles from "../components/PaperTiles";
+import EditorialImage from "../components/EditorialImage";
 
 export default function Home() {
   return (
@@ -25,20 +25,18 @@ export default function Home() {
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            {/* Left 6 Cols: Architectural Image with Paper Tiles */}
+            {/* Left 6 Cols: Architectural Image with Editorial Photo System */}
             <div className="lg:col-span-6 space-y-4">
-              <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-widest text-[#8B9198]">
-                <span>FIG 02. / CAMPUS INFRASTRUCTURE</span>
-                <span className="text-[#00A86B]">NAAC A+ ACCREDITED</span>
-              </div>
-
               <div className="relative">
-                <PaperTiles
+                <EditorialImage
                   src="https://img-cdn.publive.online/fit-in/1280x960/filters:format(webp)/smstreet/media/media_files/2025/11/19/marwadi-university-2025-11-19-15-33-18.jpg"
                   alt="Marwadi University Campus, Rajkot"
-                  stripsCount={4}
-                  tag="ACADEMIC HUB"
-                  overlayBadge="MARWADI UNIVERSITY CAMPUS · 52+ ACRE TECH PARK"
+                  variant="photo"
+                  headerLeft="FIG 02. / CAMPUS INFRASTRUCTURE"
+                  headerRight="NAAC A+ ACCREDITED"
+                  figLabel="ACADEMIC HUB"
+                  figNumber="FIG.4-P"
+                  caption="MARWADI UNIVERSITY CAMPUS · 52+ ACRE TECH PARK"
                   aspectClassName="aspect-[16/10]"
                 />
 

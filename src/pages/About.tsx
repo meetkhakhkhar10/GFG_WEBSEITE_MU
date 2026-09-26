@@ -5,6 +5,7 @@ import {
   Sparkles, ArrowRight, ArrowUpRight, CheckCircle, Target, Lightbulb, Rocket 
 } from "lucide-react";
 import PaperTiles from "../components/PaperTiles";
+import EditorialImage from "../components/EditorialImage";
 import JourneyTrack from "../components/JourneyTrack";
 
 export default function About() {
@@ -94,17 +95,15 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             <div className="lg:col-span-6 space-y-4">
-              <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-widest text-[#8B9198]">
-                <span>CAMPUS ATLAS / MARWADI UNIVERSITY</span>
-                <span className="text-[#00A86B]">RAJKOT, INDIA</span>
-              </div>
-
-              <PaperTiles
+              <EditorialImage
                 src="https://img-cdn.publive.online/fit-in/1280x960/filters:format(webp)/smstreet/media/media_files/2025/11/19/marwadi-university-2025-11-19-15-33-18.jpg"
                 alt="Marwadi University Campus, Rajkot"
-                stripsCount={4}
-                tag="CAMPUS OVERVIEW"
-                overlayBadge="MARWADI UNIVERSITY · 52-ACRE TECH ENVIRONMENT"
+                variant="photo"
+                headerLeft="CAMPUS ATLAS / MARWADI UNIVERSITY"
+                headerRight="RAJKOT, INDIA"
+                figLabel="CAMPUS OVERVIEW"
+                figNumber="FIG.4-P"
+                caption="MARWADI UNIVERSITY · 52-ACRE TECH ENVIRONMENT"
                 aspectClassName="aspect-[16/10]"
               />
             </div>

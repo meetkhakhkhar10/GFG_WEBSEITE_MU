@@ -109,6 +109,10 @@
         "userEmail": { "type": "string" },
         "eventId": { "type": "string" },
         "eventTitle": { "type": "string" },
+        "program": { "type": "string", "description": "Academic program or branch" },
+        "otherDepartment": { "type": "string", "description": "Custom department name when Other is selected" },
+        "department": { "type": "string" },
+        "enrollmentNumber": { "type": "string" },
         "registeredAt": { "type": "string" },
         "status": { "type": "string" }
       },

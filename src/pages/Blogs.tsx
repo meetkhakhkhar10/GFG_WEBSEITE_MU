@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { Calendar, User, ArrowRight, Search, Tag, Sparkles } from "lucide-react";
 import { useState } from "react";
+import EditorialImage from "../components/EditorialImage";
 
 const blogs = [
   {
@@ -84,21 +85,14 @@ export default function Blogs() {
               transition={{ delay: i * 0.1 }}
               className="group relative rounded-[2.5rem] overflow-hidden bg-theme-bg-secondary border border-theme-border hover:border-gfg-primary/30 transition-all duration-300 shadow-sm flex flex-col h-full"
             >
-              <div className="aspect-[16/10] relative overflow-hidden bg-theme-bg">
-                <img 
-                  src={blog.image} 
-                  alt={blog.title} 
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 opacity-80"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-theme-bg-secondary via-transparent to-transparent opacity-95" />
-                
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 bg-gfg-primary text-black text-[8px] font-black rounded-lg uppercase tracking-widest font-mono">
-                    {blog.category}
-                  </span>
-                </div>
-              </div>
+              <EditorialImage 
+                src={blog.image} 
+                alt={blog.title} 
+                variant="thumbnail"
+                figNumber={`FIG. 0${i + 1}`}
+                badge={blog.category}
+                aspectClassName="aspect-[16/10]"
+              />
               
               <div className="p-8 flex flex-col flex-grow text-left">
                 <div className="flex items-center space-x-4 mb-4 text-[9px] font-black uppercase tracking-widest text-theme-text-muted">

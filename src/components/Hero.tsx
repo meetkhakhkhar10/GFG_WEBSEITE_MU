@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, ArrowRight, Terminal, Sparkles, MapPin, Calendar, Users } from "lucide-react";
-import PaperTiles from "./PaperTiles";
+import EditorialImage from "./EditorialImage";
 
 export default function Hero() {
   return (
@@ -103,20 +103,17 @@ export default function Hero() {
           {/* RIGHT 5 COLS: MOVING TILE PAPER POSTER SYSTEM */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* Top metadata tag */}
-            <div className="flex items-center justify-between font-mono text-[10px] text-[#8B9198] uppercase tracking-widest px-1">
-              <span>FIG 01. / CAMPUS CODE BASE</span>
-              <span className="text-[#00A86B]">22°18'N 70°48'E</span>
-            </div>
-
             {/* The Moving Paper Tile Slices */}
             <div className="relative">
-              <PaperTiles
+              <EditorialImage
                 src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop"
                 alt="Marwadi University Tech Builders"
-                stripsCount={4}
-                tag="CAMPUS LABS"
-                overlayBadge="MARWADI UNIVERSITY CAMPUS · RAJKOT"
+                variant="hero"
+                headerLeft="FIG 01. / CAMPUS CODE BASE"
+                headerRight="22°18'N 70°48'E"
+                figLabel="CAMPUS LABS"
+                figNumber="FIG.4-P"
+                caption="MARWADI UNIVERSITY CAMPUS · RAJKOT"
                 aspectClassName="aspect-[4/3]"
               />
 

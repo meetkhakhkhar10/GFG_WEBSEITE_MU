@@ -10,7 +10,9 @@ import {
 } from "lucide-react";
 import { gasApi, GasEvent, RegistrationPayload, RegistrationResult } from "../services/gasApi";
 import PaperTiles from "../components/PaperTiles";
+import EditorialImage from "../components/EditorialImage";
 import ChapterArchive from "../components/ChapterArchive";
+import EventRegistrationModal from "../components/EventRegistrationModal";
 
 const GFG_CONNECT_BANNER_IMAGE = "/images/gfg-connect-banner.jpg";
 
@@ -99,19 +101,6 @@ export default function Events() {
   // Registration Modal State
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
   const [regEvent, setRegEvent] = useState<EventItem | null>(null);
-  const [regSubmitting, setRegSubmitting] = useState(false);
-  const [regError, setRegError] = useState<string | null>(null);
-  const [regSuccessData, setRegSuccessData] = useState<RegistrationResult | null>(null);
-  const [copiedRegId, setCopiedRegId] = useState(false);
-  const [regForm, setRegForm] = useState<Omit<RegistrationPayload, "event_id">>({
-    name: "",
-    email: "",
-    phone: "",
-    enrollment_number: "",
-    department: "Computer Science & Engineering",
-    year: "3",
-    college: "Marwadi University",
-  });
 
   // Fetch events from Google Apps Script Web App
   const fetchGasEvents = async () => {
@@ -230,37 +219,7 @@ export default function Events() {
   // Open Quick Registration Modal
   const handleOpenRegistration = (event: EventItem) => {
     setRegEvent(event);
-    setRegError(null);
-    setRegSuccessData(null);
     setIsRegModalOpen(true);
-  };
-
-  // Handle Submit Registration to Google Apps Script
-  const handleRegistrationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!regEvent) return;
-
-    setRegSubmitting(true);
-    setRegError(null);
-
-    try {
-      const payload: RegistrationPayload = {
-        event_id: regEvent.id,
-        ...regForm,
-      };
-
-      const result = await gasApi.registerForEvent(payload);
-
-      if (result.success) {
-        setRegSuccessData(result);
-      } else {
-        setRegError(result.error || "Registration submission failed. Please try again.");
-      }
-    } catch (err: any) {
-      setRegError(err.message || "An unexpected error occurred during submission.");
-    } finally {
-      setRegSubmitting(false);
-    }
   };
 
   // Filter valid events
@@ -411,21 +370,15 @@ export default function Events() {
                   <div>
                     {/* Visual Area */}
                     <div className="relative border-b border-[#E2E2DC] bg-[#FAF9F5]">
-                      <img
+                      <EditorialImage
                         src={getEventCardImage(evt)}
                         alt={evt.title}
-                        className="w-full h-auto block object-contain"
-                        referrerPolicy="no-referrer"
+                        variant="poster"
+                        figLabel={evt.category || "TECH EVENT"}
+                        figNumber={`FIG.${evt.id || "EVT"}`}
+                        caption={`${evt.location?.split(",")[0] || "MARWADI UNIVERSITY"}`}
+                        aspectClassName="aspect-[4/3]"
                       />
-                      
-                      <div className="absolute top-3 left-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase tracking-widest text-[#111318] font-bold shadow-sm">
-                        {evt.category || "TECH EVENT"}
-                      </div>
-
-                      <div className="absolute top-3 right-3 px-2 py-1 bg-[#FFFFFF] border border-[#E2E2DC] font-mono text-[9px] uppercase text-[#00A86B] font-bold flex items-center gap-1 shadow-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-ping" />
-                        <span>OPEN</span>
-                      </div>
                     </div>
 
                     {/* Metadata Header */}
@@ -528,14 +481,15 @@ export default function Events() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                   {/* Visual */}
                   <div className="md:col-span-5 space-y-4">
-                    <div className="relative border border-[#E2E2DC] bg-[#FAF9F5]">
-                      <img
-                        src={getEventCardImage(selectedDetailEvent)}
-                        alt={selectedDetailEvent.title}
-                        className="w-full h-auto block object-contain"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
+                    <EditorialImage
+                      src={getEventCardImage(selectedDetailEvent)}
+                      alt={selectedDetailEvent.title}
+                      variant="poster"
+                      figLabel={selectedDetailEvent.category || "TECH EVENT"}
+                      figNumber={`FIG.${selectedDetailEvent.id || "EVT"}`}
+                      caption={`${selectedDetailEvent.location?.split(",")[0] || "MARWADI UNIVERSITY"}`}
+                      aspectClassName="aspect-[4/3]"
+                    />
 
                     <div className="p-4 bg-[#FAF9F5] border border-[#E2E2DC] font-mono text-[10px] space-y-2">
                       <div className="flex justify-between border-b border-[#E2E2DC] pb-1 text-[#8B9198]">
@@ -677,223 +631,11 @@ export default function Events() {
       </AnimatePresence>
 
       {/* QUICK REGISTRATION MODAL (EDITORIAL DESIGN) */}
-      <AnimatePresence>
-        {isRegModalOpen && regEvent && (
-          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6 select-none">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => {
-                if (!regSubmitting) setIsRegModalOpen(false);
-              }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 15 }}
-              className="relative w-full max-w-lg bg-[#FFFFFF] border border-[#111318] shadow-2xl z-10 my-8 overflow-hidden"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E2DC] bg-[#FAF9F5] font-mono text-[10px] uppercase tracking-widest">
-                <span className="font-bold text-[#111318]">OFFICIAL REGISTRATION TRANSMISSION</span>
-                <button
-                  onClick={() => setIsRegModalOpen(false)}
-                  disabled={regSubmitting}
-                  className="p-1 hover:bg-[#E2E2DC] transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  <X className="w-4 h-4 text-[#111318]" />
-                </button>
-              </div>
-
-              <div className="p-6 sm:p-8 space-y-6">
-                
-                {/* Event info */}
-                <div>
-                  <div className="font-mono text-[10px] text-[#00A86B] uppercase font-bold">
-                    EVENT: {regEvent.id}
-                  </div>
-                  <h3 className="font-editorial text-2xl font-black text-[#111318] tracking-tight">
-                    {regEvent.title}
-                  </h3>
-                  <p className="font-mono text-xs text-[#8B9198] mt-1">
-                    Date: {regEvent.date} · {regEvent.location}
-                  </p>
-                </div>
-
-                {/* SUCCESS */}
-                {regSuccessData ? (
-                  <div className="space-y-6 text-center py-4">
-                    <div className="w-12 h-12 bg-[#00A86B]/10 border border-[#00A86B] mx-auto flex items-center justify-center text-[#00A86B]">
-                      <Check className="w-6 h-6" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <h4 className="font-editorial text-2xl font-bold text-[#111318]">
-                        Registration Confirmed
-                      </h4>
-                      <p className="font-sans text-xs text-[#555B63]">
-                        Stored directly into the Google Sheets chapter database.
-                      </p>
-                    </div>
-
-                    <div className="p-4 bg-[#FAF9F5] border border-[#E2E2DC] text-left font-mono text-xs space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#8B9198] text-[10px] uppercase">REGISTRATION ID</span>
-                        <button
-                          onClick={() => {
-                            const idToCopy = regSuccessData.registration_id || "";
-                            navigator.clipboard.writeText(idToCopy);
-                            setCopiedRegId(true);
-                            setTimeout(() => setCopiedRegId(false), 2000);
-                          }}
-                          className="text-[10px] text-[#00A86B] uppercase flex items-center gap-1 cursor-pointer"
-                        >
-                          {copiedRegId ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                          <span>{copiedRegId ? "COPIED" : "COPY"}</span>
-                        </button>
-                      </div>
-                      <div className="text-lg font-bold text-[#111318]">
-                        {regSuccessData.registration_id || `REG-${Date.now()}`}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setIsRegModalOpen(false);
-                        setRegSuccessData(null);
-                      }}
-                      className="w-full py-3.5 bg-[#111318] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest hover:bg-[#00A86B] transition-colors"
-                    >
-                      Done
-                    </button>
-                  </div>
-                ) : (
-                  /* FORM */
-                  <form onSubmit={handleRegistrationSubmit} className="space-y-4">
-                    {regError && (
-                      <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs font-mono">
-                        {regError}
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={regForm.name}
-                        onChange={(e) => setRegForm({ ...regForm, name: e.target.value })}
-                        placeholder="e.g. Meet Khakhkhar"
-                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          value={regForm.email}
-                          onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
-                          placeholder="student@marwadiuniversity.ac.in"
-                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
-                          Phone Number *
-                        </label>
-                        <input
-                          type="tel"
-                          required
-                          value={regForm.phone}
-                          onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                          placeholder="+91 98765 43210"
-                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
-                          Enrollment No. *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={regForm.enrollment_number}
-                          onChange={(e) => setRegForm({ ...regForm, enrollment_number: e.target.value })}
-                          placeholder="92200103001"
-                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
-                          Year of Study *
-                        </label>
-                        <select
-                          value={regForm.year}
-                          onChange={(e) => setRegForm({ ...regForm, year: e.target.value })}
-                          className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
-                        >
-                          <option value="1">1st Year (Freshman)</option>
-                          <option value="2">2nd Year (Sophomore)</option>
-                          <option value="3">3rd Year (Junior)</option>
-                          <option value="4">4th Year (Senior)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8B9198] mb-1">
-                        Department *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={regForm.department}
-                        onChange={(e) => setRegForm({ ...regForm, department: e.target.value })}
-                        placeholder="Computer Science & Engineering"
-                        className="w-full px-3 py-2.5 bg-[#FAF9F5] border border-[#E2E2DC] text-[#111318] font-sans text-xs focus:outline-none focus:border-[#111318]"
-                      />
-                    </div>
-
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        disabled={regSubmitting}
-                        className="w-full py-4 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
-                      >
-                        {regSubmitting ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin text-[#00A86B]" />
-                            <span>TRANSMITTING TO APPS SCRIPT...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-3.5 h-3.5" />
-                            <span>SUBMIT REGISTRATION</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <EventRegistrationModal
+        isOpen={isRegModalOpen}
+        onClose={() => setIsRegModalOpen(false)}
+        event={regEvent}
+      />
 
     </div>
   );

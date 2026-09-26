@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
+import EditorialImage from "./EditorialImage";
 
 export default function AboutUniversityStory() {
   const ref = useRef(null);
@@ -43,23 +44,16 @@ export default function AboutUniversityStory() {
           </div>
 
           <div className="lg:w-1/2 relative">
-            <motion.div
-              style={{ scale }}
-              className="relative rounded-[60px] overflow-hidden border border-theme-border aspect-[4/5] shadow-lg"
-            >
-              <img 
-                src="https://images.unsplash.com/photo-1541339907198-e08759dfc3ef?q=80&w=2070&auto=format&fit=crop" 
-                alt="Marwadi University Story" 
-                className="w-full h-full object-cover transition-all"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-theme-bg-secondary via-transparent to-transparent" />
-              <div className="absolute inset-0 bg-gfg-primary/5 mix-blend-color" />
-              
-              {/* Glowing Accents */}
-              <div className="absolute top-10 right-10 w-32 h-32 bg-gfg-primary/10 blur-[100px] rounded-full" />
-              <div className="absolute bottom-20 left-10 w-20 h-20 bg-gfg-primary/5 blur-[80px] rounded-full" />
-            </motion.div>
+            <EditorialImage 
+              src="https://images.unsplash.com/photo-1541339907198-e08759dfc3ef?q=80&w=2070&auto=format&fit=crop" 
+              alt="Marwadi University Story" 
+              variant="photo"
+              figLabel="CAMPUS STORY"
+              figNumber="FIG. 02"
+              badge="CAMPUS LIFE"
+              caption="MARWADI UNIVERSITY · ACADEMIC STORY"
+              aspectClassName="aspect-[4/5]"
+            />
           </div>
         </div>
       </div>

@@ -104,6 +104,10 @@ export interface GasRegistration {
   phone?: string;
   enrollment_number?: string;
   department?: string;
+  program?: string;
+  otherDepartment?: string;
+  other_department?: string;
+  branch?: string;
   year?: string;
   college?: string;
   status?: string;
@@ -117,6 +121,9 @@ export interface RegistrationPayload {
   email: string;
   phone: string;
   enrollment_number: string;
+  program: string;
+  otherDepartment?: string;
+  other_department?: string;
   department: string;
   year: string;
   college: string;
@@ -400,6 +407,8 @@ function normalizeAnnouncement(a: any): GasAnnouncement {
  * Normalizes a registration from GAS sheet row
  */
 function normalizeRegistration(reg: any): GasRegistration {
+  const prog = reg.Program || reg.program || reg.Branch || reg.branch || "";
+  const otherDept = reg.Other_Department || reg.otherDepartment || reg.other_department || reg.OtherDepartment || "";
   return {
     registration_id: String(reg.Registration_ID || reg.registration_id || reg.id || ""),
     event_id: String(reg.Event_ID || reg.event_id || ""),
@@ -408,7 +417,11 @@ function normalizeRegistration(reg: any): GasRegistration {
     email: reg.Email || reg.email || "",
     phone: reg.Phone || reg.phone || "",
     enrollment_number: reg.Enrollment_Number || reg.enrollment_number || reg.Enrollment || reg.enrollment || "",
-    department: reg.Department || reg.department || "",
+    department: reg.Department || reg.department || otherDept || prog || "",
+    program: prog,
+    otherDepartment: otherDept,
+    other_department: otherDept,
+    branch: prog,
     year: reg.Year || reg.year || "",
     college: reg.College || reg.college || "Marwadi University",
     status: reg.Status || reg.status || "CONFIRMED",
@@ -639,13 +652,17 @@ export const gasApi = {
    * Registers a participant for an event.
    */
   async registerForEvent(payload: RegistrationPayload): Promise<RegistrationResult> {
-    const body = {
+    const body: Record<string, any> = {
       action: "register",
       event_id: String(payload.event_id).trim(),
       name: payload.name.trim(),
       email: payload.email.trim(),
       phone: payload.phone.trim(),
       enrollment_number: payload.enrollment_number.trim(),
+      program: (payload.program || "").trim(),
+      branch: (payload.program || "").trim(),
+      other_department: (payload.otherDepartment || payload.other_department || "").trim(),
+      otherDepartment: (payload.otherDepartment || payload.other_department || "").trim(),
       department: payload.department.trim(),
       year: payload.year.trim(),
       college: payload.college.trim(),
