@@ -142,11 +142,11 @@ export default function EditorialImage({
           </div>
         )}
 
-        {/* Bottom Caption Bar inside Image Container if no outer caption is provided */}
-        {(caption || showGreenDot) && (
+        {/* Bottom Caption Bar inside Image Container if caption is provided */}
+        {caption && (
           <div className="absolute bottom-0 inset-x-0 z-20 bg-[#FFFFFF]/90 backdrop-blur-sm border-t border-[#E2E2DC] px-3 py-2 flex items-center justify-between">
             <span className="font-satoshi text-[9px] font-medium uppercase tracking-[0.15em] text-[#555B63] truncate pr-2">
-              {caption || "MARWADI UNIVERSITY · TECH ENVIRONMENT"}
+              {caption}
             </span>
             {showGreenDot && (
               <span className="w-2 h-2 rounded-full bg-[#00A86B] shrink-0 animate-pulse" />

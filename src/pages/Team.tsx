@@ -5,8 +5,6 @@ import {
   Terminal, Sparkles, Loader2, Compass, ArrowUpRight
 } from "lucide-react";
 import { gasApi } from "../services/gasApi";
-import PaperTiles from "../components/PaperTiles";
-import EditorialImage from "../components/EditorialImage";
 
 export default function Team() {
   const [members, setMembers] = useState<any[]>([]);
@@ -224,13 +222,11 @@ export default function Team() {
             <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 flex flex-col justify-between hover:border-[#111318] transition-colors shadow-[0_4px_20px_rgba(17,19,24,0.03)]">
               <div className="space-y-6">
                 <div className="flex items-center gap-6">
-                  <div className="w-24 shrink-0">
-                    <EditorialImage 
+                  <div className="w-24 h-24 shrink-0 bg-[#FAF9F5] border border-[#E2E2DC] overflow-hidden">
+                    <img 
                       src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/1788464711991.png"
                       alt="Ravi Gohel"
-                      variant="thumbnail"
-                      figNumber="FIG. 02"
-                      aspectClassName="aspect-square"
+                      className="w-full h-full object-cover object-center block"
                     />
                   </div>
                   <div>
@@ -261,13 +257,11 @@ export default function Team() {
             <div className="bg-[#FFFFFF] border border-[#E2E2DC] p-8 flex flex-col justify-between hover:border-[#111318] transition-colors shadow-[0_4px_20px_rgba(17,19,24,0.03)]">
               <div className="space-y-6">
                 <div className="flex items-center gap-6">
-                  <div className="w-24 shrink-0">
-                    <EditorialImage 
+                  <div className="w-24 h-24 shrink-0 bg-[#FAF9F5] border border-[#E2E2DC] overflow-hidden">
+                    <img 
                       src="https://gfgmarwadiuniversity.wordpress.com/wp-content/uploads/2026/09/bf037374-c847-4e3a-8dd2-1cb5496da19b.png"
                       alt="Sri Vyshnavi Y"
-                      variant="thumbnail"
-                      figNumber="FIG. 03"
-                      aspectClassName="aspect-square"
+                      className="w-full h-full object-cover object-center block"
                     />
                   </div>
                   <div>
@@ -325,13 +319,13 @@ export default function Team() {
                   <div>
                     <div className="mb-4">
                       {member.profilePhoto ? (
-                        <EditorialImage 
-                          src={member.profilePhoto} 
-                          alt={member.name} 
-                          variant="thumbnail"
-                          figNumber={`FIG. 0${(i % 9) + 1}`}
-                          aspectClassName="aspect-square"
-                        />
+                        <div className="w-20 h-20 bg-[#FAF9F5] border border-[#E2E2DC] overflow-hidden">
+                          <img 
+                            src={member.profilePhoto} 
+                            alt={member.name} 
+                            className="w-full h-full object-cover object-center block"
+                          />
+                        </div>
                       ) : (
                         <div className="w-20 h-20 border border-[#E2E2DC] flex items-center justify-center bg-[#FAF9F5] text-[#8B9198]">
                           <Users className="w-6 h-6" />
