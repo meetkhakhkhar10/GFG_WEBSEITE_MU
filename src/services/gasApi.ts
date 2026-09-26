@@ -444,58 +444,101 @@ function normalizeRegistration(reg: any): GasRegistration {
   };
 }
 
+// In-memory GET request cache and promise deduplication map
+const gasCache = new Map<string, { data: any; timestamp: number }>();
+const gasInFlight = new Map<string, Promise<any>>();
+const CACHE_TTL_MS = 60000; // 60 seconds TTL
+
+export function invalidateGasCache(action?: string) {
+  if (action) {
+    for (const key of gasCache.keys()) {
+      if (key.startsWith(action + ":")) {
+        gasCache.delete(key);
+      }
+    }
+  } else {
+    gasCache.clear();
+  }
+}
+
 /**
  * Generic GET helper for Google Apps Script Web App
  */
 async function getGas(action: string, params: Record<string, string> = {}): Promise<any> {
-  try {
-    const direct = new URL(DIRECT_GAS_URL);
-    direct.searchParams.set("action", action);
-    for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined && v !== null && v !== "") {
-        direct.searchParams.set(k, String(v));
-      }
-    }
+  const cacheKey = `${action}:${JSON.stringify(params || {})}`;
+  const now = Date.now();
 
-    const response = await fetch(direct.toString(), {
-      method: "GET",
-      redirect: "follow",
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-    } else {
-      console.warn(`gasApi HTTP error for "${action}": ${response.status}`);
-      return { success: false, error: `HTTP Error ${response.status}` };
-    }
-  } catch (directErr: any) {
-    console.warn(`gasApi fetch error for "${action}":`, directErr?.message || directErr);
-    if (action === "events") {
-      try {
-        const localRes = await fetch("/api/events");
-        if (localRes.ok) {
-          const localData = await localRes.json();
-          const list = Array.isArray(localData) ? localData : (localData.data || localData.events || []);
-          return { success: true, count: list.length, events: list, data: list };
-        }
-      } catch (proxyErr) {
-        console.warn("gasApi fallback to /api/events error:", proxyErr);
-      }
-    } else if (action === "team") {
-      try {
-        const localRes = await fetch("/api/team");
-        if (localRes.ok) {
-          const localData = await localRes.json();
-          const list = Array.isArray(localData) ? localData : (localData.data || localData.team || []);
-          return { success: true, count: list.length, team: list, data: list };
-        }
-      } catch (proxyErr) {
-        console.warn("gasApi fallback to /api/team error:", proxyErr);
-      }
-    }
-    return { success: false, error: directErr?.message || "Network error communicating with Google Apps Script" };
+  const cached = gasCache.get(cacheKey);
+  if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data;
   }
+
+  if (gasInFlight.has(cacheKey)) {
+    return gasInFlight.get(cacheKey);
+  }
+
+  const fetchPromise = (async () => {
+    try {
+      const direct = new URL(DIRECT_GAS_URL);
+      direct.searchParams.set("action", action);
+      for (const [k, v] of Object.entries(params)) {
+        if (v !== undefined && v !== null && v !== "") {
+          direct.searchParams.set(k, String(v));
+        }
+      }
+
+      const response = await fetch(direct.toString(), {
+        method: "GET",
+        redirect: "follow",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.success !== false) {
+          gasCache.set(cacheKey, { data, timestamp: Date.now() });
+        }
+        return data;
+      } else {
+        console.warn(`gasApi HTTP error for "${action}": ${response.status}`);
+        return { success: false, error: `HTTP Error ${response.status}` };
+      }
+    } catch (directErr: any) {
+      console.warn(`gasApi fetch error for "${action}":`, directErr?.message || directErr);
+      if (action === "events") {
+        try {
+          const localRes = await fetch("/api/events");
+          if (localRes.ok) {
+            const localData = await localRes.json();
+            const list = Array.isArray(localData) ? localData : (localData.data || localData.events || []);
+            const result = { success: true, count: list.length, events: list, data: list };
+            gasCache.set(cacheKey, { data: result, timestamp: Date.now() });
+            return result;
+          }
+        } catch (proxyErr) {
+          console.warn("gasApi fallback to /api/events error:", proxyErr);
+        }
+      } else if (action === "team") {
+        try {
+          const localRes = await fetch("/api/team");
+          if (localRes.ok) {
+            const localData = await localRes.json();
+            const list = Array.isArray(localData) ? localData : (localData.data || localData.team || []);
+            const result = { success: true, count: list.length, team: list, data: list };
+            gasCache.set(cacheKey, { data: result, timestamp: Date.now() });
+            return result;
+          }
+        } catch (proxyErr) {
+          console.warn("gasApi fallback to /api/team error:", proxyErr);
+        }
+      }
+      return { success: false, error: directErr?.message || "Network error communicating with Google Apps Script" };
+    } finally {
+      gasInFlight.delete(cacheKey);
+    }
+  })();
+
+  gasInFlight.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 /**
@@ -504,6 +547,7 @@ async function getGas(action: string, params: Record<string, string> = {}): Prom
  */
 async function postGas(payload: Record<string, any>): Promise<any> {
   try {
+    invalidateGasCache();
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(payload)) {
       if (value !== undefined && value !== null) {
@@ -807,6 +851,62 @@ export const gasApi = {
       error: res?.error || res?.message || "Submission failed. Please try again."
     };
   },
+
+  /**
+   * POST /api/certificate-scanner/login
+   * Authenticates against the TWO allowed scanner accounts (meet123/meet, vyshnavi/vyshnavi123)
+   */
+  async certificateScannerLogin(login_id: string, password: string): Promise<{
+    success: boolean;
+    token?: string;
+    scannerIdentity?: string;
+    error?: string;
+  }> {
+    try {
+      const res = await fetch("/api/certificate-scanner/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login_id, password })
+      });
+      const data = await res.json();
+      return data;
+    } catch (err: any) {
+      return { success: false, error: "INVALID LOGIN ID OR PASSWORD" };
+    }
+  },
+
+  /**
+   * POST /api/certificate-scanner/scan
+   * Verifies participant QR Registration_ID and updates Marked_By to logged-in scanner identity
+   */
+  async scanCertificateQr(registration_id: string, token: string): Promise<{
+    success: boolean;
+    alreadyVerified?: boolean;
+    notFound?: boolean;
+    invalidQr?: boolean;
+    registration_id?: string;
+    name?: string;
+    email?: string;
+    status?: string;
+    marked_by?: string;
+    error?: string;
+    message?: string;
+  }> {
+    try {
+      const res = await fetch("/api/certificate-scanner/scan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ registration_id })
+      });
+      const data = await res.json();
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err?.message || "Verification failed. Please try again." };
+    }
+  }
 };
 
 export default gasApi;

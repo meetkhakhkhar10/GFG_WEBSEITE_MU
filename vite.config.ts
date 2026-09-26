@@ -15,6 +15,26 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/html5-qrcode') || id.includes('node_modules/qrcode')) {
+              return 'qr-vendor';
+            }
+            if (id.includes('node_modules/jspdf') || id.includes('node_modules/jspdf-autotable')) {
+              return 'pdf-vendor';
+            }
+            if (id.includes('node_modules/recharts')) {
+              return 'charts-vendor';
+            }
+            if (id.includes('node_modules/lucide-react')) {
+              return 'icons-vendor';
+            }
+          }
+        }
+      }
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

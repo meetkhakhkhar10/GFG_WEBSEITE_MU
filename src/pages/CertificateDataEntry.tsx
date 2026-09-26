@@ -1,12 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Award, Send, Loader2, Check, Copy, AlertCircle, ShieldCheck, FileCheck } from "lucide-react";
+import { Award, Send, Loader2, Check, Copy, AlertCircle, ShieldCheck, FileCheck, Download, Printer, QrCode as QrIcon } from "lucide-react";
+import QRCode from "qrcode";
 import { gasApi } from "../services/gasApi";
 
-// Fixed internal Event ID for this certificate data collection portal
-export const FIXED_CERTIFICATE_EVENT_ID = "GFG-MU-CERT-2026";
+// Fixed default internal Event ID for certificate data collection portal
+export const DEFAULT_CERTIFICATE_EVENT_ID = "GFG-MU-CERT-2026";
 
 export default function CertificateDataEntry() {
+  const [searchParams] = useSearchParams();
+  const eventIdFromUrl = searchParams.get("event_id") || searchParams.get("event") || DEFAULT_CERTIFICATE_EVENT_ID;
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   
@@ -18,9 +23,41 @@ export default function CertificateDataEntry() {
     attendance_id?: string;
     name: string;
     email: string;
+    event_id: string;
   } | null>(null);
 
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copiedRegId, setCopiedRegId] = useState(false);
+
+  // Generate QR code whenever successResult changes
+  useEffect(() => {
+    if (successResult?.registration_id) {
+      // Structured QR payload encoding the registration_id
+      const qrPayload = JSON.stringify({
+        type: "CERTIFICATE_ATTENDANCE",
+        registration_id: successResult.registration_id
+      });
+
+      QRCode.toDataURL(qrPayload, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: "#111318",
+          light: "#FFFFFF"
+        }
+      })
+        .then((url) => setQrDataUrl(url))
+        .catch((err) => {
+          console.error("Failed to generate QR code:", err);
+          // Fallback to simple registration ID string
+          QRCode.toDataURL(successResult.registration_id, { width: 300, margin: 2 })
+            .then((url) => setQrDataUrl(url))
+            .catch(() => {});
+        });
+    } else {
+      setQrDataUrl(null);
+    }
+  }, [successResult?.registration_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +84,7 @@ export default function CertificateDataEntry() {
       const res = await gasApi.submitCertificateData({
         name: trimmedName,
         email: trimmedEmail,
-        event_id: FIXED_CERTIFICATE_EVENT_ID
+        event_id: eventIdFromUrl
       });
 
       if (res && res.success) {
@@ -55,7 +92,8 @@ export default function CertificateDataEntry() {
           registration_id: res.registration_id || `REG-CERT-${Date.now()}`,
           attendance_id: res.attendance_id,
           name: trimmedName,
-          email: trimmedEmail
+          email: trimmedEmail,
+          event_id: eventIdFromUrl
         });
       } else {
         setError(res?.error || res?.message || "Submission failed. Please try again.");
@@ -72,7 +110,53 @@ export default function CertificateDataEntry() {
     setEmail("");
     setError(null);
     setSuccessResult(null);
+    setQrDataUrl(null);
     setCopiedRegId(false);
+  };
+
+  const handleDownloadQr = () => {
+    if (!qrDataUrl || !successResult) return;
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = `QR_${successResult.registration_id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handlePrintQr = () => {
+    if (!qrDataUrl) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Attendance QR - ${successResult?.registration_id}</title>
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 40px; }
+            .qr-card { border: 2px solid #111318; display: inline-block; padding: 30px; }
+            h2 { margin: 0 0 10px; font-size: 20px; }
+            p { margin: 5px 0; font-size: 14px; color: #555; }
+            img { width: 220px; height: 220px; margin: 20px 0; }
+            .reg-id { font-family: monospace; font-weight: bold; font-size: 18px; color: #00A86B; }
+          </style>
+        </head>
+        <body>
+          <div class="qr-card">
+            <h2>OFFICIAL CERTIFICATE ATTENDANCE QR</h2>
+            <p><strong>Participant:</strong> ${successResult?.name}</p>
+            <p><strong>Email:</strong> ${successResult?.email}</p>
+            <img src="${qrDataUrl}" alt="QR Code" />
+            <div class="reg-id">${successResult?.registration_id}</div>
+            <p style="font-size:11px; margin-top:15px;">Show this QR code to the attendance coordinator</p>
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.close(); };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
@@ -119,7 +203,7 @@ export default function CertificateDataEntry() {
 
           <AnimatePresence mode="wait">
             {successResult ? (
-              /* SUCCESS STATE */
+              /* SUCCESS STATE WITH QR CODE */
               <motion.div
                 key="success"
                 initial={{ opacity: 0, y: 10 }}
@@ -164,24 +248,70 @@ export default function CertificateDataEntry() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       <div className="p-3 bg-[#FFFFFF] border border-[#E2E2DC]">
-                        <span className="text-[9px] text-[#8B9198] uppercase block">PARTICIPANT NAME</span>
+                        <span className="text-[9px] text-[#8B9198] uppercase block">PARTICIPANT</span>
                         <span className="font-bold text-[#111318] block truncate">{successResult.name}</span>
                       </div>
                       <div className="p-3 bg-[#FFFFFF] border border-[#E2E2DC]">
-                        <span className="text-[9px] text-[#8B9198] uppercase block">EMAIL ADDRESS</span>
+                        <span className="text-[9px] text-[#8B9198] uppercase block">MAIL ADDRESS</span>
                         <span className="font-bold text-[#111318] block truncate">{successResult.email}</span>
                       </div>
                     </div>
                   </div>
+
+                  {/* YOUR ATTENDANCE QR SECTION */}
+                  <div className="pt-4 border-t border-[#E2E2DC] space-y-4 text-center">
+                    <div className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[#111318] font-bold">
+                      <QrIcon className="w-3.5 h-3.5 text-[#00A86B]" />
+                      <span>YOUR ATTENDANCE QR</span>
+                    </div>
+
+                    {qrDataUrl ? (
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="p-3 bg-[#FFFFFF] border-2 border-[#111318] rounded-none inline-block shadow-md">
+                          <img
+                            src={qrDataUrl}
+                            alt={`Attendance QR for ${successResult.registration_id}`}
+                            className="w-48 h-48 sm:w-56 sm:h-56 object-contain block mx-auto"
+                          />
+                        </div>
+                        <p className="font-sans text-xs text-[#555B63]">
+                          Show this QR code to the attendance coordinator.
+                        </p>
+
+                        <div className="flex items-center justify-center gap-3 pt-2">
+                          <button
+                            onClick={handleDownloadQr}
+                            className="px-4 py-2.5 bg-[#00A86B] hover:bg-[#111318] text-[#FFFFFF] font-mono text-xs uppercase tracking-wider transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>DOWNLOAD QR</span>
+                          </button>
+                          <button
+                            onClick={handlePrintQr}
+                            className="px-4 py-2.5 bg-[#FAF9F5] hover:bg-[#111318] text-[#111318] hover:text-[#FFFFFF] border border-[#E2E2DC] font-mono text-xs uppercase tracking-wider transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>PRINT QR</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-8 font-mono text-xs text-[#8B9198] flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-[#00A86B]" />
+                        <span>Generating Attendance QR Code...</span>
+                      </div>
+                    )}
+                  </div>
+
                 </div>
 
-                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <div className="pt-2">
                   <button
                     onClick={handleReset}
                     className="w-full py-3.5 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <FileCheck className="w-4 h-4" />
-                    <span>Submit Another Participant Entry</span>
+                    <span>SUBMIT ANOTHER PARTICIPANT ENTRY</span>
                   </button>
                 </div>
               </motion.div>

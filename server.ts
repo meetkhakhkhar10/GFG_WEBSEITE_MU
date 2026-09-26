@@ -1341,6 +1341,201 @@ app.post("/api/certificate-data-entry", async (req: any, res: any) => {
   });
 });
 
+// Dedicated Certificate Scanner Authentication (EXACTLY TWO ACCOUNTS)
+app.post("/api/certificate-scanner/login", (req: any, res: any) => {
+  const { login_id, password } = req.body;
+
+  const cleanId = (login_id || "").trim();
+  const cleanPass = (password || "").trim();
+
+  let scannerIdentity: string | null = null;
+
+  if (cleanId === "meet123" && cleanPass === "meet") {
+    scannerIdentity = "Meet Khakhkhar";
+  } else if (cleanId === "vyshnavi" && cleanPass === "vyshnavi123") {
+    scannerIdentity = "Vyshnavi";
+  }
+
+  if (!scannerIdentity) {
+    return res.status(401).json({
+      success: false,
+      error: "INVALID LOGIN ID OR PASSWORD"
+    });
+  }
+
+  const token = jwt.sign(
+    { certScanner: true, scannerIdentity, loginId: cleanId },
+    SECRET_KEY,
+    { expiresIn: "24h" }
+  );
+
+  return res.json({
+    success: true,
+    token,
+    scannerIdentity
+  });
+});
+
+// Dedicated Certificate Scanner QR Verification
+app.post("/api/certificate-scanner/scan", async (req: any, res: any) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ success: false, error: "Unauthorized scanner session." });
+  }
+
+  const token = authHeader.split(" ")[1];
+  let scannerIdentity = "";
+
+  try {
+    const decoded: any = jwt.verify(token, SECRET_KEY);
+    if (!decoded || !decoded.certScanner || !decoded.scannerIdentity) {
+      return res.status(401).json({ success: false, error: "Invalid scanner session." });
+    }
+    scannerIdentity = decoded.scannerIdentity;
+  } catch {
+    return res.status(401).json({ success: false, error: "Scanner session expired or invalid." });
+  }
+
+  let rawRegId = req.body.registration_id || req.body.qr_code || "";
+  rawRegId = String(rawRegId).trim();
+
+  if (!rawRegId) {
+    return res.status(400).json({
+      success: false,
+      invalidQr: true,
+      error: "INVALID QR CODE"
+    });
+  }
+
+  // Parse structured QR JSON if present
+  let cleanRegId = rawRegId;
+  if (rawRegId.startsWith("{") && rawRegId.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(rawRegId);
+      if (parsed && parsed.registration_id) {
+        cleanRegId = String(parsed.registration_id).trim();
+      }
+    } catch {}
+  }
+
+  if (!cleanRegId || (!cleanRegId.toUpperCase().startsWith("REG-") && !cleanRegId.toUpperCase().startsWith("ATT-"))) {
+    return res.status(400).json({
+      success: false,
+      invalidQr: true,
+      error: "INVALID QR CODE"
+    });
+  }
+
+  certLockChain = certLockChain.then(async () => {
+    try {
+      const gasBase = getGasUrl();
+      const gasRes = await fetch(gasBase, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "certificate_qr_scan",
+          registration_id: cleanRegId,
+          marked_by: scannerIdentity
+        }),
+        redirect: "follow"
+      });
+
+      const text = await gasRes.text();
+      let gasData: any = null;
+      try {
+        gasData = JSON.parse(text);
+      } catch {
+        gasData = null;
+      }
+
+      if (gasData && typeof gasData.success === "boolean") {
+        if (gasData.success) {
+          return res.json({
+            success: true,
+            registration_id: cleanRegId,
+            name: gasData.name || gasData.participant_name || "Participant",
+            email: gasData.email || "",
+            status: "DONE",
+            marked_by: scannerIdentity,
+            message: "ATTENDANCE VERIFIED"
+          });
+        } else if (gasData.alreadyVerified) {
+          return res.json({
+            success: false,
+            alreadyVerified: true,
+            registration_id: cleanRegId,
+            name: gasData.name || "Participant",
+            email: gasData.email || "",
+            marked_by: gasData.marked_by || gasData.markedBy || "Previous Coordinator",
+            message: "ALREADY VERIFIED"
+          });
+        } else if (gasData.notFound) {
+          return res.json({
+            success: false,
+            notFound: true,
+            registration_id: cleanRegId,
+            message: "REGISTRATION NOT FOUND"
+          });
+        }
+      }
+
+      // Local database fallback if Apps Script returned custom notice or during local dev
+      const list = await getFirebaseRegistrations();
+      const match = list.find((r: any) => 
+        (r.registration_id && r.registration_id.toUpperCase() === cleanRegId.toUpperCase()) ||
+        (r.id && r.id.toUpperCase() === cleanRegId.toUpperCase()) ||
+        (r.registrationId && r.registrationId.toUpperCase() === cleanRegId.toUpperCase())
+      );
+
+      if (match) {
+        if (match.markedBy || match.marked_by) {
+          const existingScanner = match.markedBy || match.marked_by;
+          return res.json({
+            success: false,
+            alreadyVerified: true,
+            registration_id: cleanRegId,
+            name: match.name || match.participant_name || "Participant",
+            email: match.email || "",
+            marked_by: existingScanner,
+            message: "ALREADY VERIFIED"
+          });
+        } else {
+          // Update marked_by on existing row (DO NOT APPEND NEW ROW)
+          match.markedBy = scannerIdentity;
+          match.marked_by = scannerIdentity;
+          match.status = "DONE";
+          await saveFirebaseRegistration(match.id || match.registration_id, match);
+
+          return res.json({
+            success: true,
+            registration_id: cleanRegId,
+            name: match.name || match.participant_name || "Participant",
+            email: match.email || "",
+            status: "DONE",
+            marked_by: scannerIdentity,
+            message: "ATTENDANCE VERIFIED"
+          });
+        }
+      }
+
+      // If not found anywhere
+      return res.json({
+        success: false,
+        notFound: true,
+        registration_id: cleanRegId,
+        message: "REGISTRATION NOT FOUND"
+      });
+
+    } catch (err: any) {
+      console.error("Certificate Scanner Scan Error:", err);
+      return res.status(500).json({
+        success: false,
+        error: "Verification failed. Please try again."
+      });
+    }
+  });
+});
+
 // --- Server & Vite Setup ---
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
