@@ -101,7 +101,7 @@ export default function Team() {
           
           <div className="flex items-center justify-between pb-4 mb-10 border-b border-[#E2E2DC]">
             <div className="font-mono text-xs uppercase tracking-widest text-[#111318] font-bold">
-              CAMPUS MANTRI · EXECUTIVE SPOTLIGHT
+             GeeksforGeeks HEAD 
             </div>
             <div className="font-mono text-xs text-[#8B9198]">
               STUDENT CHAPTER FOUNDATION
