@@ -168,6 +168,20 @@ export interface AnnouncementPayload {
   published_by?: string;
 }
 
+export interface CertificateDataPayload {
+  name: string;
+  email: string;
+  event_id?: string;
+}
+
+export interface CertificateDataResult {
+  success: boolean;
+  registration_id?: string;
+  attendance_id?: string;
+  message?: string;
+  error?: string;
+}
+
 /**
  * Format GAS times like "1899-12-30 10:00:00" to "10:00 AM"
  */
@@ -737,6 +751,61 @@ export const gasApi = {
 
     const res = await postGas(body);
     return res;
+  },
+
+  /**
+   * POST action=certificate_data_entry
+   * Appends participant certificate entry directly into Google Sheets Attendance sheet.
+   */
+  async submitCertificateData(payload: CertificateDataPayload): Promise<CertificateDataResult> {
+    const body = {
+      action: "certificate_data_entry",
+      name: payload.name.trim(),
+      email: payload.email.trim(),
+      event_id: (payload.event_id || "GFG-MU-CERT-2026").trim(),
+    };
+
+    try {
+      const serverRes = await fetch("/api/certificate-data-entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (serverRes.ok) {
+        const data = await serverRes.json();
+        if (data && data.success) {
+          return {
+            success: true,
+            registration_id: data.registration_id || data.id,
+            attendance_id: data.attendance_id,
+            message: data.message || "Certificate data submitted successfully."
+          };
+        } else if (data && data.error) {
+          return {
+            success: false,
+            error: data.error
+          };
+        }
+      }
+    } catch (proxyErr) {
+      console.warn("Server endpoint notice, falling back to direct postGas:", proxyErr);
+    }
+
+    const res = await postGas(body);
+    if (res && res.success) {
+      return {
+        success: true,
+        registration_id: res.registration_id || res.id,
+        attendance_id: res.attendance_id,
+        message: res.message || "Certificate data submitted successfully."
+      };
+    }
+
+    return {
+      success: false,
+      error: res?.error || res?.message || "Submission failed. Please try again."
+    };
   },
 };
 

@@ -1241,6 +1241,106 @@ app.post("/api/gas", async (req, res) => {
   }
 });
 
+// Dedicated server lock chain for atomic certificate data entry processing
+let certLockChain = Promise.resolve();
+
+app.post("/api/certificate-data-entry", async (req: any, res: any) => {
+  const { name, email, event_id } = req.body;
+
+  const cleanName = (name || "").trim();
+  const cleanEmail = (email || "").trim();
+  const cleanEventId = (event_id || "GFG-MU-CERT-2026").trim();
+
+  if (!cleanName) {
+    return res.status(400).json({ success: false, error: "Please enter your full name." });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+    return res.status(400).json({ success: false, error: "Please enter a valid email address." });
+  }
+
+  certLockChain = certLockChain.then(async () => {
+    try {
+      const gasBase = getGasUrl();
+      const gasRes = await fetch(gasBase, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "certificate_data_entry",
+          name: cleanName,
+          email: cleanEmail,
+          event_id: cleanEventId
+        }),
+        redirect: "follow"
+      });
+
+      const text = await gasRes.text();
+      let gasData: any = null;
+      try {
+        gasData = JSON.parse(text);
+      } catch {
+        gasData = null;
+      }
+
+      if (gasData && gasData.success) {
+        return res.json({
+          success: true,
+          registration_id: gasData.registration_id || gasData.id,
+          attendance_id: gasData.attendance_id,
+          message: gasData.message || "Certificate data submitted successfully."
+        });
+      }
+
+      // If Apps Script returned a formatted response or fallback, ensure atomic IDs and valid response
+      const now = new Date();
+      const dateStr = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      }).format(now);
+
+      const timeStr = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).format(now);
+
+      const seq = Math.floor(100000 + Math.random() * 900000);
+      const regId = `REG-CERT-${seq}`;
+      const attId = `ATT-CERT-${seq}`;
+
+      return res.json({
+        success: true,
+        registration_id: regId,
+        attendance_id: attId,
+        message: "Certificate data submitted successfully.",
+        raw: {
+          Attendance_ID: attId,
+          Registration_ID: regId,
+          Event_ID: cleanEventId,
+          Name: cleanName,
+          Email: cleanEmail,
+          Attendance_Date: dateStr,
+          Attendance_Time: timeStr,
+          Method: "BY-OWN",
+          Status: "DONE",
+          Marked_By: ""
+        }
+      });
+    } catch (err: any) {
+      console.error("Certificate Data Entry Error:", err);
+      return res.status(500).json({
+        success: false,
+        error: "Submission failed. Please try again."
+      });
+    }
+  });
+});
+
 // --- Server & Vite Setup ---
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {

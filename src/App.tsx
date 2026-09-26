@@ -8,6 +8,7 @@ import Contact from "@/src/pages/Contact";
 import Courses from "@/src/pages/Courses";
 import Team from "@/src/pages/Team";
 import NetlifyDeploy from "@/src/pages/NetlifyDeploy";
+import CertificateDataEntry from "@/src/pages/CertificateDataEntry";
 import Login from "@/src/pages/admin/Login";
 import Dashboard from "@/src/pages/admin/Dashboard";
 import AtgfgLogin from "@/src/pages/atgfg/AtgfgLogin";
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="courses" element={<Courses />} />
             <Route path="team" element={<Team />} />
             <Route path="deploy" element={<NetlifyDeploy />} />
+            <Route path="certificate-data-entry" element={<CertificateDataEntry />} />
           </Route>
 
           {/* Student Portal redirects */}

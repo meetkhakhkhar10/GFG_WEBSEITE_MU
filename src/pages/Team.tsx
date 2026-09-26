@@ -150,8 +150,15 @@ export default function Team() {
                     <span className="font-bold text-[#111318] mt-0.5 block">Computer Science Engineering</span>
                   </div>
                   <div className="p-3.5 bg-[#FAF9F5] border border-[#E2E2DC]">
-                    <span className="text-[9px] text-[#8B9198] uppercase block">CONTACT CLEARANCE</span>
-                    <span className="font-bold text-[#00A86B] mt-0.5 block">meetkhakhkhar05@gmail.com</span>
+                    <span className="text-[9px] text-[#8B9198] uppercase block mb-1.5">CONTACT CLEARANCE</span>
+                    <a
+                      href="mailto:meetkhakhkhar05@gmail.com"
+                      aria-label="Email Meet Khakhkhar"
+                      className="px-4 py-2 bg-[#FAF9F5] hover:bg-[#111318] text-[#111318] hover:text-[#F4F4F0] border border-[#E2E2DC] font-mono text-[10px] uppercase tracking-wider transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>EMAIL</span>
+                    </a>
                   </div>
                 </div>
 
