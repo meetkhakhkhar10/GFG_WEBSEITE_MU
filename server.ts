@@ -334,7 +334,7 @@ app.get("/api/events", async (req, res) => {
   try {
     let gasEvents: any[] = [];
     try {
-      const gasUrl = "https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec?action=events";
+      const gasUrl = "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec?action=events";
       const gRes = await fetch(gasUrl, { redirect: "follow" });
       if (gRes.ok) {
         const gJson = await gRes.json();
@@ -352,7 +352,7 @@ app.get("/api/events", async (req, res) => {
               : (e.Poster_URL || e.poster_url || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"),
             registration_link: e.Registration_Link || e.registration_link || "",
             status: e.Status || e.status || "PUBLISHED",
-            registration_status: e.Registration_Status || e.registration_status || "OPEN",
+            registration_status: (e.Registration_Status || e.registration_status || "").trim().toUpperCase() === "OPEN" ? "OPEN" : "CLOSED",
             approvedBySuperAdmin: true,
             is_published: true,
             organizer: e.Organizer || e.organizer || "GFG MU Chapter",
@@ -1144,7 +1144,7 @@ app.get("/api/admin/contact-submissions", authenticate, adminOnly, (req, res) =>
 // --- Google Apps Script Web App Proxy (/api/gas) ---
 // Proxies client requests to bypass browser cross-origin redirect restrictions
 const WORKING_GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec";
+  "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec";
 
 const getGasUrl = () => {
   const envUrl = process.env.VITE_GOOGLE_APPS_SCRIPT_URL || process.env.GOOGLE_APPS_SCRIPT_URL;

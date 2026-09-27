@@ -202,11 +202,45 @@ function getEventsList() {
   var sheet = ss.getSheetByName(UNIVERSITY_CONFIG.SHEETS.EVENTS);
   if (!sheet) return universityJsonResponse({ success: true, events: [] });
   var rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) return universityJsonResponse({ success: true, events: [] });
+
+  var headers = rows[0].map(function(h) { return String(h).trim(); });
   var events = [];
+
   for (var i = 1; i < rows.length; i++) {
-    events.push({ id: rows[i][0], title: rows[i][1], date: rows[i][2], location: rows[i][3], status: rows[i][4] });
+    var row = rows[i];
+    if (!row[0]) continue;
+
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      obj[headers[j]] = row[j];
+    }
+
+    // Standardized aliases matching frontend naming
+    obj.id = row[0];
+    obj.event_id = row[0];
+    obj.title = row[1];
+    obj.event_name = row[1];
+    obj.description = row[2];
+    obj.date = row[3];
+    obj.start_time = row[4];
+    obj.end_time = row[5];
+    obj.venue = row[6];
+    obj.location = row[6];
+    obj.registration_deadline = row[7];
+    obj.max_participants = row[8];
+    obj.capacity = row[8];
+    obj.registration_status = row[9];
+    obj.status = row[10];
+    obj.organizer = row[11];
+    obj.organizer_name = row[11];
+    obj.contact_email = row[12];
+    obj.contact_phone = row[13];
+    obj.registration_count = row[14];
+
+    events.push(obj);
   }
-  return universityJsonResponse({ success: true, events: events });
+  return universityJsonResponse({ success: true, events: events, count: events.length });
 }
 
 function getSingleEvent(id) {
@@ -214,9 +248,38 @@ function getSingleEvent(id) {
   var sheet = ss.getSheetByName(UNIVERSITY_CONFIG.SHEETS.EVENTS);
   if (!sheet) return universityJsonResponse({ success: false, error: "Event not found" });
   var rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) return universityJsonResponse({ success: false, error: "Event not found" });
+
+  var headers = rows[0].map(function(h) { return String(h).trim(); });
+
   for (var i = 1; i < rows.length; i++) {
-    if (rows[i][0] == id) {
-      return universityJsonResponse({ success: true, event: { id: rows[i][0], title: rows[i][1], date: rows[i][2] } });
+    var row = rows[i];
+    if (row[0] == id) {
+      var obj = {};
+      for (var j = 0; j < headers.length; j++) {
+        obj[headers[j]] = row[j];
+      }
+      obj.id = row[0];
+      obj.event_id = row[0];
+      obj.title = row[1];
+      obj.event_name = row[1];
+      obj.description = row[2];
+      obj.date = row[3];
+      obj.start_time = row[4];
+      obj.end_time = row[5];
+      obj.venue = row[6];
+      obj.location = row[6];
+      obj.registration_deadline = row[7];
+      obj.max_participants = row[8];
+      obj.capacity = row[8];
+      obj.registration_status = row[9];
+      obj.status = row[10];
+      obj.organizer = row[11];
+      obj.organizer_name = row[11];
+      obj.contact_email = row[12];
+      obj.contact_phone = row[13];
+      obj.registration_count = row[14];
+      return universityJsonResponse({ success: true, event: obj });
     }
   }
   return universityJsonResponse({ success: false, error: "Event not found" });

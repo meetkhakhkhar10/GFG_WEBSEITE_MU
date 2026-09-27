@@ -149,20 +149,10 @@ export default function EventRegistrationModal({
         setSuccessData(gasRes);
         if (onSuccess) onSuccess(gasRes);
       } else {
-        // Fallback successful registration ID if GAS returned a notice but server registered
-        const fallbackRegId = `REG-${Date.now()}`;
-        const finalResult: RegistrationResult = {
-          success: true,
-          registration_id: fallbackRegId,
-          event_name: event.title,
-          participant_name: form.name,
-          message: "Registration confirmed successfully!"
-        };
-        setSuccessData(finalResult);
-        if (onSuccess) onSuccess(finalResult);
+        setError(gasRes?.error || gasRes?.message || "Registration failed. Please check your details and try again.");
       }
     } catch (err: any) {
-      setError(err?.message || "Registration failed. Please check your network and try again.");
+      setError(err?.message || "Unable to connect to the event service. Please try again.");
     } finally {
       setSubmitting(false);
     }

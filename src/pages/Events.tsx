@@ -44,6 +44,7 @@ interface EventItem {
   registration_status?: string;
   registration_deadline?: string;
   is_published: boolean;
+  is_open?: boolean;
   category?: string;
   status?: string;
   capacity?: string | number;
@@ -60,6 +61,27 @@ function parseDateString(dateStr?: string): Date | null {
   if (!dateStr || typeof dateStr !== "string") return null;
   const cleanStr = dateStr.trim();
   if (!cleanStr) return null;
+
+  const upper = cleanStr.toUpperCase();
+  if (
+    upper.includes("DECLARED") || 
+    upper.includes("ANNOUNCED") || 
+    upper.includes("TBD") || 
+    upper.includes("SOON") ||
+    upper.includes("UPCOMING")
+  ) {
+    return null;
+  }
+
+  // Handle YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+    const [y, m, d] = cleanStr.split("-").map((n) => parseInt(n, 10));
+    const dt = new Date(y, m - 1, d);
+    if (!isNaN(dt.getTime()) && dt.getFullYear() === y && (dt.getMonth() + 1) === m && dt.getDate() === d) {
+      return dt;
+    }
+    return null; // Invalid date e.g. 2026-09-31
+  }
 
   const directDate = new Date(cleanStr);
   if (!isNaN(directDate.getTime())) return directDate;
@@ -80,7 +102,9 @@ function parseDateString(dateStr?: string): Date | null {
     const m = parseInt(dmyMatch[2], 10) - 1;
     const y = parseInt(dmyMatch[3], 10);
     const dmyDate = new Date(y, m, d);
-    if (!isNaN(dmyDate.getTime())) return dmyDate;
+    if (!isNaN(dmyDate.getTime()) && dmyDate.getMonth() === m && dmyDate.getDate() === d) {
+      return dmyDate;
+    }
   }
 
   return null;
@@ -110,20 +134,21 @@ export default function Events() {
       const res = await gasApi.getEvents();
       console.log("Events.tsx fetchGasEvents response:", res);
       const rawEvents = res.events || res.data || [];
-      if (res.success && Array.isArray(rawEvents) && rawEvents.length > 0) {
+      if (res.success && Array.isArray(rawEvents)) {
         const mapped: EventItem[] = rawEvents.map((e: GasEvent) => ({
           id: e.id,
           title: e.title,
           description: e.description,
           date: e.date,
           time: e.time,
-          location: e.location || "Marwadi University, Rajkot",
-          poster_url: e.poster_url,
+          location: e.location || e.venue || "Marwadi University, Rajkot",
+          poster_url: e.poster_url || "",
           poster_image: e.poster_image || e.poster_url,
           registration_link: e.registration_link || "",
-          registration_status: e.registration_status || "OPEN",
+          registration_status: String(e.registration_status || "").trim().toUpperCase() === "OPEN" ? "OPEN" : "CLOSED",
           registration_deadline: e.registration_deadline || "",
           is_published: e.is_published !== false,
+          is_open: e.is_open,
           category: e.category || "Hackathon / Tech Workshop",
           status: e.status || "PUBLISHED",
           capacity: e.capacity,
@@ -151,7 +176,7 @@ export default function Events() {
         setApiError(res.error);
       }
     } catch (err: any) {
-      setApiError(err.message || "Unable to reach Google Apps Script API");
+      setApiError(err.message || "Unable to connect to the event service. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -194,9 +219,10 @@ export default function Events() {
           poster_url: full.poster_url || prev?.poster_url || "",
           poster_image: full.poster_image || full.poster_url || prev?.poster_image,
           registration_link: full.registration_link || prev?.registration_link || "",
-          registration_status: full.registration_status || prev?.registration_status || "OPEN",
+          registration_status: String(full.registration_status || prev?.registration_status || "").trim().toUpperCase() === "OPEN" ? "OPEN" : "CLOSED",
           registration_deadline: full.registration_deadline || prev?.registration_deadline || "",
           is_published: full.is_published !== false,
+          is_open: full.is_open,
           category: full.category || prev?.category,
           status: full.status || prev?.status || "PUBLISHED",
           capacity: full.capacity || prev?.capacity,
@@ -223,40 +249,30 @@ export default function Events() {
   };
 
   // Filter valid events
+  // An event is OPEN/LIVE when Registration_Status === "OPEN" AND Status === "PUBLISHED"
+  const normalizeStatus = (val?: string) => String(val ?? "").trim().toUpperCase();
+
   const validEvents = eventsList
     .filter((e) => {
-      const statusUpper = (e.status || "").toUpperCase();
-      if (statusUpper !== "PUBLISHED" && statusUpper !== "ACTIVE") return false;
-
-      const regStatusUpper = (e.registration_status || "").toUpperCase();
-      if (regStatusUpper !== "OPEN") return false;
-
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-
-      if (e.registration_deadline) {
-        const deadlineDate = parseDateString(e.registration_deadline);
-        if (deadlineDate) {
-          deadlineDate.setHours(23, 59, 59, 999);
-          if (now > deadlineDate) return false;
-        }
-      }
-
-      if (e.date) {
-        const eventDate = parseDateString(e.date);
-        if (eventDate) {
-          eventDate.setHours(23, 59, 59, 999);
-          if (eventDate < todayStart) return false;
-        }
-      }
-
-      return true;
+      if (e.is_open !== undefined) return e.is_open;
+      const statusUpper = normalizeStatus(e.status);
+      const isPublished = (statusUpper === "PUBLISHED" || statusUpper === "ACTIVE") && e.is_published !== false;
+      const regStatusUpper = normalizeStatus(e.registration_status);
+      return isPublished && regStatusUpper === "OPEN";
     })
     .sort((a, b) => {
-      const timeA = parseDateString(a.date)?.getTime() ?? Infinity;
-      const timeB = parseDateString(b.date)?.getTime() ?? Infinity;
-      return timeA - timeB;
+      const dateA = parseDateString(a.date);
+      const dateB = parseDateString(b.date);
+
+      if (dateA && dateB) {
+        return dateA.getTime() - dateB.getTime();
+      }
+      if (dateA && !dateB) return -1;
+      if (!dateA && dateB) return 1;
+      return 0;
     });
+
+  console.log("[EVENT FILTER] VALID OPEN EVENTS COUNT:", validEvents.length, validEvents);
 
   return (
     <div className="bg-[#F4F4F0] min-h-screen text-[#111318] select-none">

@@ -16,9 +16,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import EditorialImage from "./EditorialImage";
-
-// Exact hardcoded Google Apps Script URL as instructed
-const GAS_EVENTS_URL = "https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec";
+import { gasApi, GasEvent, GAS_WEB_APP_URL } from "../services/gasApi";
 
 export interface GasEventNormalized {
   id: string;
@@ -43,6 +41,8 @@ export interface GasEventNormalized {
   registration_fee: string;
   team_size: string;
   prize_pool: string;
+  is_open?: boolean;
+  is_published?: boolean;
   raw: any;
 }
 
@@ -54,32 +54,49 @@ function parseDateString(dateStr: string): Date | null {
   const cleanStr = dateStr.trim();
   if (!cleanStr) return null;
 
-  // Try standard ISO or JavaScript Date parse
+  const upper = cleanStr.toUpperCase();
+  if (
+    upper.includes("DECLARED") || 
+    upper.includes("ANNOUNCED") || 
+    upper.includes("TBD") || 
+    upper.includes("SOON") ||
+    upper.includes("UPCOMING")
+  ) {
+    return null;
+  }
+
+  // Handle YYYY-MM-DD e.g. 2026-09-31 validation
+  if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+    const [y, m, d] = cleanStr.split("-").map((n) => parseInt(n, 10));
+    const dt = new Date(y, m - 1, d);
+    if (!isNaN(dt.getTime()) && dt.getFullYear() === y && (dt.getMonth() + 1) === m && dt.getDate() === d) {
+      return dt;
+    }
+    return null;
+  }
+
   const directDate = new Date(cleanStr);
   if (!isNaN(directDate.getTime())) return directDate;
 
-  // Strip ordinal suffixes (15th, 16th, 1st, 2nd, 3rd)
   const deOrdinal = cleanStr.replace(/(\d+)(st|nd|rd|th)/gi, "$1");
-
-  // Handle date ranges e.g. "15–16 August 2026"
   const rangeMatch = deOrdinal.match(/(\d{1,2})\s*[\u2013\u2014-]\s*\d{1,2}\s+([A-Za-z]+)\s+(\d{4})/);
   if (rangeMatch) {
     const parsedRange = new Date(`${rangeMatch[1]} ${rangeMatch[2]} ${rangeMatch[3]}`);
     if (!isNaN(parsedRange.getTime())) return parsedRange;
   }
 
-  // Try parsing de-ordinalized string
   const parsedDeOrdinal = new Date(deOrdinal);
   if (!isNaN(parsedDeOrdinal.getTime())) return parsedDeOrdinal;
 
-  // DD/MM/YYYY or DD-MM-YYYY
   const dmyMatch = cleanStr.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
   if (dmyMatch) {
     const day = parseInt(dmyMatch[1], 10);
     const month = parseInt(dmyMatch[2], 10) - 1;
     const year = parseInt(dmyMatch[3], 10);
     const dmyDate = new Date(year, month, day);
-    if (!isNaN(dmyDate.getTime())) return dmyDate;
+    if (!isNaN(dmyDate.getTime()) && dmyDate.getMonth() === month && dmyDate.getDate() === day) {
+      return dmyDate;
+    }
   }
 
   return null;
@@ -129,7 +146,8 @@ function normalizeSheetEvent(e: any): GasEventNormalized {
   const maxParticipants = Number(e.Max_Participants || e.max_participants || e.Capacity || e.capacity || 500) || 500;
   const regCount = Number(e.Registration_Count || e.registration_count || 0) || 0;
 
-  const regStatusRaw = String(e.Registration_Status || e.registration_status || "OPEN").trim().toUpperCase();
+  const rawRegStatus = e.Registration_Status || e.registration_status;
+  const regStatusRaw = rawRegStatus ? String(rawRegStatus).trim().toUpperCase() : "CLOSED";
   const statusRaw = String(e.Status || e.status || "PUBLISHED").trim().toUpperCase();
 
   let poster =
@@ -213,88 +231,68 @@ export default function UpcomingEventSpotlight() {
     setError(null);
 
     try {
-      let rawList: any[] = [];
-      let fetchSuccess = false;
-
-      // 1. Try direct Google Apps Script endpoint
-      try {
-        const fetchUrl = `${GAS_EVENTS_URL}?action=events&t=${Date.now()}`;
-        const res = await fetch(fetchUrl, { redirect: "follow" });
-        if (res.ok) {
-          const resJson = await res.json();
-          console.log("GAS EVENTS API RESPONSE:", resJson);
-          if (Array.isArray(resJson.events)) rawList = resJson.events;
-          else if (Array.isArray(resJson.data)) rawList = resJson.data;
-          else if (Array.isArray(resJson.records)) rawList = resJson.records;
-          else if (Array.isArray(resJson)) rawList = resJson;
-          if (rawList.length > 0) fetchSuccess = true;
-        }
-      } catch (gasErr) {
-        console.warn("Direct GAS fetch notice, attempting /api/events fallback:", gasErr);
+      const res = await gasApi.getEvents();
+      if (!res.success && res.error) {
+        setError(res.error);
+        return;
       }
 
-      // 2. Fallback to server proxy /api/events if direct fetch did not succeed
-      if (!fetchSuccess) {
-        try {
-          const localRes = await fetch("/api/events");
-          if (localRes.ok) {
-            const localJson = await localRes.json();
-            const list = Array.isArray(localJson) ? localJson : (localJson.data || localJson.events || []);
-            if (Array.isArray(list) && list.length > 0) {
-              rawList = list;
-              fetchSuccess = true;
-            }
-          }
-        } catch (localErr) {
-          console.warn("/api/events fallback notice:", localErr);
-        }
-      }
-
-      const normalized = rawList.map(normalizeSheetEvent);
+      const rawList: GasEvent[] = res.events || res.data || [];
+      const normalized: GasEventNormalized[] = rawList.map(e => ({
+        id: e.id,
+        title: e.title,
+        description: e.description,
+        date: e.date,
+        start_time: e.start_time || e.time || "",
+        end_time: e.end_time || "",
+        time_display: e.time || e.start_time || "DECLARED SOON",
+        venue: e.venue || e.location || "TO BE ANNOUNCED",
+        registration_deadline: e.registration_deadline || "TO BE ANNOUNCED",
+        max_participants: Number(e.max_participants || e.capacity || 500),
+        registration_status: String(e.registration_status || "CLOSED").trim().toUpperCase(),
+        status: String(e.status || "PUBLISHED").trim().toUpperCase(),
+        organizer: e.organizer || e.organizer_name || "GeeksforGeeks × Marwadi University",
+        contact_email: e.contact_email || "gfg@marwadiuniversity.ac.in",
+        contact_phone: e.contact_phone || "",
+        registration_count: Number(e.registration_count || 0),
+        poster_url: e.poster_url || e.poster_image || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
+        registration_link: e.registration_link || "",
+        category: e.category || "HACKATHON / TECH WORKSHOP",
+        registration_fee: e.registration_fee || "Free",
+        team_size: e.team_size || "1–4 Members",
+        prize_pool: e.prize_pool || "Official Certificates & Goodies",
+        is_open: e.is_open,
+        is_published: e.is_published,
+        raw: e,
+      }));
 
       // Filtering criteria:
-      // 1. Status === "PUBLISHED"
-      // 2. Registration_Status === "OPEN"
-      // 3. Today <= Registration_Deadline
-      // 4. Event Date is today or in the future
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-
+      // An event is OPEN/LIVE when Registration_Status === "OPEN" AND Status === "PUBLISHED"
       const validEvents = normalized.filter((e) => {
-        if (e.status !== "PUBLISHED" && e.status !== "ACTIVE") return false;
-        if (e.registration_status !== "OPEN") return false;
-
-        if (e.registration_deadline) {
-          const deadline = parseDateString(e.registration_deadline);
-          if (deadline) {
-            deadline.setHours(23, 59, 59, 999);
-            if (now > deadline) return false;
-          }
-        }
-
-        if (e.date) {
-          const evDate = parseDateString(e.date);
-          if (evDate) {
-            evDate.setHours(23, 59, 59, 999);
-            if (evDate < todayStart) return false;
-          }
-        }
-
-        return true;
+        if (e.is_open !== undefined) return e.is_open;
+        const isPublished = e.status === "PUBLISHED" || e.status === "ACTIVE";
+        if (!isPublished) return false;
+        return e.registration_status === "OPEN";
       });
 
-      // Sort by earliest event date ascending
+      // Sort by earliest event date ascending (placing DECLARED SOON events smoothly)
       validEvents.sort((a, b) => {
-        const dateA = parseDateString(a.date)?.getTime() ?? Infinity;
-        const dateB = parseDateString(b.date)?.getTime() ?? Infinity;
-        return dateA - dateB;
+        const dateA = parseDateString(a.date);
+        const dateB = parseDateString(b.date);
+
+        if (dateA && dateB) {
+          return dateA.getTime() - dateB.getTime();
+        }
+        if (dateA && !dateB) return -1;
+        if (!dateA && dateB) return 1;
+        return 0;
       });
 
       setSelectedEvent(validEvents[0] || null);
       setLastUpdated(new Date());
     } catch (err: any) {
       console.error("Failed to fetch live events:", err);
-      setError(err?.message || "Failed to connect to Google Sheets backend.");
+      setError(err?.message || "Unable to connect to the event service. Please try again.");
     } finally {
       setLoading(false);
       setIsRefreshing(false);

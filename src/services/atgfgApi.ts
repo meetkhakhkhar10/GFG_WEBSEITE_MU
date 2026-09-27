@@ -1,12 +1,12 @@
+import { GAS_WEB_APP_URL } from "./gasApi";
+
 /**
  * Dedicated Google Apps Script API Service for Attendance Admin Portal (/atgfg)
- * Target Google Apps Script Web App Endpoint (Hardcoded):
- * https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec
+ * Target Google Apps Script Web App Endpoint:
+ * Uses centralized GAS_WEB_APP_URL from gasApi.ts
  */
 
-export const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec";
-
+export const APPS_SCRIPT_URL = GAS_WEB_APP_URL;
 export const ATGFG_GAS_URL = APPS_SCRIPT_URL;
 
 export interface AtgfgRegistration {
@@ -180,6 +180,7 @@ export const atgfgApi = {
     try {
       const url = new URL(APPS_SCRIPT_URL);
       url.searchParams.set("action", "getRegistrations");
+      url.searchParams.set("_t", Date.now().toString());
       if (eventIdFilter && eventIdFilter !== "ALL") {
         url.searchParams.set("eventId", eventIdFilter);
       }
@@ -187,6 +188,10 @@ export const atgfgApi = {
       const response = await fetch(url.toString(), {
         method: "GET",
         redirect: "follow",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
       });
 
       if (response.ok) {
@@ -273,7 +278,7 @@ export const atgfgApi = {
       return { success: false, error: "Registration ID is required" };
     }
 
-    const reqUrl = `${APPS_SCRIPT_URL}?action=registration&registration_id=${encodeURIComponent(cleanId)}&id=${encodeURIComponent(cleanId)}&registrationId=${encodeURIComponent(cleanId)}`;
+    const reqUrl = `${APPS_SCRIPT_URL}?action=registration&registration_id=${encodeURIComponent(cleanId)}&id=${encodeURIComponent(cleanId)}&registrationId=${encodeURIComponent(cleanId)}&_t=${Date.now()}`;
     console.log("SCANNED QR:", registrationId);
     console.log("NORMALIZED REGISTRATION ID:", cleanId);
     console.log("REGISTRATION API URL:", reqUrl);
@@ -282,6 +287,10 @@ export const atgfgApi = {
       const response = await fetch(reqUrl, {
         method: "GET",
         redirect: "follow",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
       });
 
       if (response.ok) {

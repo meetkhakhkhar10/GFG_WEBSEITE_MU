@@ -20,7 +20,7 @@
 
 // Central API configuration constant
 // Google Apps Script Web App /exec URL.
-export const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYIfc5a40I_SUysgq8X-2aMpGRJ35cV9G0JSdgYbfcAK1I7i9Xtd90w2_SiRoRpZleoA/exec";
+export const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec";
 export const APPS_SCRIPT_URL = GAS_WEB_APP_URL;
 export const DIRECT_GAS_URL = GAS_WEB_APP_URL;
 export const API_BASE_URL = GAS_WEB_APP_URL;
@@ -30,30 +30,39 @@ export interface GasEvent {
   title: string;
   description: string;
   date: string;
-  time?: string;
+  start_time: string;
+  end_time: string;
   location: string;
-  poster_url: string;
+  venue: string;
+  poster_url?: string;
   poster_image?: string;
-  registration_link: string;
+  registration_link?: string;
   category?: string;
-  status?: string;
-  registration_status?: string;
   registration_deadline?: string;
-  registration_count?: number;
+  max_participants?: number;
   capacity?: string | number;
+  registration_status: string;
+  status: string;
+  organizer?: string;
+  organizer_name?: string;
+  organizer_email?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  registration_count?: number;
+  created_at?: string;
+  published_at?: string;
+  updated_at?: string;
+  is_open: boolean;
+  is_published: boolean;
+  time?: string;
   registration_fee?: string;
   team_size?: string;
   prize_pool?: string;
   eligibility?: string;
   expected_participation?: string;
   expected_colleges?: string;
-  organizer_name?: string;
-  organizer_email?: string;
   organizer_phone?: string;
-  contact_phone?: string;
-  contact_email?: string;
   stages?: Array<{ title: string; date: string; desc: string }>;
-  is_published?: boolean;
   is_featured?: boolean;
   raw?: any;
 }
@@ -265,108 +274,104 @@ function normalizeEvent(e: any): GasEvent {
       id: "unknown",
       title: "Campus Event",
       description: "",
-      date: "Upcoming",
-      time: "",
-      location: "Marwadi University, Rajkot",
+      date: "DECLARED SOON",
+      start_time: "DECLARED SOON",
+      end_time: "DECLARED SOON",
+      time: "DECLARED SOON",
+      location: "TO BE ANNOUNCED",
+      venue: "TO BE ANNOUNCED",
       poster_url: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
       poster_image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
       registration_link: "",
+      registration_status: "CLOSED",
+      status: "PUBLISHED",
+      is_open: false,
       is_published: true,
     };
   }
 
-  const id = String(e.Event_ID || e.event_id || e.id || e.ID || "").trim();
-  const title = String(e.Event_Name || e.event_name || e.Title || e.title || e.Event_Title || e.event_title || "Campus Event").trim();
-  const description = String(e.Description || e.description || e.Desc || e.desc || "").trim();
+  const id = String(e.id || e.Event_ID || e.event_id || e.ID || "").trim();
+  const title = String(e.title || e.Event_Name || e.event_name || e.Title || "Campus Event").trim();
+  const description = String(e.description || e.Description || e.desc || e.Desc || "").trim();
 
-  let dateVal = e.Date || e.date || e.Start_Date || e.startDate || "Upcoming";
-  dateVal = formatGasDate(dateVal);
+  const rawDate = e.date !== undefined ? e.date : (e.Date !== undefined ? e.Date : e.Start_Date || e.startDate);
+  const dateVal = formatGasDate(rawDate);
 
-  let timeVal = e.Start_Time || e.startTime || e.Time || e.time || "";
-  let endTimeVal = e.End_Time || e.endTime || "";
-  
-  if (timeVal) {
-    timeVal = formatGasTime(timeVal);
-    if (endTimeVal) {
-      endTimeVal = formatGasTime(endTimeVal);
-      timeVal = `${timeVal} - ${endTimeVal}`;
-    }
-  }
+  const startTime = String(e.start_time || e.Start_Time || e.time || e.Time || "DECLARED SOON").trim();
+  const endTime = String(e.end_time || e.End_Time || "").trim();
+  const timeVal = startTime && endTime && startTime !== endTime ? `${startTime} – ${endTime}` : (startTime || "DECLARED SOON");
 
-  const venue = String(e.Venue || e.venue || e.Location || e.location || "Marwadi University Auditorium").trim();
+  const venue = String(e.venue || e.Venue || e.location || e.Location || "TO BE ANNOUNCED").trim();
+  const location = String(e.location || e.Location || venue || "TO BE ANNOUNCED").trim();
 
   let poster =
-    e.Poster_URL ||
     e.poster_url ||
-    e.Banner_Image ||
-    e.banner_image ||
-    e.bannerImage ||
-    e.Poster_Image ||
+    e.Poster_URL ||
     e.poster_image ||
+    e.Poster_Image ||
+    e.banner_image ||
+    e.Banner_Image ||
     "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800";
 
-  // Specific event image mapping for GFG × Marwadi University Connect
-  const isGfgConnect = 
-    id === "EVT-0001" || 
-    title.toLowerCase().includes("marwadi university connect") ||
-    (title.toLowerCase().includes("connect") && title.toLowerCase().includes("marwadi"));
-
-  if (isGfgConnect) {
+  if (id === "EVT-0001" || (title.toLowerCase().includes("connect") && title.toLowerCase().includes("marwadi"))) {
     poster = "/images/gfg-connect-banner.jpg";
   }
 
-  const regLink = String(e.Registration_Link || e.registration_link || e.registrationLink || "").trim();
-  const category = String(e.Category || e.category || "Hackathon / Competition").trim();
-  
-  const statusRaw = String(e.Status || e.status || "PUBLISHED").trim();
-  const statusUpper = statusRaw.toUpperCase();
-  const isPublished = statusUpper === "PUBLISHED" || (statusUpper !== "DRAFT" && statusUpper !== "CANCELLED" && e.Is_Published !== false && e.is_published !== false);
+  const regLink = String(e.registration_link || e.Registration_Link || "").trim();
+  const category = String(e.category || e.Category || "Hackathon / Workshop").trim();
 
-  const regStatusRaw = String(e.Registration_Status || e.registration_status || "OPEN").trim();
-  
-  const capacityVal = e.Max_Participants !== undefined && e.Max_Participants !== null && e.Max_Participants !== ""
-    ? String(e.Max_Participants)
-    : (e.Capacity || e.capacity || "Open");
+  const rawStatus = String(e.status || e.Status || "PUBLISHED").trim().toUpperCase();
+  const status = rawStatus || "PUBLISHED";
 
-  const organizerName = String(e.Organizer || e.organizer || e.Organizer_Name || e.organizer_name || "GeeksforGeeks × Marwadi University").trim();
-  const organizerEmail = String(e.Contact_Email || e.contact_email || e.Organizer_Email || e.organizer_email || "gfg.events@example.com").trim();
-  
-  const contactPhone = e.Contact_Phone !== undefined && e.Contact_Phone !== null
-    ? String(e.Contact_Phone).trim()
-    : (e.contact_phone !== undefined && e.contact_phone !== null ? String(e.contact_phone).trim() : "");
+  const rawRegStatus = String(e.registration_status || e.Registration_Status || "CLOSED").trim().toUpperCase();
+  const regStatus = (rawRegStatus === "OPEN" || rawRegStatus === "LIVE" || rawRegStatus === "ACTIVE") ? "OPEN" : "CLOSED";
 
-  const regDeadline = String(e.Registration_Deadline || e.registration_deadline || "").trim();
-  const regCount = Number(e.Registration_Count || e.registration_count || 0);
+  const isPublished = e.is_published !== undefined ? Boolean(e.is_published) : (status === "PUBLISHED" || status === "ACTIVE");
+  const isOpen = e.is_open !== undefined ? Boolean(e.is_open) : (regStatus === "OPEN" && isPublished);
+
+  const maxParticipants = Number(e.max_participants || e.Max_Participants || e.capacity || e.Capacity || 500);
+  const regDeadline = String(e.registration_deadline || e.Registration_Deadline || "TO BE ANNOUNCED").trim();
+  const regCount = Number(e.registration_count || e.Registration_Count || 0);
+
+  const organizer = String(e.organizer || e.Organizer || e.organizer_name || e.Organizer_Name || "GeeksforGeeks × Marwadi University").trim();
+  const contactEmail = String(e.contact_email || e.Contact_Email || "gfg@marwadiuniversity.ac.in").trim();
+  const contactPhone = String(e.contact_phone || e.Contact_Phone || "").trim();
 
   return {
     id: id || `evt_${Math.random().toString(36).substring(2, 9)}`,
     title,
     description,
     date: dateVal,
+    start_time: startTime,
+    end_time: endTime,
     time: timeVal,
-    location: venue,
+    location,
+    venue,
     poster_url: poster,
     poster_image: poster,
     registration_link: regLink,
     category,
-    status: statusRaw,
-    registration_status: regStatusRaw,
+    status,
+    registration_status: regStatus,
     registration_deadline: regDeadline,
     registration_count: regCount,
-    capacity: capacityVal,
-    registration_fee: e.Registration_Fee || e.registration_fee || e.fee || "Free",
-    team_size: e.Team_Size || e.team_size || "1–4 Members",
-    prize_pool: e.Prize_Pool || e.prize_pool || "Exciting Rewards",
-    eligibility: e.Eligibility || e.eligibility || "All College & University Students",
-    expected_participation: e.Expected_Participation || e.expected_participation || "500+ Students",
-    expected_colleges: e.Expected_Colleges || e.expected_colleges || "100+ Colleges",
-    organizer_name: organizerName,
-    organizer_email: organizerEmail,
-    organizer_phone: contactPhone,
+    max_participants: maxParticipants,
+    capacity: maxParticipants,
+    registration_fee: e.registration_fee || e.Registration_Fee || "Free",
+    team_size: e.team_size || e.Team_Size || "1–4 Members",
+    prize_pool: e.prize_pool || e.Prize_Pool || "Certificates & Merch",
+    eligibility: e.eligibility || e.Eligibility || "All College & University Students",
+    organizer,
+    organizer_name: organizer,
+    organizer_email: contactEmail,
+    contact_email: contactEmail,
     contact_phone: contactPhone,
-    contact_email: organizerEmail,
+    created_at: e.created_at || e.Created_At,
+    published_at: e.published_at || e.Published_At,
+    updated_at: e.updated_at || e.Updated_At,
+    is_open: isOpen,
     is_published: isPublished,
-    is_featured: e.Is_Featured === true || e.is_featured === true || e.featured === true,
+    is_featured: e.is_featured === true || e.Is_Featured === true,
     stages: Array.isArray(e.stages) ? e.stages : undefined,
     raw: e,
   };
@@ -455,7 +460,7 @@ function normalizeRegistration(reg: any): GasRegistration {
 // In-memory GET request cache and promise deduplication map
 const gasCache = new Map<string, { data: any; timestamp: number }>();
 const gasInFlight = new Map<string, Promise<any>>();
-const CACHE_TTL_MS = 60000; // 60 seconds TTL
+const CACHE_TTL_MS = 0; // 0 TTL ensures always live real-time sync with Google Sheets
 
 export function invalidateGasCache(action?: string) {
   if (action) {
@@ -477,7 +482,7 @@ async function getGas(action: string, params: Record<string, string> = {}): Prom
   const now = Date.now();
 
   const cached = gasCache.get(cacheKey);
-  if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+  if (CACHE_TTL_MS > 0 && cached && now - cached.timestamp < CACHE_TTL_MS) {
     return cached.data;
   }
 
@@ -487,59 +492,55 @@ async function getGas(action: string, params: Record<string, string> = {}): Prom
 
   const fetchPromise = (async () => {
     try {
-      const direct = new URL(DIRECT_GAS_URL);
-      direct.searchParams.set("action", action);
+      const urlObj = new URL(DIRECT_GAS_URL);
+      urlObj.searchParams.set("action", action);
+      urlObj.searchParams.set("_t", Date.now().toString()); // Cache busting for real-time sheets sync
       for (const [k, v] of Object.entries(params)) {
         if (v !== undefined && v !== null && v !== "") {
-          direct.searchParams.set(k, String(v));
+          urlObj.searchParams.set(k, String(v));
         }
       }
 
-      const response = await fetch(direct.toString(), {
+      const requestedUrl = urlObj.toString();
+      console.log("[GAS GET] Requested URL:", requestedUrl);
+
+      const response = await fetch(requestedUrl, {
         method: "GET",
         redirect: "follow",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.success !== false) {
-          gasCache.set(cacheKey, { data, timestamp: Date.now() });
-        }
-        return data;
-      } else {
-        console.warn(`gasApi HTTP error for "${action}": ${response.status}`);
-        return { success: false, error: `HTTP Error ${response.status}` };
+      console.log("[GAS GET] Response Status:", response.status);
+      console.log("[GAS GET] Response URL:", response.url);
+      console.log("[GAS GET] Response Type:", response.type);
+      console.log("[GAS GET] Response OK:", response.ok);
+
+      if (!response.ok) {
+        console.warn(`Apps Script request failed: HTTP ${response.status} for action: ${action}`);
+        return { success: false, error: `Apps Script request failed: HTTP ${response.status}` };
       }
+
+      const text = await response.text();
+      console.log("[GAS GET] Response Text:", text);
+
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        console.warn(`Failed to parse JSON response for action ${action}:`, text.slice(0, 300));
+        return { success: false, error: "Invalid JSON response from Google Apps Script" };
+      }
+
+      if (data && data.success !== false) {
+        gasCache.set(cacheKey, { data, timestamp: Date.now() });
+      }
+      return data;
     } catch (directErr: any) {
       console.warn(`gasApi fetch error for "${action}":`, directErr?.message || directErr);
-      if (action === "events") {
-        try {
-          const localRes = await fetch("/api/events");
-          if (localRes.ok) {
-            const localData = await localRes.json();
-            const list = Array.isArray(localData) ? localData : (localData.data || localData.events || []);
-            const result = { success: true, count: list.length, events: list, data: list };
-            gasCache.set(cacheKey, { data: result, timestamp: Date.now() });
-            return result;
-          }
-        } catch (proxyErr) {
-          console.warn("gasApi fallback to /api/events error:", proxyErr);
-        }
-      } else if (action === "team") {
-        try {
-          const localRes = await fetch("/api/team");
-          if (localRes.ok) {
-            const localData = await localRes.json();
-            const list = Array.isArray(localData) ? localData : (localData.data || localData.team || []);
-            const result = { success: true, count: list.length, team: list, data: list };
-            gasCache.set(cacheKey, { data: result, timestamp: Date.now() });
-            return result;
-          }
-        } catch (proxyErr) {
-          console.warn("gasApi fallback to /api/team error:", proxyErr);
-        }
-      }
-      return { success: false, error: directErr?.message || "Network error communicating with Google Apps Script" };
+      return { success: false, error: directErr?.message || "Unable to connect to the event service. Please try again." };
     } finally {
       gasInFlight.delete(cacheKey);
     }
@@ -591,11 +592,12 @@ export const gasApi = {
    * Fetches all published events from Google Apps Script.
    */
   async getEvents(): Promise<{ success: boolean; count: number; events: GasEvent[]; data: GasEvent[]; error?: string }> {
-    console.log("gasApi.getEvents fetching from URL:", DIRECT_GAS_URL);
+    console.log("[EVENT DEBUG] FETCHING FROM URL:", DIRECT_GAS_URL);
     const res = await getGas("events");
-    console.log("gasApi.getEvents raw result:", res);
+    console.log("[EVENT DEBUG] RAW RESPONSE:", res);
 
     if (!res || (res.success === false && !res.events && !res.data)) {
+      console.warn("[EVENT DEBUG] FAILED RESPONSE:", res);
       return { success: false, count: 0, events: [], data: [], error: res?.error || "Failed to load events" };
     }
 
@@ -610,11 +612,29 @@ export const gasApi = {
       rawList = res;
     }
 
+    console.log("[EVENT DEBUG] PARSED RAW LIST:", rawList);
+
     const events = rawList
       .map(normalizeEvent)
       .filter((e) => e && e.id && e.is_published !== false);
 
-    console.log("gasApi.getEvents normalized events count:", events.length, events);
+    console.log("[EVENT DEBUG] EVENTS ARRAY:", events);
+    console.log("[EVENT DEBUG] EVENTS COUNT:", events.length);
+
+    events.forEach(evt => {
+      console.log("[EVENT DEBUG] EVENT ITEM:", {
+        id: evt.id,
+        name: evt.title,
+        registration_status: evt.registration_status,
+        status: evt.status,
+        date: evt.date,
+        start_time: evt.time,
+        venue: evt.location
+      });
+    });
+
+    const evt3 = events.find(e => e.id === "EVT-0003");
+    console.log("[EVENT DEBUG] EVT-0003 FOUND:", !!evt3, evt3);
 
     return { success: true, count: events.length, events, data: events };
   },
@@ -743,7 +763,7 @@ export const gasApi = {
 
     return {
       success: true,
-      registration_id: res.registration_id || res.id || `REG-${Date.now()}`,
+      registration_id: res.registration_id || res.id || "",
       event_name: res.event_name || res.event_title || payload.event_id,
       participant_name: res.participant_name || payload.name,
       message: res.message || "Registration confirmed successfully!",
