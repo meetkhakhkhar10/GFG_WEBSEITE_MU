@@ -9,6 +9,7 @@ import { useTheme } from "@/src/contexts/ThemeContext";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { cn } from "@/src/lib/utils";
 import { getFirebaseChallenges, getFirebaseUsers, saveFirebaseUser } from "@/src/services/firebaseDb";
+import { safeFetchJson } from "@/src/utils/fetchUtils";
 import DailyPollCard, { PollQuestion, PollOption } from "@/src/components/arena/DailyPollCard";
 
 export interface Challenge {
@@ -215,7 +216,7 @@ export default function CodingArena() {
     setTestResult(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch("/api/arena/evaluate", {
+      const res = await safeFetchJson("/api/arena/evaluate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -228,7 +229,7 @@ export default function CodingArena() {
           isSubmit: false
         })
       });
-      const data = await res.json();
+      const data = res.data || { success: false, message: res.error };
       setIsRunning(false);
       if (data.success) {
         setTestResult({
@@ -249,7 +250,7 @@ export default function CodingArena() {
     setTestResult(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch("/api/arena/evaluate", {
+      const res = await safeFetchJson("/api/arena/evaluate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -262,7 +263,7 @@ export default function CodingArena() {
           isSubmit: true
         })
       });
-      const data = await res.json();
+      const data = res.data || { success: false, message: res.error };
       setIsRunning(false);
       if (data.success) {
         setTestResult({

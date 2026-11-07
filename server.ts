@@ -2180,6 +2180,11 @@ app.get("/api/arena/submissions/:id", authenticate, async (req: any, res: any) =
   }
 });
 
+// --- Fallback 404 for unhandled API endpoints ---
+app.use("/api/*", (req, res) => {
+  res.status(404).json({ success: false, message: `API route not found: ${req.originalUrl}` });
+});
+
 // --- Server & Vite Setup ---
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {

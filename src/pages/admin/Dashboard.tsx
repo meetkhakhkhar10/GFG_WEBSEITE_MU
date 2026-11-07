@@ -16,6 +16,7 @@ import {
   BarChart, Bar, Cell, PieChart, Pie
 } from "recharts";
 import { apiService } from "../../services/apiService";
+import { safeFetchJson } from "@/src/utils/fetchUtils";
 import QuestionManagement from "@/src/components/admin/QuestionManagement";
 
 const extractSpreadsheetId = (input: string) => {
@@ -161,29 +162,24 @@ export default function Dashboard() {
       const headers = { Authorization: `Bearer ${token}` };
 
       // Events
-      const eRes = await fetch("/api/events", { headers });
-      const eData = await eRes.json();
-      if (eData.success) setEvents(eData.data);
+      const eRes = await safeFetchJson("/api/events", { headers });
+      if (eRes.ok && eRes.data?.success) setEvents(eRes.data.data || []);
 
       // Registrations
-      const rRes = await fetch("/api/registrations", { headers });
-      const rData = await rRes.json();
-      if (rData.success) setRegistrations(rData.data);
+      const rRes = await safeFetchJson("/api/registrations", { headers });
+      if (rRes.ok && rRes.data?.success) setRegistrations(rRes.data.data || []);
 
       // Attendance
-      const attRes = await fetch("/api/attendance", { headers });
-      const attData = await attRes.json();
-      if (attData.success) setAttendance(attData.data);
+      const attRes = await safeFetchJson("/api/attendance", { headers });
+      if (attRes.ok && attRes.data?.success) setAttendance(attRes.data.data || []);
 
       // System audit logs
-      const lRes = await fetch("/api/logs", { headers });
-      const lData = await lRes.json();
-      if (lData.success) setSystemLogs(lData.data);
+      const lRes = await safeFetchJson("/api/logs", { headers });
+      if (lRes.ok && lRes.data?.success) setSystemLogs(lRes.data.data || []);
 
       // Team members
-      const teamRes = await fetch("/api/team", { headers });
-      const teamData = await teamRes.json();
-      if (teamData.success) setTeamMembers(teamData.data);
+      const teamRes = await safeFetchJson("/api/team", { headers });
+      if (teamRes.ok && teamRes.data?.success) setTeamMembers(teamRes.data.data || []);
 
     } catch (e) {
       console.error("Error loading chapter operation telemetry database:", e);

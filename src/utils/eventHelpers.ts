@@ -1,6 +1,7 @@
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { firestoreDb, isFirebaseActive } from "../services/firebaseDb";
 import { gasApi } from "../services/gasApi";
+import { safeFetchJson } from "./fetchUtils";
 
 export interface EventDocument {
   id?: string;
@@ -172,10 +173,9 @@ export function subscribeToEvents(callback: (events: EventDocument[]) => void): 
 
     try {
       // 3. Fallback to local server /api/events
-      const res = await fetch("/api/events");
-      const json = await res.json();
-      if (active && json.success) {
-        const normalized = (json.data || []).map((data: any) => {
+      const res = await safeFetchJson("/api/events");
+      if (active && res.ok && res.data && res.data.success) {
+        const normalized = (res.data.data || []).map((data: any) => {
           const phoneStr = String(data.contact_phone || data.Contact_Phone || "");
           const docItem: EventDocument = {
             id: data.id,

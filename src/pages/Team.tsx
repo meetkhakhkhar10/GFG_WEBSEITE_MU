@@ -5,6 +5,7 @@ import {
   Terminal, Sparkles, Loader2, Compass, ArrowUpRight
 } from "lucide-react";
 import { gasApi } from "../services/gasApi";
+import { safeFetchJson } from "../utils/fetchUtils";
 
 export default function Team() {
   const [members, setMembers] = useState<any[]>([]);
@@ -17,11 +18,10 @@ export default function Team() {
         if (res.success && Array.isArray(res.team) && res.team.length > 0) {
           setMembers(res.team);
         } else {
-          const response = await fetch("/api/team");
-          const data = await response.json();
-          if (data.success) {
-            setMembers(data.data || []);
-          }
+        const res = await safeFetchJson("/api/team");
+        if (res.ok && res.data && res.data.success) {
+          setMembers(res.data.data || []);
+        }
         }
       } catch (err) {
         console.warn("Dynamic core team directory notice:", err);

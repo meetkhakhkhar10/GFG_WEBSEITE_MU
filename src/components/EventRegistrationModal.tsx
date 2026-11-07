@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Send, Loader2, Check, Copy, CheckCircle, AlertCircle } from "lucide-react";
 import { gasApi, RegistrationPayload, RegistrationResult } from "../services/gasApi";
+import { safeFetchJson } from "../utils/fetchUtils";
 
 export interface EventRegistrationModalProps {
   isOpen: boolean;
@@ -132,7 +133,7 @@ export default function EventRegistrationModal({
 
       // 2. Also sync to server backend database for admin roster & tracking
       try {
-        await fetch("/api/events/register", {
+        await safeFetchJson("/api/events/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

@@ -1,10 +1,8 @@
 import { gasApi, API_BASE_URL, RegistrationPayload, BookingPayload, AttendancePayload, AnnouncementPayload } from "./gasApi";
+import { safeFetchJson } from "../utils/fetchUtils";
 
 export { gasApi, API_BASE_URL };
 export type { RegistrationPayload, BookingPayload, AttendancePayload, AnnouncementPayload };
-
-// Custom API Service for Python/Node Backend & Google Apps Script
-const API_URL = '/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
@@ -17,30 +15,30 @@ const getHeaders = () => {
 export const apiService = {
   // Auth
   async login(credentials: any) {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const res = await safeFetchJson('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error || "Login failed" };
   },
 
   async loginWithGoogle(data: { uid: string; email: string; name: string | null; photoURL: string | null }) {
-    const res = await fetch(`${API_URL}/auth/google`, {
+    const res = await safeFetchJson('/api/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error || "Google login failed" };
   },
 
   async register(data: any) {
-    const res = await fetch(`${API_URL}/auth/register`, {
+    const res = await safeFetchJson('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error || "Registration failed" };
   },
 
   // Events
@@ -53,124 +51,124 @@ export const apiService = {
     } catch (err) {
       console.warn("apiService.getEvents GAS fetch note:", err);
     }
-    const res = await fetch(`${API_URL}/events`, { headers: getHeaders() });
-    return res.json();
+    const res = await safeFetchJson('/api/events', { headers: getHeaders() });
+    return res.data || { success: false, data: [] };
   },
 
   async createEvent(data: any) {
-    const res = await fetch(`${API_URL}/events`, {
+    const res = await safeFetchJson('/api/events', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async updateEvent(id: any, data: any) {
-    const response = await fetch(`${API_URL}/events/${id}`, {
+    const res = await safeFetchJson(`/api/events/${id}`, {
       method: "PUT",
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return response.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async deleteEvent(id: any) {
-    const res = await fetch(`${API_URL}/events/${id}`, {
+    const res = await safeFetchJson(`/api/events/${id}`, {
       method: 'DELETE',
       headers: getHeaders()
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async registerForEvent(eventId: number) {
-    const res = await fetch(`${API_URL}/events/register`, {
+    const res = await safeFetchJson('/api/events/register', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ event_id: eventId })
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   // Attendance
   async checkIn(qrData: string) {
-    const res = await fetch(`${API_URL}/attendance/checkin`, {
+    const res = await safeFetchJson('/api/attendance/checkin', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ qr_data: qrData })
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   // Leaderboard
   async getLeaderboard() {
-    const res = await fetch(`${API_URL}/leaderboard`, { headers: getHeaders() });
-    return res.json();
+    const res = await safeFetchJson('/api/leaderboard', { headers: getHeaders() });
+    return res.data || { success: false, data: [] };
   },
 
   // Me
   async getMyAttendance() {
-    const res = await fetch(`${API_URL}/me/attendance`, { headers: getHeaders() });
-    return res.json();
+    const res = await safeFetchJson('/api/me/attendance', { headers: getHeaders() });
+    return res.data || { success: false, data: [] };
   },
 
   async getMyRegistrations() {
-    const res = await fetch(`${API_URL}/me/registrations`, { headers: getHeaders() });
-    return res.json();
+    const res = await safeFetchJson('/api/me/registrations', { headers: getHeaders() });
+    return res.data || { success: false, data: [] };
   },
 
   async updateUser(id: any, data: any) {
-    const res = await fetch(`${API_URL}/users/${id}`, {
+    const res = await safeFetchJson(`/api/users/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async getSetting(id: string) {
-    const res = await fetch(`${API_URL}/settings/${id}`, { headers: getHeaders() });
-    return res.json();
+    const res = await safeFetchJson(`/api/settings/${id}`, { headers: getHeaders() });
+    return res.data || { success: false, value: null };
   },
 
   async updateSetting(id: string, data: { value: string }) {
-    const res = await fetch(`${API_URL}/settings/${id}`, {
+    const res = await safeFetchJson(`/api/settings/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   // Team Members
   async getTeam() {
-    const res = await fetch(`${API_URL}/team`, { headers: getHeaders() });
-    return res.json();
+    const res = await safeFetchJson('/api/team', { headers: getHeaders() });
+    return res.data || { success: false, data: [] };
   },
 
   async createTeamMember(data: any) {
-    const res = await fetch(`${API_URL}/team`, {
+    const res = await safeFetchJson('/api/team', {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async updateTeamMember(id: any, data: any) {
-    const res = await fetch(`${API_URL}/team/${id}`, {
+    const res = await safeFetchJson(`/api/team/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async deleteTeamMember(id: any) {
-    const res = await fetch(`${API_URL}/team/${id}`, {
+    const res = await safeFetchJson(`/api/team/${id}`, {
       method: 'DELETE',
       headers: getHeaders()
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   }
 };

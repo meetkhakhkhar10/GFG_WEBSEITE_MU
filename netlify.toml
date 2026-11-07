@@ -1,7 +1,15 @@
 [build]
   publish = "dist"
   command = "npm run build"
+  functions = "netlify/functions"
 
+# Route all /api/* requests to Netlify Serverless Functions before SPA catch-all rule
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Catch-all rule for Single Page Application routing
 [[redirects]]
   from = "/*"
   to = "/index.html"

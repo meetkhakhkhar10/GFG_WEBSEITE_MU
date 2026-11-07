@@ -1,8 +1,10 @@
 /**
  * Client-side API wrapper for the Multi-Event Login & Isolated Apps Script Integration Portal
  * Strictly communicates with server-side /api/portal/* endpoints using Bearer session tokens.
- * No credentials, password hashes, or unrestricted spreadsheet keys are ever stored in frontend code.
+ * Handles non-JSON / HTML response fallbacks safely without crashing.
  */
+
+import { safeFetchJson } from "../utils/fetchUtils";
 
 const EVENT_TOKEN_KEY = "gfg_mu_event_operator_token";
 const EVENT_SESSION_KEY = "gfg_mu_event_operator_session";
@@ -55,7 +57,6 @@ export const multiEventPortalClient = {
 
   getMasterToken(): string | null {
     try {
-      // Supports either dedicated Master Portal token or main Super Admin JWT
       return (
         sessionStorage.getItem(MASTER_TOKEN_KEY) ||
         localStorage.getItem(MASTER_TOKEN_KEY) ||
@@ -82,12 +83,12 @@ export const multiEventPortalClient = {
 
   // --- 1. Event Operator Auth & Endpoints ---
   async loginEventOperator(eventId: string, password: string) {
-    const res = await fetch("/api/portal/event/login", {
+    const res = await safeFetchJson("/api/portal/event/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ eventId: eventId.trim().toUpperCase(), password })
     });
-    const data = await res.json();
+    const data = res.data || { success: false, message: res.error || "Event login failed" };
     if (res.ok && data.success && data.token && data.session) {
       this.setEventSession(data.token, data.session);
     }
@@ -98,7 +99,7 @@ export const multiEventPortalClient = {
     const token = this.getEventToken();
     try {
       if (token) {
-        await fetch("/api/portal/event/logout", {
+        await safeFetchJson("/api/portal/event/logout", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -110,13 +111,13 @@ export const multiEventPortalClient = {
 
   async fetchIsolatedDashboard() {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/dashboard", {
+    const res = await safeFetchJson("/api/portal/event/dashboard", {
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    const data = await res.json();
     if (res.status === 401) {
       this.clearEventSession();
     }
+    const data = res.data || { success: false, message: res.error || "Failed to fetch event dashboard" };
     return { status: res.status, ...data };
   },
 
@@ -130,7 +131,7 @@ export const multiEventPortalClient = {
     college?: string;
   }) {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/participants", {
+    const res = await safeFetchJson("/api/portal/event/participants", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -138,7 +139,7 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify(payload)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async addJuryMember(payload: {
@@ -152,7 +153,7 @@ export const multiEventPortalClient = {
     status?: "CONFIRMED" | "INVITED" | "CHECKED_IN";
   }) {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/jury", {
+    const res = await safeFetchJson("/api/portal/event/jury", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -160,12 +161,12 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify(payload)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async updateJuryStatus(juryId: string, status: "CONFIRMED" | "INVITED" | "CHECKED_IN") {
     const token = this.getEventToken();
-    const res = await fetch(`/api/portal/event/jury/${encodeURIComponent(juryId)}`, {
+    const res = await safeFetchJson(`/api/portal/event/jury/${encodeURIComponent(juryId)}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -173,12 +174,12 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify({ status })
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async markAttendance(registrationId: string, attendanceStatus: "PRESENT" | "NOT_MARKED") {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/attendance", {
+    const res = await safeFetchJson("/api/portal/event/attendance", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -186,12 +187,12 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify({ registrationId, attendanceStatus })
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async generateCertificates(registrationIds?: string[]) {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/certificates/generate", {
+    const res = await safeFetchJson("/api/portal/event/certificates/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -199,15 +200,15 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify({ registrationIds })
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async previewCertificateEmail(targetId: string) {
     const token = this.getEventToken();
-    const res = await fetch(`/api/portal/event/certificates/preview/${encodeURIComponent(targetId)}`, {
+    const res = await safeFetchJson(`/api/portal/event/certificates/preview/${encodeURIComponent(targetId)}`, {
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async sendCertificateEmails(payload: {
@@ -216,7 +217,7 @@ export const multiEventPortalClient = {
     testRecipientEmail?: string;
   }) {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/certificates/send-email", {
+    const res = await safeFetchJson("/api/portal/event/certificates/send-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -224,25 +225,25 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify(payload)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async testConnection() {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/test-connection", {
+    const res = await safeFetchJson("/api/portal/event/test-connection", {
       method: "POST",
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async syncEventData() {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/sync", {
+    const res = await safeFetchJson("/api/portal/event/sync", {
       method: "POST",
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async updateOperatorIntegrationSettings(payload: {
@@ -250,7 +251,7 @@ export const multiEventPortalClient = {
     spreadsheetConfig?: any;
   }) {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/settings", {
+    const res = await safeFetchJson("/api/portal/event/settings", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -258,12 +259,13 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify(payload)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async downloadParticipantsCsv(eventId: string) {
     const token = this.getEventToken();
-    const res = await fetch("/api/portal/event/export", {
+    const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+    const res = await fetch(`${apiBase}/api/portal/event/export`, {
       headers: { Authorization: `Bearer ${token || ""}` }
     });
     if (!res.ok) throw new Error("Failed to export CSV");
@@ -280,12 +282,12 @@ export const multiEventPortalClient = {
 
   // --- 2. Master Administrator Endpoints ---
   async loginMasterAdmin(username: string, password: string) {
-    const res = await fetch("/api/portal/master/login", {
+    const res = await safeFetchJson("/api/portal/master/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
     });
-    const data = await res.json();
+    const data = res.data || { success: false, message: res.error || "Master login failed" };
     if (res.ok && data.success && data.token) {
       this.setMasterToken(data.token);
     }
@@ -296,7 +298,7 @@ export const multiEventPortalClient = {
     const token = this.getMasterToken();
     try {
       if (token) {
-        await fetch("/api/portal/master/logout", {
+        await safeFetchJson("/api/portal/master/logout", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -308,15 +310,16 @@ export const multiEventPortalClient = {
 
   async fetchMasterEvents() {
     const token = this.getMasterToken();
-    const res = await fetch("/api/portal/master/events", {
+    const res = await safeFetchJson("/api/portal/master/events", {
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    return { status: res.status, ...(await res.json()) };
+    const data = res.data || { success: false, events: [], message: res.error };
+    return { status: res.status, ...data };
   },
 
   async createMasterEvent(payload: any) {
     const token = this.getMasterToken();
-    const res = await fetch("/api/portal/master/events", {
+    const res = await safeFetchJson("/api/portal/master/events", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -324,12 +327,12 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify(payload)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async updateMasterEvent(eventId: string, payload: any) {
     const token = this.getMasterToken();
-    const res = await fetch(`/api/portal/master/events/${encodeURIComponent(eventId)}`, {
+    const res = await safeFetchJson(`/api/portal/master/events/${encodeURIComponent(eventId)}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -337,12 +340,12 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify(payload)
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async resetMasterEventCredentials(eventId: string, password?: string) {
     const token = this.getMasterToken();
-    const res = await fetch(`/api/portal/master/events/${encodeURIComponent(eventId)}/reset-credentials`, {
+    const res = await safeFetchJson(`/api/portal/master/events/${encodeURIComponent(eventId)}/reset-credentials`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -350,21 +353,21 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify({ password })
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async revokeMasterEventSessions(eventId: string) {
     const token = this.getMasterToken();
-    const res = await fetch(`/api/portal/master/events/${encodeURIComponent(eventId)}/revoke-sessions`, {
+    const res = await safeFetchJson(`/api/portal/master/events/${encodeURIComponent(eventId)}/revoke-sessions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async testMasterEventConnection(eventId: string, appsScriptUrl?: string) {
     const token = this.getMasterToken();
-    const res = await fetch(`/api/portal/master/events/${encodeURIComponent(eventId)}/test-connection`, {
+    const res = await safeFetchJson(`/api/portal/master/events/${encodeURIComponent(eventId)}/test-connection`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -372,16 +375,16 @@ export const multiEventPortalClient = {
       },
       body: JSON.stringify({ appsScriptUrl })
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async syncMasterEvent(eventId: string) {
     const token = this.getMasterToken();
-    const res = await fetch(`/api/portal/master/events/${encodeURIComponent(eventId)}/sync`, {
+    const res = await safeFetchJson(`/api/portal/master/events/${encodeURIComponent(eventId)}/sync`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    return res.json();
+    return res.data || { success: false, message: res.error };
   },
 
   async fetchMasterAuditLogs(eventIdFilter?: string) {
@@ -389,10 +392,10 @@ export const multiEventPortalClient = {
     const url = eventIdFilter && eventIdFilter !== "ALL"
       ? `/api/portal/master/audit-logs?eventId=${encodeURIComponent(eventIdFilter)}`
       : "/api/portal/master/audit-logs";
-    const res = await fetch(url, {
+    const res = await safeFetchJson(url, {
       headers: { Authorization: `Bearer ${token || ""}` }
     });
-    return res.json();
+    return res.data || { success: false, logs: [], message: res.error };
   }
 };
 

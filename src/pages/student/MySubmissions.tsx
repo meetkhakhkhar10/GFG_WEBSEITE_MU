@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "motion/react"
 import { cn } from "@/src/lib/utils"
 import { useAuth } from "@/src/contexts/AuthContext"
 import { getFirebaseSubmissions } from "@/src/services/firebaseDb"
+import { safeFetchJson } from "@/src/utils/fetchUtils"
 import { Link } from "react-router-dom"
 
 export interface SubmissionItem {
@@ -59,15 +60,14 @@ export default function MySubmissions() {
       const token = localStorage.getItem("token")
       if (token) {
         try {
-          const res = await fetch("/api/arena/submissions", {
+          const res = await safeFetchJson("/api/arena/submissions", {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`
             }
           })
-          const data = await res.json()
-          if (data.success && Array.isArray(data.submissions) && data.submissions.length > 0) {
-            setSubmissions(data.submissions)
+          if (res.ok && res.data && res.data.success && Array.isArray(res.data.submissions) && res.data.submissions.length > 0) {
+            setSubmissions(res.data.submissions)
             setLoading(false)
             return
           }
