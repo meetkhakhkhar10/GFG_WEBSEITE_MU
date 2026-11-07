@@ -107,6 +107,8 @@ function doGet(e) {
       return getPortalStats();
     } else if (action === "registration") {
       return getRegistrationById(params.id);
+    } else if (action === "getregistrations" || action === "registrations") {
+      return getRegistrationsByEvent(params.eventId || params.event_id);
     }
 
     return universityJsonResponse({
@@ -342,6 +344,37 @@ function getRegistrationById(id) {
     }
   }
   return universityJsonResponse({ success: false, error: "Registration not found" });
+}
+
+function getRegistrationsByEvent(eventId) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(UNIVERSITY_CONFIG.SHEETS.REGISTRATIONS);
+  if (!sheet) return universityJsonResponse({ success: true, registrations: [], count: 0 });
+  var rows = sheet.getDataRange().getValues();
+  var filterEvt = eventId ? String(eventId).trim().toUpperCase() : "";
+  var list = [];
+  for (var i = 1; i < rows.length; i++) {
+    var rowEvt = String(rows[i][1] || "").trim().toUpperCase();
+    if (filterEvt && rowEvt !== filterEvt) continue;
+    list.push({
+      Registration_ID: rows[i][0],
+      Event_ID: rows[i][1],
+      Name: rows[i][2],
+      Email: rows[i][3],
+      Phone: rows[i][4],
+      Enrollment_Number: rows[i][5],
+      Program: rows[i][6],
+      Department: rows[i][7],
+      Year: rows[i][8],
+      College: rows[i][9],
+      Timestamp: rows[i][10],
+      Status: rows[i][11] || "CONFIRMED",
+      Attendance_Status: rows[i][12] || "NOT_MARKED",
+      Certificate_Status: rows[i][13] || "NOT_ISSUED",
+      Certificate_URL: rows[i][14] || ""
+    });
+  }
+  return universityJsonResponse({ success: true, registrations: list, count: list.length });
 }
 
 function universityJsonResponse(obj) {

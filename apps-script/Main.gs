@@ -99,6 +99,10 @@ function handleRequest(e, method) {
       var regId = data.id || data.registration_id || params.id || params.registration_id || "";
       return getRegistrationById(regId);
     }
+    if (action === "getregistrations" || action === "registrations") {
+      var filterEventId = data.eventId || data.event_id || params.eventId || params.event_id || "";
+      return getRegistrationsList(filterEventId);
+    }
     if (action === "attendance" || action === "markattendance") {
       return handleNormalAttendance(data);
     }

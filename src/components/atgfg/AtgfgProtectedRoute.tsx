@@ -1,17 +1,18 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import atgfgAuth from "@/src/services/atgfgAuth";
+import multiEventPortalClient from "@/src/services/multiEventPortalClient";
 
 interface Props {
   children: React.ReactNode;
 }
 
 export default function AtgfgProtectedRoute({ children }: Props) {
-  const isAuth = atgfgAuth.isAuthenticated();
+  const token = multiEventPortalClient.getEventToken();
 
-  if (!isAuth) {
-    return <Navigate to="/atgfg" replace />;
+  if (!token) {
+    return <Navigate to="/event-portal" replace />;
   }
 
   return <>{children}</>;
 }
+

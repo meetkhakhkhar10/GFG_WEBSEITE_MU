@@ -169,6 +169,50 @@
         "active": { "type": "boolean" }
       },
       "required": ["id", "name", "position", "department"]
+    },
+    "CodingChallenge": {
+      "title": "Daily Coding Challenge",
+      "description": "Competitive programming problem for the Daily Coding Arena.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "difficulty": { "type": "string", "enum": ["Easy", "Medium", "Hard"] },
+        "topic": { "type": "string" },
+        "language": { "type": "string" },
+        "status": { "type": "string", "enum": ["Draft", "Scheduled", "Live", "Expired", "Archived"] },
+        "publishedTimestamp": { "type": "string" },
+        "submissionDeadline": { "type": "string" },
+        "xp": { "type": "number" },
+        "problemStatement": { "type": "string" },
+        "inputFormat": { "type": "string" },
+        "outputFormat": { "type": "string" },
+        "constraints": { "type": "string" }
+      },
+      "required": ["id", "title", "difficulty", "topic", "problemStatement"]
+    },
+    "Submission": {
+      "title": "Coding Arena Submission",
+      "description": "Student solution submission record with evaluation results and code.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userName": { "type": "string" },
+        "challengeId": { "type": "string" },
+        "challengeTitle": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "language": { "type": "string" },
+        "submittedAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["Accepted", "Wrong Answer", "Compilation Error", "Runtime Error", "Time Limit Exceeded"] },
+        "executionTime": { "type": "string" },
+        "memoryUsed": { "type": "string" },
+        "pointsEarned": { "type": "number" },
+        "code": { "type": "string" },
+        "errorMessage": { "type": "string" }
+      },
+      "required": ["id", "userId", "challengeId", "language", "status", "submittedAt"]
     }
   },
   "firestore": {
@@ -211,6 +255,14 @@
     "/team/{memberId}": {
       "schema": "TeamMember",
       "description": "GFG Student Chapter core team member listings."
+    },
+    "/coding_challenges/{challengeId}": {
+      "schema": "CodingChallenge",
+      "description": "Daily coding arena challenges."
+    },
+    "/arena_submissions/{submissionId}": {
+      "schema": "Submission",
+      "description": "Student problem solution submissions and evaluation verdicts."
     }
   }
 }

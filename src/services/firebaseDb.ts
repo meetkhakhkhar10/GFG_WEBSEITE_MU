@@ -92,6 +92,8 @@ interface LocalDb {
   registrations: any[];
   attendance: any[];
   logs: any[];
+  coding_challenges: any[];
+  arena_submissions: any[];
 }
 
 const localStore: LocalDb = {
@@ -101,7 +103,9 @@ const localStore: LocalDb = {
   certificates: [],
   registrations: [],
   attendance: [],
-  logs: []
+  logs: [],
+  coding_challenges: [],
+  arena_submissions: []
 };
 
 // Seed Local Data
@@ -344,6 +348,131 @@ const seedLocalData = () => {
       timestamp: new Date().toISOString()
     }
   ];
+
+  localStore.coding_challenges = [
+    {
+      id: "POLL-2026-071",
+      title: "What is the output of the following Python dictionary comprehension?",
+      description: "Evaluate the dictionary key-value mapping and filter behavior: {x: x**2 for x in [1, 2, 2, 3] if x % 2 != 0}",
+      category: "Python & Data Structures",
+      topic: "Python & Data Structures",
+      language: "Python 3",
+      difficulty: "Medium",
+      status: "today",
+      pollStatus: "Active",
+      publishedTimestamp: "Nov 7, 2026, 08:00 AM IST",
+      closingTimestamp: "Nov 8, 2026, 11:59 PM IST",
+      submissionDeadline: "2026-11-08T23:59:59Z",
+      acceptance: "59.2%",
+      xp: 50,
+      totalVotes: 0,
+      options: [
+        { id: "A", text: "{1: 1, 3: 9}", votes: 0 },
+        { id: "B", text: "{1: 1, 2: 4, 3: 9}", votes: 0 },
+        { id: "C", text: "{1: 1, 2: 4, 2: 4, 3: 9}", votes: 0 },
+        { id: "D", text: "KeyError: duplicate key 2", votes: 0 }
+      ],
+      correctOption: "A",
+      explanation: "The list contains [1, 2, 2, 3]. The filter condition 'if x % 2 != 0' evaluates only odd numbers 1 and 3 (even numbers 2 and 2 are skipped). In Python dictionaries, keys must be unique. For x=1, value is 1**2 = 1. For x=3, value is 3**2 = 9. Therefore, the resulting dictionary is {1: 1, 3: 9}.",
+      problemStatement: "What is the output of {x: x**2 for x in [1, 2, 2, 3] if x % 2 != 0}?",
+      inputFormat: "Input list: [1, 2, 2, 3]",
+      outputFormat: "{1: 1, 3: 9}",
+      constraints: "Python 3.8+",
+      sampleTestCases: [{ input: "[1, 2, 2, 3]", output: "{1: 1, 3: 9}", explanation: "Filter condition removes even numbers." }]
+    },
+    {
+      id: "POLL-2026-070",
+      title: "Which data structure provides O(1) average time complexity for insert, delete, and getRandom()?",
+      description: "Consider contiguous memory indexing and constant-time element lookup requirements.",
+      category: "Data Structures",
+      topic: "Data Structures",
+      language: "Data Structures",
+      difficulty: "Easy",
+      status: "archive",
+      pollStatus: "Closed",
+      publishedTimestamp: "Nov 6, 2026, 08:00 AM IST",
+      closingTimestamp: "Nov 7, 2026, 08:00 AM IST",
+      submissionDeadline: "2026-11-07T08:00:00Z",
+      acceptance: "100%",
+      xp: 50,
+      totalVotes: 0,
+      options: [
+        { id: "A", text: "Array + Hash Map combination", votes: 0 },
+        { id: "B", text: "Balanced Binary Search Tree (AVL)", votes: 0 },
+        { id: "C", text: "Doubly Linked List with pointers", votes: 0 },
+        { id: "D", text: "Min-Heap with pointer index map", votes: 0 }
+      ],
+      correctOption: "A",
+      explanation: "A Hash Map maps values to their array indices, allowing O(1) lookup and delete. A dynamic array stores the elements consecutively, enabling getRandom() in O(1) using random index generation. During deletion, swapping the target element with the last array element allows O(1) removal without shifting.",
+      problemStatement: "Which data structure achieves O(1) insert, delete, and getRandom()?",
+      inputFormat: "Data structure operations sequence.",
+      outputFormat: "Array + Hash Map combination.",
+      constraints: "O(1) average time per operation.",
+      sampleTestCases: [{ input: "insert(1), insert(2), getRandom()", output: "1 or 2 with equal probability" }]
+    },
+    {
+      id: "POLL-2026-069",
+      title: "What is the time complexity of building a Binary Heap of n elements using Floyd's algorithm?",
+      description: "Analyze the total sum of node heights and work done across all tree levels during bottom-up heap construction.",
+      category: "Algorithms & Heaps",
+      topic: "Algorithms",
+      language: "Algorithms",
+      difficulty: "Hard",
+      status: "archive",
+      pollStatus: "Closed",
+      publishedTimestamp: "Nov 5, 2026, 08:00 AM IST",
+      closingTimestamp: "Nov 6, 2026, 08:00 AM IST",
+      submissionDeadline: "2026-11-06T08:00:00Z",
+      acceptance: "100%",
+      xp: 50,
+      totalVotes: 0,
+      options: [
+        { id: "A", text: "O(n)", votes: 0 },
+        { id: "B", text: "O(n log n)", votes: 0 },
+        { id: "C", text: "O(n²)", votes: 0 },
+        { id: "D", text: "O(log n)", votes: 0 }
+      ],
+      correctOption: "A",
+      explanation: "Floyd's algorithm calls sift-down starting from leaf parents down to the root. Since most nodes are near the leaves where height is small, the summation sum_{h=0}^{log n} (n/2^(h+1)) * O(h) converges to O(n), unlike inserting elements one-by-one which takes O(n log n).",
+      problemStatement: "Calculate Floyd's build-heap complexity.",
+      inputFormat: "Array of size n.",
+      outputFormat: "O(n)",
+      constraints: "Binary Max/Min Heap.",
+      sampleTestCases: [{ input: "n = 10^6", output: "O(n) operations" }]
+    },
+    {
+      id: "POLL-2026-072",
+      title: "In SQL, what is the key difference between WHERE and HAVING clauses?",
+      description: "Determine when filtering occurs relative to GROUP BY aggregation in the query execution pipeline.",
+      category: "Database & SQL",
+      topic: "Database & SQL",
+      language: "SQL",
+      difficulty: "Medium",
+      status: "upcoming",
+      pollStatus: "Active",
+      publishedTimestamp: "Nov 8, 2026, 08:00 AM IST",
+      closingTimestamp: "Nov 9, 2026, 11:59 PM IST",
+      submissionDeadline: "2026-11-09T23:59:59Z",
+      acceptance: "Pending",
+      xp: 50,
+      totalVotes: 0,
+      options: [
+        { id: "A", text: "WHERE filters rows before grouping; HAVING filters aggregated groups after grouping.", votes: 0 },
+        { id: "B", text: "WHERE works only on numeric columns; HAVING works only on strings.", votes: 0 },
+        { id: "C", text: "HAVING requires a Primary Key constraint.", votes: 0 },
+        { id: "D", text: "They are exact synonyms with identical execution behavior.", votes: 0 }
+      ],
+      correctOption: "A",
+      explanation: "The WHERE clause filters individual records before aggregation functions (SUM, COUNT, AVG) are executed. The HAVING clause applies filters specifically to the groups created by GROUP BY after aggregations have occurred.",
+      problemStatement: "Compare WHERE vs HAVING in SQL.",
+      inputFormat: "SQL Query context.",
+      outputFormat: "WHERE filters before grouping; HAVING filters after grouping.",
+      constraints: "ANSI SQL standard.",
+      sampleTestCases: [{ input: "SELECT dept, COUNT(*) FROM emp WHERE salary > 50000 GROUP BY dept HAVING COUNT(*) > 5", output: "WHERE filters salary; HAVING filters group counts." }]
+    }
+  ];
+
+  localStore.arena_submissions = [];
 };
 
 seedLocalData();
@@ -375,6 +504,9 @@ export const initializeFirestoreStore = async () => {
       }
       for (const log of localStore.logs) {
         await setDoc(doc(firestoreDb, "logs", log.id), log);
+      }
+      for (const chal of localStore.coding_challenges) {
+        await setDoc(doc(firestoreDb, "coding_challenges", chal.id), chal);
       }
       console.log("🚀 Firestore Seeding Finished Successfully!");
     } else {
@@ -634,3 +766,227 @@ export const saveFirebaseLog = async (id: string, data: any): Promise<void> => {
     }
   }
 };
+
+export const getFirebaseChallenges = async (): Promise<any[]> => {
+  if (isFirebaseActive && firestoreDb) {
+    try {
+      const snap = await getDocs(collection(firestoreDb, "coding_challenges"));
+      if (!snap.empty) {
+        return snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      }
+    } catch (err) {
+      console.error("Firestore error reading coding_challenges:", err);
+    }
+  }
+  return localStore.coding_challenges || [];
+};
+
+export const saveFirebaseChallenge = async (id: string, data: any): Promise<void> => {
+  const clean = { ...data, id };
+  const idx = (localStore.coding_challenges || []).findIndex(c => c.id === id);
+  if (idx !== -1) {
+    localStore.coding_challenges[idx] = { ...localStore.coding_challenges[idx], ...clean };
+  } else {
+    if (!localStore.coding_challenges) localStore.coding_challenges = [];
+    localStore.coding_challenges.push(clean);
+  }
+
+  if (isFirebaseActive && firestoreDb) {
+    try {
+      await setDoc(doc(firestoreDb, "coding_challenges", id), clean, { merge: true });
+    } catch (err) {
+      console.error("Firestore challenge write error:", err);
+    }
+  }
+};
+
+export const deleteFirebaseChallenge = async (id: string): Promise<void> => {
+  if (localStore.coding_challenges) {
+    localStore.coding_challenges = localStore.coding_challenges.filter(c => c.id !== id);
+  }
+  if (isFirebaseActive && firestoreDb) {
+    try {
+      await deleteDoc(doc(firestoreDb, "coding_challenges", id));
+    } catch (err) {
+      console.error("Firestore challenge delete error:", err);
+    }
+  }
+};
+
+export const getFirebaseSubmissions = async (userId?: string): Promise<any[]> => {
+  if (isFirebaseActive && firestoreDb) {
+    try {
+      let snap;
+      if (userId) {
+        const q = query(collection(firestoreDb, "arena_submissions"), where("userId", "==", userId));
+        snap = await getDocs(q);
+      } else {
+        snap = await getDocs(collection(firestoreDb, "arena_submissions"));
+      }
+      if (!snap.empty) {
+        return snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      }
+    } catch (err) {
+      console.error("Firestore error reading arena_submissions:", err);
+    }
+  }
+  const all = localStore.arena_submissions || [];
+  if (userId) {
+    return all.filter(s => s.userId === userId || s.userEmail === userId);
+  }
+  return all;
+};
+
+export const checkStudentPollVote = (questionId: string, userIdOrEmail: string): any | null => {
+  if (!userIdOrEmail) return null;
+  const match = (localStore.arena_submissions || []).find(
+    s => s.challengeId === questionId && (s.userId === userIdOrEmail || s.userEmail === userIdOrEmail)
+  );
+  return match || null;
+};
+
+export const submitPollVote = async (
+  questionId: string,
+  selectedOption: string,
+  student: { uid: string; name: string; email: string; department?: string; semester?: string }
+): Promise<{
+  success: boolean;
+  message: string;
+  isCorrect: boolean;
+  correctOption: string;
+  explanation: string;
+  updatedQuestion: any;
+  pointsEarned: number;
+  voteRecord: any;
+}> => {
+  if (!student || !student.uid) {
+    throw new Error("Authentication required. Please log in before voting on the Daily Challenge.");
+  }
+
+  // Duplicate check: verify if the student has already voted on this question
+  const existingVote = (localStore.arena_submissions || []).find(
+    s => s.challengeId === questionId && (s.userId === student.uid || s.userEmail === student.email)
+  );
+  if (existingVote) {
+    throw new Error("You have already voted on this daily poll. Each student is allowed only one submission per question.");
+  }
+
+  // Locate the target question
+  let question = (localStore.coding_challenges || []).find(c => c.id === questionId);
+  if (!question) {
+    throw new Error("Question not found.");
+  }
+
+  if (question.pollStatus === "Closed" || question.status === "archive") {
+    // Poll closed
+  }
+
+  const isCorrect = selectedOption === question.correctOption;
+  const pointsEarned = isCorrect ? (question.xp || 50) : 0;
+
+  // Increment votes for selected option and total
+  const updatedOptions = (question.options || []).map((opt: any) => {
+    if (opt.id === selectedOption) {
+      return { ...opt, votes: (opt.votes || 0) + 1 };
+    }
+    return opt;
+  });
+  const updatedTotalVotes = (question.totalVotes || 0) + 1;
+
+  question = {
+    ...question,
+    options: updatedOptions,
+    totalVotes: updatedTotalVotes
+  };
+
+  const qIdx = localStore.coding_challenges.findIndex(c => c.id === questionId);
+  if (qIdx !== -1) {
+    localStore.coding_challenges[qIdx] = question;
+  }
+
+  // Create official submission record
+  const voteRecord = {
+    id: `VOTE-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    userId: student.uid,
+    userEmail: student.email,
+    userName: student.name,
+    challengeId: questionId,
+    challengeTitle: question.title,
+    selectedOption,
+    isCorrect,
+    status: isCorrect ? "Accepted" : "Wrong Answer",
+    difficulty: question.difficulty || "Medium",
+    language: "MCQ Poll",
+    submittedAt: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST",
+    pointsEarned,
+    executionTime: "0.08s",
+    memoryUsed: "1.2 MB",
+    code: `Poll Question: ${question.title}\nSelected Option: [${selectedOption}] ${question.options?.find((o: any) => o.id === selectedOption)?.text || ""}\nEvaluation: ${isCorrect ? "Correct (+50 XP)" : "Incorrect (Correct Option: " + question.correctOption + ")"}`,
+    errorMessage: isCorrect ? null : `Selected Option ${selectedOption} is incorrect. Correct answer is Option ${question.correctOption}.`
+  };
+
+  if (!localStore.arena_submissions) localStore.arena_submissions = [];
+  localStore.arena_submissions.unshift(voteRecord);
+
+  // Update student stats in users store
+  const uIdx = (localStore.users || []).findIndex(u => u.uid === student.uid || u.email === student.email);
+  if (uIdx !== -1) {
+    const existingUser = localStore.users[uIdx];
+    localStore.users[uIdx] = {
+      ...existingUser,
+      points: (existingUser.points || 0) + pointsEarned,
+      solved: (existingUser.solved || 0) + (isCorrect ? 1 : 0),
+      streak: (existingUser.streak || 0) + (isCorrect ? 1 : 0)
+    };
+  }
+
+  // Sync to Firestore
+  if (isFirebaseActive && firestoreDb) {
+    try {
+      await setDoc(doc(firestoreDb, "arena_submissions", voteRecord.id), voteRecord);
+      await setDoc(doc(firestoreDb, "coding_challenges", questionId), question, { merge: true });
+      if (student.uid) {
+        await setDoc(doc(firestoreDb, "users", student.uid), {
+          points: (localStore.users.find(u => u.uid === student.uid)?.points || 50),
+          solved: (localStore.users.find(u => u.uid === student.uid)?.solved || 1)
+        }, { merge: true });
+      }
+    } catch (fsErr) {
+      console.warn("Firestore vote sync notice (local store updated):", fsErr);
+    }
+  }
+
+  return {
+    success: true,
+    message: isCorrect ? `🎉 Correct! You earned +${pointsEarned} XP.` : `❌ Incorrect answer. Correct option was Option ${question.correctOption}.`,
+    isCorrect,
+    correctOption: question.correctOption,
+    explanation: question.explanation,
+    updatedQuestion: question,
+    pointsEarned,
+    voteRecord
+  };
+};
+
+export const saveFirebaseSubmission = async (id: string, data: any): Promise<void> => {
+  const clean = { ...data, id };
+  const idx = (localStore.arena_submissions || []).findIndex(s => s.id === id);
+  if (idx !== -1) {
+    localStore.arena_submissions[idx] = { ...localStore.arena_submissions[idx], ...clean };
+  } else {
+    if (!localStore.arena_submissions) localStore.arena_submissions = [];
+    localStore.arena_submissions.unshift(clean);
+  }
+
+  if (isFirebaseActive && firestoreDb) {
+    try {
+      await setDoc(doc(firestoreDb, "arena_submissions", id), clean, { merge: true });
+    } catch (err) {
+      console.error("Firestore submission write error:", err);
+    }
+  }
+};
+
+
+
+

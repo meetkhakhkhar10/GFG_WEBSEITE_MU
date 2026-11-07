@@ -252,3 +252,59 @@ function getRegistrationById(registrationId) {
     });
   }
 }
+
+/**
+ * GET ?action=getRegistrations&eventId=EVT-0001
+ * 
+ * Fetches registrations strictly filtered by eventId when provided.
+ */
+function getRegistrationsList(eventId) {
+  try {
+    var ss = getSpreadsheet();
+    var sheet = ss.getSheetByName(APP_CONFIG.SHEETS.REGISTRATIONS);
+    if (!sheet) {
+      return jsonResponse({ success: true, registrations: [], count: 0 });
+    }
+
+    var headerMap = buildHeaderMap_(sheet);
+    var rows = sheet.getDataRange().getValues();
+    var targetEvt = eventId ? String(eventId).trim().toUpperCase() : "";
+    var list = [];
+
+    for (var r = 1; r < rows.length; r++) {
+      var row = rows[r];
+      var rowEvt = String(getRowValue_(row, headerMap, ["Event_ID", "event_id"])).trim().toUpperCase();
+      if (targetEvt && rowEvt !== targetEvt) continue;
+
+      list.push({
+        registration_id: String(getRowValue_(row, headerMap, ["Registration_ID", "registration_id", "id"])),
+        event_id: rowEvt,
+        name: String(getRowValue_(row, headerMap, ["Name", "name"])),
+        email: String(getRowValue_(row, headerMap, ["Email", "email"])),
+        phone: String(getRowValue_(row, headerMap, ["Phone", "phone"])),
+        enrollment_number: String(getRowValue_(row, headerMap, ["Enrollment_Number", "enrollment_number", "enrollment"])),
+        program: String(getRowValue_(row, headerMap, ["Program", "program", "branch"])),
+        department: String(getRowValue_(row, headerMap, ["Department", "department"])),
+        year: String(getRowValue_(row, headerMap, ["Year", "year"])),
+        college: String(getRowValue_(row, headerMap, ["College", "college"])),
+        status: String(getRowValue_(row, headerMap, ["Status", "status"]) || "CONFIRMED"),
+        attendance_status: String(getRowValue_(row, headerMap, ["Attendance_Status", "attendance_status"]) || "NOT_MARKED"),
+        certificate_status: String(getRowValue_(row, headerMap, ["Certificate_Status", "certificate_status"]) || "NOT_ISSUED"),
+        certificate_url: String(getRowValue_(row, headerMap, ["Certificate_URL", "certificate_url"])),
+        timestamp: String(getRowValue_(row, headerMap, ["Timestamp", "timestamp"]))
+      });
+    }
+
+    return jsonResponse({
+      success: true,
+      count: list.length,
+      registrations: list
+    });
+  } catch (err) {
+    return jsonResponse({
+      success: false,
+      code: "FETCH_ERROR",
+      error: "Error listing registrations: " + err.toString()
+    });
+  }
+}

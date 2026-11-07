@@ -16,6 +16,7 @@ import {
   BarChart, Bar, Cell, PieChart, Pie
 } from "recharts";
 import { apiService } from "../../services/apiService";
+import QuestionManagement from "@/src/components/admin/QuestionManagement";
 
 const extractSpreadsheetId = (input: string) => {
   if (input.includes("docs.google.com/spreadsheets")) {
@@ -43,17 +44,28 @@ export default function Dashboard() {
   
   // Conform precisely to standard 7 modules under requirement 9
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "events" | "registrations" | "media" | "analytics" | "settings" | "security" | "team"
+    "dashboard" | "events" | "questions" | "registrations" | "media" | "analytics" | "settings" | "security" | "team"
   >("dashboard");
 
-  // Synchronize tab changes from URL params automatically
+  // Synchronize tab changes from URL pathname and params automatically
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tabParam = params.get("tab");
-    if (tabParam && ["dashboard", "events", "registrations", "media", "analytics", "settings", "security", "team"].includes(tabParam)) {
-      setActiveTab(tabParam as any);
+    const pathname = location.pathname;
+    if (pathname.includes("/admin/questions")) {
+      setActiveTab("questions");
+    } else if (pathname.includes("/admin/students")) {
+      setActiveTab("registrations");
+    } else if (pathname.includes("/admin/submissions")) {
+      setActiveTab("registrations");
+    } else if (pathname.includes("/admin/leaderboard")) {
+      setActiveTab("analytics");
+    } else {
+      const params = new URLSearchParams(location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && ["dashboard", "events", "questions", "registrations", "media", "analytics", "settings", "security", "team"].includes(tabParam)) {
+        setActiveTab(tabParam as any);
+      }
     }
-  }, [location.search]);
+  }, [location.pathname, location.search]);
 
   // Telemetry lists
   const [events, setEvents] = useState<any[]>([]);
@@ -660,6 +672,7 @@ export default function Dashboard() {
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "events", label: "Event Management", icon: Calendar },
+    { id: "questions", label: "Daily MCQ Polls", icon: Terminal },
     { id: "registrations", label: "Registration Management", icon: ClipboardList },
     { id: "team", label: "Team Management", icon: Users },
     { id: "media", label: "Media Explorer", icon: ImageIcon },
@@ -757,6 +770,8 @@ export default function Dashboard() {
 
         <main className="flex-1 p-10 overflow-y-auto space-y-10 bg-[#070707]">
           
+          {activeTab === "questions" && <QuestionManagement />}
+
           {/* ==============================================
               TAB 1: COMMAND DASHBOARD OVERVIEW 
               ============================================== */}

@@ -81,6 +81,7 @@ interface LocalDb {
   attendance: any[];
   logs: any[];
   team: any[];
+  arena_submissions: any[];
 }
 
 const localStore: LocalDb = {
@@ -91,7 +92,8 @@ const localStore: LocalDb = {
   registrations: [],
   attendance: [],
   logs: [],
-  team: []
+  team: [],
+  arena_submissions: []
 };
 
 // Seed Local Data
@@ -693,4 +695,46 @@ export const deleteFirebaseTeamMember = async (memberId: string): Promise<void> 
     }
   }
 };
+
+export const getFirebaseSubmissions = async (userId?: string): Promise<any[]> => {
+  if (isFirebaseActive && db) {
+    try {
+      let queryRef: any = db.collection("arena_submissions");
+      if (userId) {
+        queryRef = queryRef.where("userId", "==", userId);
+      }
+      const snap = await queryRef.get();
+      if (!snap.empty) {
+        return snap.docs.map((d: any) => ({ ...d.data(), id: d.id }));
+      }
+    } catch (err) {
+      console.error("Firestore Admin error in fetching arena_submissions:", err);
+    }
+  }
+  const all = localStore.arena_submissions || [];
+  if (userId) {
+    return all.filter(s => s.userId === userId || s.userEmail === userId);
+  }
+  return all;
+};
+
+export const saveFirebaseSubmission = async (subId: string, data: any): Promise<void> => {
+  const clean = { ...data, id: subId };
+  const idx = (localStore.arena_submissions || []).findIndex(s => s.id === subId);
+  if (idx !== -1) {
+    localStore.arena_submissions[idx] = { ...localStore.arena_submissions[idx], ...clean };
+  } else {
+    if (!localStore.arena_submissions) localStore.arena_submissions = [];
+    localStore.arena_submissions.unshift(clean);
+  }
+
+  if (isFirebaseActive && db) {
+    try {
+      await db.collection("arena_submissions").doc(subId).set(clean, { merge: true });
+    } catch (err) {
+      console.error("Firestore Admin arena_submissions write error:", err);
+    }
+  }
+};
+
 

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type Theme = "dark" | "light";
+export type Theme = "light";
 
 interface ThemeContextType {
   theme: Theme;
@@ -10,25 +10,17 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem("theme");
-    return saved === "light" ? "light" : "dark";
-  });
+  const [theme] = useState<Theme>("light");
 
   useEffect(() => {
     const root = window.document.documentElement;
-    if (theme === "light") {
-      root.classList.add("light");
-      root.classList.remove("dark");
-    } else {
-      root.classList.add("dark");
-      root.classList.remove("light");
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+    root.classList.add("light");
+    root.classList.remove("dark");
+    localStorage.setItem("theme", "light");
+  }, []);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    // Light-theme only platform
   };
 
   return (
@@ -45,4 +37,5 @@ export function useTheme() {
   }
   return context;
 }
+
 

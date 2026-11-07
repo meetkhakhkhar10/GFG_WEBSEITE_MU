@@ -7,6 +7,11 @@ import Events from "@/src/pages/Events";
 import Contact from "@/src/pages/Contact";
 import Courses from "@/src/pages/Courses";
 import Team from "@/src/pages/Team";
+import CodingArena from "@/src/pages/CodingArena";
+import StudentDashboard from "@/src/pages/student/StudentDashboard";
+import MySubmissions from "@/src/pages/student/MySubmissions";
+import StudentDirectory from "@/src/pages/StudentDirectory";
+import StudentLogin from "@/src/pages/StudentLogin";
 
 // Route-level code splitting for heavy admin and utility pages
 const NetlifyDeploy = lazy(() => import("@/src/pages/NetlifyDeploy"));
@@ -20,6 +25,8 @@ const AtgfgProtectedRoute = lazy(() => import("@/src/components/atgfg/AtgfgProte
 
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import { ThemeProvider } from "@/src/contexts/ThemeContext";
+
+import AdminProtectedRoute from "@/src/components/admin/AdminProtectedRoute";
 
 // Loading Fallback
 function RouteLoader() {
@@ -56,6 +63,11 @@ export default function App() {
                 <Route path="events" element={<Events />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="courses" element={<Courses />} />
+                <Route path="coding-arena" element={<CodingArena />} />
+                <Route path="leaderboard" element={<Navigate to="/coding-arena?tab=leaderboard" replace />} />
+                <Route path="submissions" element={<Navigate to="/student/submissions" replace />} />
+                <Route path="announcements" element={<Navigate to="/events" replace />} />
+                <Route path="students" element={<StudentDirectory />} />
                 <Route path="team" element={<Team />} />
                 <Route path="deploy" element={<NetlifyDeploy />} />
                 <Route path="certificate-data-entry" element={<CertificateDataEntry />} />
@@ -64,21 +76,64 @@ export default function App() {
               {/* Dedicated Certificate Attendance Scanner Route */}
               <Route path="/certificate-attendance-scanner" element={<CertificateAttendanceScanner />} />
 
-              {/* Student Portal redirects */}
-              <Route path="/student/portal" element={<Navigate to="/" replace />} />
-              <Route path="/student/dashboard" element={<Navigate to="/" replace />} />
-              <Route path="/student-login" element={<Navigate to="/" replace />} />
-              <Route path="/login" element={<Navigate to="/" replace />} />
+              {/* Student Authentication Page */}
+              <Route path="/login" element={<StudentLogin />} />
+              <Route path="/register" element={<StudentLogin />} />
+              <Route path="/auth" element={<StudentLogin />} />
+              <Route path="/student-login" element={<StudentLogin />} />
+              <Route path="/student/portal" element={<Navigate to="/student/dashboard" replace />} />
+              <Route path="/student/dashboard" element={<StudentDashboard />} />
+              <Route path="/student/submissions" element={<MySubmissions />} />
+              <Route path="/arena/submissions" element={<Navigate to="/student/submissions" replace />} />
 
-              {/* Admin Login */}
+              {/* Admin Login Route */}
               <Route path="/admin-login" element={<Login />} />
 
-              {/* Internal Routes */}
+              {/* Secure Protected Admin Routes */}
               <Route path="/admin">
-                <Route index element={<Navigate to="/admin-login" replace />} />
+                <Route index element={<Navigate to="/admin/questions" replace />} />
                 <Route path="login" element={<Navigate to="/admin-login" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="events" element={<Navigate to="/admin/dashboard?tab=events" replace />} />
+                <Route
+                  path="dashboard"
+                  element={
+                    <AdminProtectedRoute>
+                      <Dashboard />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="questions"
+                  element={
+                    <AdminProtectedRoute>
+                      <Dashboard />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="students"
+                  element={
+                    <AdminProtectedRoute>
+                      <Dashboard />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="submissions"
+                  element={
+                    <AdminProtectedRoute>
+                      <Dashboard />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="leaderboard"
+                  element={
+                    <AdminProtectedRoute>
+                      <Dashboard />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route path="events" element={<Navigate to="/admin/questions?tab=events" replace />} />
               </Route>
 
               {/* Attendance Admin Portal Routes */}
