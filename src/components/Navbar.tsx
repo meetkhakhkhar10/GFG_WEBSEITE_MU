@@ -1,328 +1,174 @@
-import { Link, useLocation, useNavigate } from "react-router-dom"
-import React, { useState, useEffect, useRef } from "react"
-import { cn } from "@/src/lib/utils"
-import { 
-  Home, 
-  BookOpen, 
-  Zap, 
-  Calendar, 
-  Users, 
-  Info, 
-  Mail, 
-  Menu, 
-  X, 
-  ChevronDown, 
-  LayoutDashboard, 
-  User, 
-  LogOut, 
-  ShieldCheck, 
-  LogIn,
-  FileText,
-  Trophy,
-  Megaphone,
-  Sparkles
-} from "lucide-react"
-import { motion, AnimatePresence } from "motion/react"
-import { useAuth } from "@/src/contexts/AuthContext"
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/src/lib/utils";
+import { Menu, X, ArrowUpRight, Code2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 
-const GFG_LOGO_PRIMARY = "/gfg-logo.png"
-const GFG_LOGO_FALLBACK = "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png"
+const navLinks = [
+  { name: "Home", path: "/", num: "01" },
+  { name: "Courses", path: "/courses", num: "02" },
+  { name: "Coding Arena", path: "/coding-arena", num: "03", icon: Code2 },
+  { name: "Events", path: "/events", num: "04" },
+  { name: "Team", path: "/team", num: "05" },
+  { name: "About", path: "/about", num: "06" },
+  { name: "Contact", path: "/contact", num: "07" },
+];
 
-const MU_LOGO_PRIMARY = "/marwadi-university-logo.svg"
-const MU_LOGO_FALLBACK = "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg"
+const GFG_LOGO_PRIMARY = "/gfg-logo.png";
+const GFG_LOGO_FALLBACK = "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210420155809/gfg-new-logo.png";
+
+const MU_LOGO_PRIMARY = "/marwadi-university-logo.svg";
+const MU_LOGO_FALLBACK = "https://www.marwadiuniversity.ac.in/wp-content/themes/marwadi-university/assets/img/logomain.svg";
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { user, isAuthenticated, logout } = useAuth()
-  
-  const [gfgLogo, setGfgLogo] = useState(GFG_LOGO_PRIMARY)
-  const [muLogo, setMuLogo] = useState(MU_LOGO_PRIMARY)
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [gfgLogo, setGfgLogo] = useState(GFG_LOGO_PRIMARY);
+  const [muLogo, setMuLogo] = useState(MU_LOGO_PRIMARY);
 
-  // Strict backend-verified admin check (students must never see admin panel option)
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin"
-
-  // Exact 7 Main Navigation Items
-  const navLinks = [
-    { name: "Home", path: "/", icon: Home },
-    { name: "Courses", path: "/courses", icon: BookOpen },
-    { name: "Daily Coding Arena", path: "/coding-arena", icon: Zap },
-    { name: "Events", path: "/events", icon: Calendar },
-    { name: "Team", path: "/team", icon: Users },
-    { name: "About", path: "/about", icon: Info },
-    { name: "Contact", path: "/contact", icon: Mail },
-  ]
-
-  // Close dropdown on click outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false)
+    const checkAdmin = () => {
+      const savedAdmin = localStorage.getItem("admin_user");
+      if (savedAdmin) {
+        try {
+          const parsed = JSON.parse(savedAdmin);
+          setIsAdmin(parsed?.email?.toLowerCase() === "meetkhakhkhar05@gmail.com");
+        } catch {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+    };
+    checkAdmin();
+    window.addEventListener("storage", checkAdmin);
+    return () => window.removeEventListener("storage", checkAdmin);
+  }, [location.pathname]);
 
   // Lock scroll when mobile menu is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden"
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = ""
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = ""
-    }
-  }, [isOpen])
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsOpen(false)
-    setDropdownOpen(false)
-  }, [location.pathname, location.search])
-
-  const handleLogout = () => {
-    logout()
-    setDropdownOpen(false)
-    setIsOpen(false)
-    navigate("/")
-  }
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   return (
     <>
-      <header className="sticky top-0 z-50 h-20 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs transition-colors select-none">
-        <div className="max-w-[1440px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+      <header className="fixed top-0 left-0 right-0 z-50 h-18 bg-[#F4F4F0]/90 backdrop-blur-md border-b border-[#E2E2DC] transition-colors select-none">
+        <div className="max-w-[1400px] mx-auto h-full px-6 flex items-center justify-between">
           
-          {/* Left: GFG × Marwadi University Brand Lockup */}
-          <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
+          {/* Left: GFG × Marwadi University Institutional Brand Lockup */}
+          <div className="flex items-center space-x-3 sm:space-x-5 flex-shrink-0">
             <Link 
               to="/" 
-              className="flex items-center gap-2 sm:gap-3 group py-1 flex-shrink-0"
-              aria-label="GeeksforGeeks Marwadi University Student Chapter"
+              className="flex items-center gap-2 sm:gap-2.5 md:gap-3 group py-1 flex-shrink-0"
+              aria-label="GeeksforGeeks Marwadi University Student Chapter Home"
             >
               {/* GFG Logo Container */}
-              <div className="flex-shrink-0 flex items-center justify-center h-[28px] sm:h-[32px] w-auto">
+              <div className="flex-shrink-0 flex items-center justify-center h-[24px] sm:h-[30px] w-auto">
                 <img 
                   src={gfgLogo} 
                   alt="GeeksforGeeks" 
-                  className="h-full w-auto max-h-[32px] object-contain block select-none"
+                  className="h-full w-auto max-h-[30px] object-contain block select-none"
                   referrerPolicy="no-referrer"
                   onError={() => setGfgLogo(GFG_LOGO_FALLBACK)}
                 />
               </div>
 
               {/* Separator */}
-              <span className="flex-shrink-0 text-slate-400 font-mono text-sm font-semibold select-none leading-none">
+              <span className="flex-shrink-0 text-[#8B9198] font-mono text-[11px] font-light select-none leading-none">
                 ×
               </span>
 
               {/* Marwadi University Logo Container */}
-              <div className="flex-shrink-0 flex items-center justify-center h-[30px] sm:h-[36px] w-auto">
+              <div className="flex-shrink-0 flex items-center justify-center h-[26px] sm:h-[34px] w-auto">
                 <img 
                   src={muLogo} 
                   alt="Marwadi University" 
-                  className="h-full w-auto max-h-[36px] object-contain block select-none"
+                  className="h-full w-auto max-h-[34px] object-contain block select-none"
                   referrerPolicy="no-referrer"
                   onError={() => setMuLogo(MU_LOGO_FALLBACK)}
                 />
               </div>
             </Link>
 
-            <span className="hidden xl:inline-block h-5 w-[1px] bg-slate-200 flex-shrink-0" />
-            <span className="hidden xl:inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-200/60 flex-shrink-0">
-              Student Chapter
+            <span className="hidden sm:inline-block h-4 w-[1px] bg-[#E2E2DC] flex-shrink-0" />
+            <span className="hidden sm:inline-block font-mono text-[9px] uppercase tracking-widest text-[#8B9198] flex-shrink-0">
+              CH. 2026
             </span>
           </div>
 
-          {/* Center: Desktop 7 Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-1.5">
+          {/* Center: Editorial Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-8">
             {navLinks.map((link) => {
-              const Icon = link.icon
-              const isActive = location.pathname === link.path
-
+              const isActive = location.pathname === link.path;
+              const Icon = link.icon;
               return (
                 <Link
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    "relative px-3 py-2 text-xs xl:text-sm font-bold tracking-tight rounded-xl transition-all duration-150 flex items-center gap-1.5",
-                    isActive 
-                      ? "text-[#00A86B] bg-emerald-50/80 border border-emerald-200/80 shadow-2xs" 
-                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 border border-transparent"
+                    "relative py-1 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors duration-200 flex items-center gap-1.5",
+                    isActive ? "text-[#00A86B] font-semibold" : "text-[#555B63] hover:text-[#00A86B]"
                   )}
                 >
-                  <Icon className={cn("w-4 h-4 shrink-0 transition-colors", isActive ? "text-[#00A86B]" : "text-slate-500")} />
+                  <span className="text-[8px] opacity-40 font-normal">{link.num}</span>
+                  {Icon && <Icon className="w-3.5 h-3.5 text-[#00A86B]" />}
                   <span>{link.name}</span>
                   {isActive && (
-                    <motion.span
-                      layoutId="navActiveIndicator"
-                      className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#00A86B] rounded-full"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    <motion.div
+                      layoutId="navIndicator"
+                      className="absolute -bottom-2.5 left-0 right-0 h-[1.5px] bg-[#00A86B]"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
                 </Link>
-              )
+              );
             })}
+
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                className={cn(
+                  "relative py-1 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors duration-200 text-[#00A86B]",
+                  location.pathname.startsWith("/admin") ? "font-bold" : "opacity-80 hover:opacity-100"
+                )}
+              >
+                [Admin]
+              </Link>
+            )}
           </nav>
 
-          {/* Right: Authenticated User Dropdown or Guest Login / Register CTA */}
-          <div className="hidden lg:flex items-center space-x-3 flex-shrink-0">
-            {isAuthenticated && user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-2.5 p-1.5 pl-2 pr-3 rounded-full bg-slate-100 hover:bg-slate-200/70 border border-slate-200 transition-all cursor-pointer focus:outline-none"
-                >
-                  <img
-                    src={user.profilePhoto || "https://api.dicebear.com/7.x/avataaars/svg?seed=student"}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-[#00A86B] shadow-xs"
-                  />
-                  <span className="text-xs font-bold text-slate-800 max-w-[110px] truncate">
-                    {user.name.split(" ")[0]}
-                  </span>
-                  <ChevronDown className={cn("w-4 h-4 text-slate-500 transition-transform duration-200", dropdownOpen && "rotate-180")} />
-                </button>
+          {/* Right: Technical CTA / Coordinates */}
+          <div className="hidden lg:flex items-center space-x-6">
+            <div className="flex items-center space-x-2 font-mono text-[10px] text-[#8B9198]">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-pulse" />
+              <span>RAJKOT, IN</span>
+            </div>
 
-                {/* Profile Dropdown Menu */}
-                <AnimatePresence>
-                  {dropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: 6 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 6 }}
-                      transition={{ duration: 0.15, ease: "easeOut" }}
-                      className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 text-left divide-y divide-slate-100"
-                    >
-                      {/* Dropdown Header */}
-                      <div className="px-4 py-3 bg-slate-50/70 rounded-t-2xl">
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={user.profilePhoto || "https://api.dicebear.com/7.x/avataaars/svg?seed=student"}
-                            alt={user.name}
-                            className="w-11 h-11 rounded-full object-cover border-2 border-[#00A86B] shadow-sm"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-extrabold text-slate-900 truncate">{user.name}</p>
-                            <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">
-                                {user.enrollment_no || "MU Student"}
-                              </span>
-                              {user.points !== undefined && (
-                                <span className="text-[10px] font-extrabold text-emerald-700 flex items-center gap-0.5">
-                                  <Sparkles className="w-3 h-3" /> {user.points} XP
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Dropdown Student Links */}
-                      <div className="py-1.5 px-1.5 space-y-0.5">
-                        <Link
-                          to="/student/dashboard"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center space-x-2.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#00A86B] hover:bg-emerald-50/70 rounded-xl transition-colors"
-                        >
-                          <LayoutDashboard className="w-4 h-4 text-slate-500" />
-                          <span>My Dashboard</span>
-                        </Link>
-                        
-                        <Link
-                          to="/student/submissions"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center space-x-2.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#00A86B] hover:bg-emerald-50/70 rounded-xl transition-colors"
-                        >
-                          <FileText className="w-4 h-4 text-slate-500" />
-                          <span>My Submissions</span>
-                        </Link>
-
-                        <Link
-                          to="/students"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center space-x-2.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#00A86B] hover:bg-emerald-50/70 rounded-xl transition-colors"
-                        >
-                          <Users className="w-4 h-4 text-slate-500" />
-                          <span>Students Directory</span>
-                        </Link>
-
-                        <Link
-                          to="/leaderboard"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center space-x-2.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#00A86B] hover:bg-emerald-50/70 rounded-xl transition-colors"
-                        >
-                          <Trophy className="w-4 h-4 text-slate-500" />
-                          <span>Leaderboard</span>
-                        </Link>
-                      </div>
-
-                      {/* Admin Panel Link (ONLY displayed to verified authorized administrators) */}
-                      {isAdmin && (
-                        <div className="py-1.5 px-1.5 bg-amber-50/50">
-                          <Link
-                            to="/admin/questions"
-                            onClick={() => setDropdownOpen(false)}
-                            className="flex items-center space-x-2.5 px-3 py-2 text-xs font-extrabold text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 border border-amber-200/80 rounded-xl transition-colors"
-                          >
-                            <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
-                            <span>Admin Panel</span>
-                          </Link>
-                        </div>
-                      )}
-
-                      {/* Logout Action */}
-                      <div className="pt-1.5 px-1.5 pb-1">
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center space-x-2.5 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link
-                  to="/login"
-                  className="inline-flex items-center space-x-2 px-4 py-2 text-xs font-bold text-slate-700 hover:text-[#00A86B] hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Login</span>
-                </Link>
-                <Link
-                  to="/login?mode=register"
-                  className="inline-flex items-center space-x-2 px-4 py-2 text-xs font-bold text-white bg-[#00A86B] hover:bg-[#008f5a] rounded-xl shadow-xs transition-all cursor-pointer"
-                >
-                  <span>Register</span>
-                </Link>
-              </div>
-            )}
+            <a
+              href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-widest text-[#111318] bg-transparent hover:bg-[#111318] hover:text-[#F4F4F0] border border-[#111318] transition-colors duration-200"
+            >
+              <span>Join Circle</span>
+              <ArrowUpRight className="w-3 h-3" />
+            </a>
           </div>
 
           {/* Mobile Hamburger Button */}
-          <div className="lg:hidden flex items-center space-x-2">
-            {isAuthenticated && user && (
-              <img
-                src={user.profilePhoto || "https://api.dicebear.com/7.x/avataaars/svg?seed=student"}
-                alt={user.name}
-                className="w-8 h-8 rounded-full object-cover border-2 border-[#00A86B]"
-              />
-            )}
+          <div className="lg:hidden flex items-center space-x-3">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2.5 rounded-xl bg-slate-100 text-slate-800 hover:text-[#00A86B] hover:bg-emerald-50 transition-colors focus:outline-none cursor-pointer"
-              aria-label="Toggle Navigation Menu"
+              className="p-2 text-[#111318] hover:text-[#00A86B] transition-colors focus:outline-none"
+              aria-label="Toggle Navigation"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -331,215 +177,115 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* MOBILE SLIDE-IN NAVIGATION DRAWER */}
+      {/* Full-Screen Mobile Editorial Menu */}
       <AnimatePresence>
         {isOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs lg:hidden"
-            />
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-50 bg-[#F4F4F0] flex flex-col justify-between overflow-y-auto lg:hidden"
+          >
+            {/* Background architectural grid */}
+            <div className="absolute inset-0 bg-technical-grid opacity-60 pointer-events-none" />
 
-            {/* Slide-in Drawer */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 350, damping: 32 }}
-              className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-white shadow-2xl flex flex-col justify-between overflow-y-auto lg:hidden"
-            >
-              <div className="p-6">
-                {/* Mobile Header Top */}
-                <div className="flex items-center justify-between pb-5 border-b border-slate-200">
-                  <div className="flex items-center space-x-2">
-                    <img 
-                      src={gfgLogo} 
-                      alt="GeeksforGeeks" 
-                      className="h-6 w-auto object-contain"
-                      onError={() => setGfgLogo(GFG_LOGO_FALLBACK)}
-                    />
-                    <span className="text-slate-400 font-mono text-xs">×</span>
-                    <img 
-                      src={muLogo} 
-                      alt="Marwadi University" 
-                      className="h-7 w-auto object-contain"
-                      onError={() => setMuLogo(MU_LOGO_FALLBACK)}
-                    />
-                  </div>
-
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 focus:outline-none"
-                    aria-label="Close Menu"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+            <div className="relative z-10">
+              {/* Mobile Menu Header - Single Top Branding Row */}
+              <header className="mobile-menu-header h-18 px-6 border-b border-[#E2E2DC] bg-[#F4F4F0]/95 backdrop-blur-md">
+                <div className="mobile-branding">
+                  <img 
+                    src={gfgLogo} 
+                    alt="GeeksforGeeks" 
+                    className="gfg-logo"
+                    referrerPolicy="no-referrer"
+                    onError={() => setGfgLogo(GFG_LOGO_FALLBACK)}
+                  />
+                  <span className="brand-separator">×</span>
+                  <img 
+                    src={muLogo} 
+                    alt="Marwadi University" 
+                    className="marwadi-logo"
+                    referrerPolicy="no-referrer"
+                    onError={() => setMuLogo(MU_LOGO_FALLBACK)}
+                  />
                 </div>
 
-                {/* Mobile User Profile Section */}
-                <div className="py-5">
-                  {isAuthenticated && user ? (
-                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={user.profilePhoto || "https://api.dicebear.com/7.x/avataaars/svg?seed=student"}
-                          alt={user.name}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-[#00A86B] shadow-xs shrink-0"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-extrabold text-slate-900 text-base truncate">{user.name}</p>
-                          <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                          <p className="text-[11px] font-semibold text-emerald-700 mt-0.5">{user.department || "CSE"}</p>
-                        </div>
-                      </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="mobile-menu-close p-2 text-[#111318] hover:text-[#00A86B] transition-colors focus:outline-none"
+                  aria-label="Close Navigation"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </header>
 
-                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 text-center font-mono text-xs">
-                        <div className="p-2 bg-white rounded-xl border border-slate-200">
-                          <span className="text-slate-500 text-[10px] block">TOTAL POINTS</span>
-                          <span className="font-extrabold text-[#00A86B] text-sm">⚡ {user.points || 0} XP</span>
-                        </div>
-                        <div className="p-2 bg-white rounded-xl border border-slate-200">
-                          <span className="text-slate-500 text-[10px] block">SOLVING STREAK</span>
-                          <span className="font-extrabold text-orange-500 text-sm">🔥 {user.streak || 0}d</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Link
-                        to="/login"
-                        onClick={() => setIsOpen(false)}
-                        className="py-3 px-3 bg-slate-100 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 hover:bg-slate-200"
-                      >
-                        <LogIn className="w-4 h-4" />
-                        <span>Sign In</span>
-                      </Link>
-                      <Link
-                        to="/login?mode=register"
-                        onClick={() => setIsOpen(false)}
-                        className="py-3 px-3 bg-[#00A86B] text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 hover:bg-[#008f5a]"
-                      >
-                        <span>Register</span>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mobile Navigation Links (Exact 7 Main Items) */}
-                <nav className="space-y-1.5 pt-2">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 px-3 pb-1">
-                    Main Navigation
-                  </p>
+              {/* Navigation links directly below the single header */}
+              <div className="px-8 py-6 space-y-6">
+                <nav className="flex flex-col space-y-3">
                   {navLinks.map((link) => {
-                    const Icon = link.icon
-                    const isActive = location.pathname === link.path
-
+                    const isActive = location.pathname === link.path;
+                    const Icon = link.icon;
                     return (
                       <Link
                         key={link.path}
                         to={link.path}
                         onClick={() => setIsOpen(false)}
-                        className={cn(
-                          "flex items-center space-x-3 px-3.5 py-3 rounded-xl font-bold text-sm transition-all",
-                          isActive
-                            ? "bg-emerald-50 text-[#00A86B] border border-emerald-200/80"
-                            : "text-slate-700 hover:bg-slate-100"
-                        )}
+                        className="group flex items-baseline justify-between py-2 border-b border-[#E2E2DC]/60"
                       >
-                        <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-[#00A86B]" : "text-slate-400")} />
-                        <span>{link.name}</span>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              "font-editorial text-3xl sm:text-4xl transition-colors tracking-tight",
+                              isActive ? "text-[#00A86B] italic" : "text-[#111318] group-hover:text-[#00A86B]"
+                            )}
+                          >
+                            {link.name}
+                          </span>
+                          {Icon && <Icon className="w-5 h-5 text-[#00A86B]" />}
+                        </div>
+                        <span className="font-mono text-xs text-[#8B9198] tracking-widest">
+                          {link.num}
+                        </span>
                       </Link>
-                    )
+                    );
                   })}
 
-                  {/* Student Dedicated Links */}
-                  {isAuthenticated && (
-                    <>
-                      <div className="pt-3 pb-1">
-                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 px-3">
-                          Student Portal
-                        </p>
-                      </div>
-                      <Link
-                        to="/student/dashboard"
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center space-x-3 px-3.5 py-3 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-100"
-                      >
-                        <LayoutDashboard className="w-5 h-5 text-slate-400" />
-                        <span>My Dashboard</span>
-                      </Link>
-                      <Link
-                        to="/student/submissions"
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center space-x-3 px-3.5 py-3 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-100"
-                      >
-                        <FileText className="w-5 h-5 text-slate-400" />
-                        <span>My Submissions</span>
-                      </Link>
-                      <Link
-                        to="/students"
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center space-x-3 px-3.5 py-3 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-100"
-                      >
-                        <Users className="w-5 h-5 text-slate-400" />
-                        <span>Students Directory</span>
-                      </Link>
-                      <Link
-                        to="/leaderboard"
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center space-x-3 px-3.5 py-3 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-100"
-                      >
-                        <Trophy className="w-5 h-5 text-slate-400" />
-                        <span>Leaderboard</span>
-                      </Link>
-                    </>
-                  )}
-
-                  {/* Admin Links (ONLY displayed to verified authorized administrators) */}
                   {isAdmin && (
-                    <>
-                      <div className="pt-3 pb-1">
-                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 px-3">
-                          Admin Management
-                        </p>
-                      </div>
-                      <Link
-                        to="/admin/questions"
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center space-x-3 px-3.5 py-3 rounded-xl font-bold text-sm bg-amber-50 text-amber-900 border border-amber-200"
-                      >
-                        <ShieldCheck className="w-5 h-5 text-amber-600" />
-                        <span>Admin Panel</span>
-                      </Link>
-                    </>
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-baseline justify-between py-2 text-[#00A86B] border-b border-[#E2E2DC]/60"
+                    >
+                      <span className="font-editorial text-2xl">Admin Dashboard</span>
+                      <span className="font-mono text-xs">ROOT</span>
+                    </Link>
                   )}
                 </nav>
               </div>
+            </div>
 
-              {/* Drawer Bottom Actions */}
-              <div className="p-6 border-t border-slate-200 bg-slate-50">
-                {isAuthenticated ? (
-                  <button
-                    onClick={handleLogout}
-                    className="w-full py-3 px-4 bg-rose-50 text-rose-700 font-bold text-sm rounded-xl flex items-center justify-center space-x-2 border border-rose-200 cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
-                ) : (
-                  <div className="text-center font-mono text-xs text-slate-500">
-                    GeeksforGeeks Student Chapter · MU
-                  </div>
-                )}
+            {/* Bottom CTA & Coordinates */}
+            <div className="relative z-10 px-8 pb-10 pt-4 border-t border-[#E2E2DC] space-y-4">
+              <a
+                href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsOpen(false)}
+                className="w-full py-3.5 bg-[#111318] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest flex items-center justify-center space-x-2"
+              >
+                <span>Connect with Chapter</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+
+              <div className="flex items-center justify-between font-mono text-[10px] text-[#8B9198]">
+                <span>MARWADI UNIVERSITY, RAJKOT</span>
+                <span>LAT 22.3039° N</span>
               </div>
-            </motion.div>
-          </>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

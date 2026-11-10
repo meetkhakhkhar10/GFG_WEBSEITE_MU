@@ -18,11 +18,9 @@ export async function safeFetchJson<T = any>(
 ): Promise<SafeFetchResult<T>> {
   try {
     const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-    const targetUrl = endpoint.startsWith("http")
-      ? endpoint
-      : endpoint.startsWith("/")
-      ? `${apiBase}${endpoint}`
-      : `${apiBase}/${endpoint}`;
+    const targetUrl = endpoint.startsWith("http") 
+        ? endpoint 
+        : (apiBase ? `${apiBase}${endpoint.startsWith("/") ? "" : "/"}${endpoint}` : endpoint);
 
     const response = await fetch(targetUrl, options);
 
@@ -50,7 +48,14 @@ export async function safeFetchJson<T = any>(
       data
     };
   } catch (err: any) {
-    console.error(`❌ [SafeFetch] Network exception while requesting ${endpoint}:`, err);
+    if (err?.name === "AbortError") {
+      return {
+        ok: false,
+        status: 0,
+        error: "Request aborted"
+      };
+    }
+    console.warn(`⚠️ [SafeFetch] Network request to ${endpoint} failed:`, err?.message || err);
     return {
       ok: false,
       status: 500,

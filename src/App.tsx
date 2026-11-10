@@ -7,7 +7,7 @@ import Events from "@/src/pages/Events";
 import Contact from "@/src/pages/Contact";
 import Courses from "@/src/pages/Courses";
 import Team from "@/src/pages/Team";
-import CodingArena from "@/src/pages/CodingArena";
+import CodingArenaComingSoon from "@/src/pages/CodingArenaComingSoon";
 import StudentDashboard from "@/src/pages/student/StudentDashboard";
 import MySubmissions from "@/src/pages/student/MySubmissions";
 import StudentDirectory from "@/src/pages/StudentDirectory";
@@ -22,6 +22,7 @@ const Dashboard = lazy(() => import("@/src/pages/admin/Dashboard"));
 const AtgfgLogin = lazy(() => import("@/src/pages/atgfg/AtgfgLogin"));
 const AtgfgDashboard = lazy(() => import("@/src/pages/atgfg/AtgfgDashboard"));
 const AtgfgProtectedRoute = lazy(() => import("@/src/components/atgfg/AtgfgProtectedRoute"));
+const DPSolving = lazy(() => import("@/src/pages/DPSolving"));
 
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import { ThemeProvider } from "@/src/contexts/ThemeContext";
@@ -63,8 +64,9 @@ export default function App() {
                 <Route path="events" element={<Events />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="courses" element={<Courses />} />
-                <Route path="coding-arena" element={<CodingArena />} />
-                <Route path="leaderboard" element={<Navigate to="/coding-arena?tab=leaderboard" replace />} />
+                <Route path="coding-arena" element={<CodingArenaComingSoon />} />
+                <Route path="coding-arena/*" element={<CodingArenaComingSoon />} />
+                <Route path="leaderboard" element={<Navigate to="/coding-arena" replace />} />
                 <Route path="submissions" element={<Navigate to="/student/submissions" replace />} />
                 <Route path="announcements" element={<Navigate to="/events" replace />} />
                 <Route path="students" element={<StudentDirectory />} />
@@ -75,6 +77,7 @@ export default function App() {
 
               {/* Dedicated Certificate Attendance Scanner Route */}
               <Route path="/certificate-attendance-scanner" element={<CertificateAttendanceScanner />} />
+              <Route path="/DPSolving" element={<DPSolving />} />
 
               {/* Student Authentication Page */}
               <Route path="/login" element={<StudentLogin />} />
