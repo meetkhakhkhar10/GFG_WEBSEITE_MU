@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 const navLinks = [
   { name: "Home", path: "/", num: "01" },
   { name: "Courses", path: "/courses", num: "02" },
-  { name: "Coding Arena", path: "/coding-arena", num: "03", icon: Code2 },
+  { name: "Coding Arena", href: "https://gfg-code-arena.netlify.app/", num: "03", external: true, icon: Code2 },
   { name: "Events", path: "/events", num: "04" },
   { name: "Team", path: "/team", num: "05" },
   { name: "About", path: "/about", num: "06" },
@@ -105,8 +105,26 @@ export default function Navbar() {
           </div>
 
           {/* Center: Editorial Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
             {navLinks.map((link) => {
+              if (link.external) {
+                const Icon = link.icon;
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative py-1 font-mono text-[15px] sm:text-[16px] font-bold uppercase tracking-[0.15em] transition-colors duration-200 flex items-center gap-2 text-[#555B63] hover:text-[#00A86B] group"
+                  >
+                    <span className="text-[10px] opacity-40 font-normal">{link.num}</span>
+                    {Icon && <Icon className="w-4 h-4 text-[#00A86B]" />}
+                    <span>{link.name}</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <span className="absolute -bottom-2.5 left-0 right-0 h-[2px] bg-[#00A86B] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                  </a>
+                );
+              }
               const isActive = location.pathname === link.path;
               const Icon = link.icon;
               return (
@@ -114,20 +132,21 @@ export default function Navbar() {
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    "relative py-1 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors duration-200 flex items-center gap-1.5",
-                    isActive ? "text-[#00A86B] font-semibold" : "text-[#555B63] hover:text-[#00A86B]"
+                    "relative py-1 font-mono text-[15px] sm:text-[16px] font-bold uppercase tracking-[0.15em] transition-colors duration-200 flex items-center gap-2 group",
+                    isActive ? "text-[#00A86B]" : "text-[#555B63] hover:text-[#00A86B]"
                   )}
                 >
-                  <span className="text-[8px] opacity-40 font-normal">{link.num}</span>
-                  {Icon && <Icon className="w-3.5 h-3.5 text-[#00A86B]" />}
+                  <span className="text-[10px] opacity-40 font-normal">{link.num}</span>
+                  {Icon && <Icon className="w-4 h-4 text-[#00A86B]" />}
                   <span>{link.name}</span>
                   {isActive && (
                     <motion.div
                       layoutId="navIndicator"
-                      className="absolute -bottom-2.5 left-0 right-0 h-[1.5px] bg-[#00A86B]"
+                      className="absolute -bottom-2.5 left-0 right-0 h-[2px] bg-[#00A86B]"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
+                  <span className="absolute -bottom-2.5 left-0 right-0 h-[2px] bg-[#00A86B] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left pointer-events-none" />
                 </Link>
               );
             })}
@@ -136,8 +155,8 @@ export default function Navbar() {
               <Link
                 to="/admin/dashboard"
                 className={cn(
-                  "relative py-1 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors duration-200 text-[#00A86B]",
-                  location.pathname.startsWith("/admin") ? "font-bold" : "opacity-80 hover:opacity-100"
+                  "relative py-1 font-mono text-[15px] sm:text-[16px] font-bold uppercase tracking-[0.15em] transition-colors duration-200 text-[#00A86B]",
+                  location.pathname.startsWith("/admin") ? "font-bold" : "opacity-90 hover:opacity-100"
                 )}
               >
                 [Admin]
@@ -156,10 +175,10 @@ export default function Navbar() {
               href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-widest text-[#111318] bg-transparent hover:bg-[#111318] hover:text-[#F4F4F0] border border-[#111318] transition-colors duration-200"
+              className="inline-flex items-center space-x-2 px-4 py-2 text-xs sm:text-sm font-mono uppercase tracking-widest text-[#111318] bg-transparent hover:bg-[#111318] hover:text-[#F4F4F0] border border-[#111318] transition-colors duration-200 font-bold"
             >
               <span>Join Circle</span>
-              <ArrowUpRight className="w-3 h-3" />
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
           </div>
 
@@ -224,6 +243,32 @@ export default function Navbar() {
               <div className="px-8 py-6 space-y-6">
                 <nav className="flex flex-col space-y-3">
                   {navLinks.map((link) => {
+                    if (link.external) {
+                      const Icon = link.icon;
+                      return (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setIsOpen(false)}
+                          className="group flex items-baseline justify-between py-2 border-b border-[#E2E2DC]/60"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="font-editorial text-3xl sm:text-4xl transition-colors tracking-tight text-[#111318] group-hover:text-[#00A86B]">
+                              {link.name}
+                            </span>
+                            {Icon && <Icon className="w-6 h-6 text-[#00A86B]" />}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <ArrowUpRight className="w-4 h-4 text-[#8B9198] group-hover:text-[#00A86B]" />
+                            <span className="font-mono text-xs text-[#8B9198] tracking-widest">
+                              {link.num}
+                            </span>
+                          </div>
+                        </a>
+                      );
+                    }
                     const isActive = location.pathname === link.path;
                     const Icon = link.icon;
                     return (
