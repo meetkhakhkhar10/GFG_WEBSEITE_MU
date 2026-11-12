@@ -16,4 +16,4 @@ GEMINI_API_KEY=your-gemini-api-key
 
 # External Services (Google Apps Script Backend)
 # This is the URL of your deployed Google Apps Script
-APPS_SCRIPT_URL=https://script.google.com/macros/s/AKfycby5ig8H65J4veWEfymYpSwWZuIvjwGg_X17ek4_QFSXif1G-iYAgNXIJgH4RY5x0rjW/exec
+APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_GOOGLE_APPS_SCRIPT_DEPLOYMENT_ID/exec

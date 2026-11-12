@@ -102,10 +102,15 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/coding-arena" className="text-[#00A86B] font-bold hover:underline transition-colors flex items-center justify-between group">
-                  <span>Daily Coding Arena</span>
-                  <span className="text-xs text-[#00A86B] opacity-100">03</span>
-                </Link>
+                <a 
+                  href="https://gfg-code-arena.netlify.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[#00A86B] font-bold hover:underline transition-colors flex items-center justify-between group"
+                >
+                  <span>Coding Arena</span>
+                  <span className="text-xs text-[#00A86B] font-bold">03</span>
+                </a>
               </li>
               <li>
                 <Link to="/events" className="text-neutral-700 hover:text-[#00A86B] transition-colors flex items-center justify-between group">

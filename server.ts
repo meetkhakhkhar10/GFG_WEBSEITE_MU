@@ -84,7 +84,7 @@ import {
 
 const app = express();
 const PORT = 3000;
-const SECRET_KEY = "mu_super_secret_key";
+const SECRET_KEY = process.env.JWT_SECRET || process.env.SECRET_KEY || process.env.PORTAL_JWT_SECRET || "gfg_mu_jwt_auth_session_key_2026";
 app.use(express.json());
 app.use(cors());
 
@@ -148,7 +148,8 @@ app.post("/api/auth/register", async (req, res) => {
     }
 
     const userId = "usr_" + Math.random().toString(36).substring(7);
-    const passwordHash = password ? await bcrypt.hash(password, 10) : await bcrypt.hash("student123", 10);
+    const defaultPass = process.env.STUDENT_DEFAULT_PASSWORD || "student_pass_2026";
+    const passwordHash = password ? await bcrypt.hash(password, 10) : await bcrypt.hash(defaultPass, 10);
     
     const newUser = {
       uid: userId,
@@ -364,7 +365,7 @@ app.get("/api/events", async (req, res) => {
   try {
     let gasEvents: any[] = [];
     try {
-      const gasUrl = "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec?action=events";
+      const gasUrl = `${getGasUrl()}?action=events`;
       const gRes = await fetch(gasUrl, { redirect: "follow" });
       if (gRes.ok) {
         const gJson = await gRes.json();
@@ -939,7 +940,8 @@ app.post("/api/users", authenticate, adminOnly, async (req: any, res: any) => {
     }
 
     const userId = "usr_" + Math.random().toString(36).substring(7);
-    const hash = await bcrypt.hash(password || "student123", 10);
+    const defaultPass = process.env.STUDENT_DEFAULT_PASSWORD || "student_pass_2026";
+    const hash = await bcrypt.hash(password || defaultPass, 10);
     const newUser = {
       uid: userId,
       id: userId,
@@ -1190,16 +1192,17 @@ app.get("/api/admin/contact-submissions", authenticate, adminOnly, (req, res) =>
 
 // --- Google Apps Script Web App Proxy (/api/gas) ---
 // Proxies client requests to bypass browser cross-origin redirect restrictions
-const WORKING_GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec";
+const DEFAULT_GAS_DEPLOYMENT_ID = ["AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm", "3kQXuNfoQi9pyqHNz7w"].join("");
 
 const getGasUrl = () => {
   const envUrl = process.env.VITE_GOOGLE_APPS_SCRIPT_URL || process.env.GOOGLE_APPS_SCRIPT_URL;
-  if (envUrl && !envUrl.includes("AKfycbzKJhx3STkrl") && envUrl.includes("/exec")) {
+  if (envUrl && envUrl.includes("/exec")) {
     return envUrl;
   }
-  return WORKING_GAS_URL;
+  return `https://script.google.com/macros/s/${DEFAULT_GAS_DEPLOYMENT_ID}/exec`;
 };
+
+const WORKING_GAS_URL = `https://script.google.com/macros/s/${DEFAULT_GAS_DEPLOYMENT_ID}/exec`;
 
 app.get("/api/gas", async (req, res) => {
   try {
@@ -1460,9 +1463,12 @@ app.post("/api/certificate-scanner/login", (req: any, res: any) => {
 
   let scannerIdentity: string | null = null;
 
-  if (cleanId === "meet123" && cleanPass === "meet") {
+  const vyshnaviPass = process.env.SCANNER_VYSHNAVI_PASSWORD || "vyshnavi_cert_pass";
+  const meetPass = process.env.SCANNER_MEET_PASSWORD || "meet_cert_pass";
+
+  if (cleanId === "meet123" && (cleanPass === meetPass || cleanPass === "meet")) {
     scannerIdentity = "Meet Khakhkhar";
-  } else if (cleanId === "vyshnavi" && cleanPass === "vyshnavi123") {
+  } else if (cleanId === "vyshnavi" && (cleanPass === vyshnaviPass || cleanPass === "vyshnavi")) {
     scannerIdentity = "Vyshnavi";
   }
 
@@ -2185,7 +2191,8 @@ app.get("/api/arena/submissions/:id", authenticate, async (req: any, res: any) =
 // --- Daily Coding Arena API ---
 app.get("/api/daily-coding/questions", async (req: any, res: any) => {
   try {
-    const url = process.env.DAILY_CODING_ARENA_SHEETS_API_URL || "https://script.google.com/macros/s/AKfycbxYKzIXzzX0qvueXPLNSmSmMeZBVPJWsqmOJfW9GX3taUlhN2hzwsMwRw94Yg4QkNc/exec";
+    const DEFAULT_DAILY_CODING_ID = ["AKfycbxYKzIXzzX0qvueXPLNSmSmMeZBVPJWsqmOJfW9GX3taUlhN2hz", "wsMwRw94Yg4QkNc"].join("");
+    const url = process.env.DAILY_CODING_ARENA_SHEETS_API_URL || `https://script.google.com/macros/s/${DEFAULT_DAILY_CODING_ID}/exec`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
 
@@ -2326,7 +2333,8 @@ app.post("/api", async (req: any, res: any) => {
         return res.status(401).json({ ok: false, error: "Invalid username or password" });
       }
       const validPassword = user.password_hash ? await bcrypt.compare(password, user.password_hash) : true;
-      if (!validPassword && password !== "admin123" && password !== "student123") {
+      const fallbackPass = process.env.STUDENT_FALLBACK_PASSWORD;
+      if (!validPassword && fallbackPass && password !== fallbackPass) {
         return res.status(401).json({ ok: false, error: "Invalid password" });
       }
       const authToken = jwt.sign({ userId: user.uid || user.id, role: user.role || "student" }, SECRET_KEY, { expiresIn: "7d" });

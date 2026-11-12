@@ -37,11 +37,11 @@ var APP_CONFIG = {
   // AUTHORIZED SCANNER ACCOUNTS (Server-Authoritative Identities)
   SCANNER_ACCOUNTS: {
     "meet123": {
-      password: "meet",
+      password: PropertiesService.getScriptProperties().getProperty("SCANNER_MEET_PASS") || "meet",
       identity: "Meet Khakhkhar"
     },
     "vyshnavi": {
-      password: "vyshnavi123",
+      password: PropertiesService.getScriptProperties().getProperty("SCANNER_VYSHNAVI_PASS") || "vyshnavi",
       identity: "Vyshnavi"
     }
   }

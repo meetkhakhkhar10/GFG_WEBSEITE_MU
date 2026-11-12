@@ -35,11 +35,11 @@ var CERT_CONFIG = {
   TIMEZONE: "Asia/Kolkata",
   SCANNER_ACCOUNTS: {
     "meet123": {
-      password: "meet",
+      password: PropertiesService.getScriptProperties().getProperty("SCANNER_MEET_PASS") || "meet",
       identity: "Meet Khakhkhar"
     },
     "vyshnavi": {
-      password: "vyshnavi123",
+      password: PropertiesService.getScriptProperties().getProperty("SCANNER_VYSHNAVI_PASS") || "vyshnavi",
       identity: "Vyshnavi"
     }
   }
@@ -250,9 +250,9 @@ function handleCertificateDataEntry(data) {
  * ============================================================================
  * 2. SCANNER AUTHENTICATION (SERVER-SIDE SESSION)
  * ============================================================================
- * Exactly TWO Allowed Accounts:
- *   1) meet123 / meet         -> Meet Khakhkhar
- *   2) vyshnavi / vyshnavi123 -> Vyshnavi
+ * Accounts:
+ *   1) meet123 -> Meet Khakhkhar
+ *   2) vyshnavi -> Vyshnavi
  *
  * Generates an unpredictable random session token stored in Script Properties.
  * Session duration: 30 minutes.

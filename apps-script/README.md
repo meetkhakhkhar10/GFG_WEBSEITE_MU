@@ -129,20 +129,17 @@ Copy the entire contents of each `.gs` file in `/apps-script/` into its correspo
 ### STEP 9: Copy the Web App URL
 Copy the **Web app URL** (ends with `/exec`), e.g.:
 ```
-https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec
+https://script.google.com/macros/s/YOUR_APPS_SCRIPT_DEPLOYMENT_ID/exec
 ```
 
 ---
 
-### STEP 10: Paste the URL into Frontend
-Open `src/services/gasApi.ts` in this project and paste your active `/exec` URL:
+### STEP 10: Paste the URL into Frontend Environment
+Set `VITE_GOOGLE_APPS_SCRIPT_URL` in your environment or `.env` file:
 
-```typescript
-export const GAS_WEB_APP_URL =
-  "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec";
-
-export const APPS_SCRIPT_URL = GAS_WEB_APP_URL;
-export const DIRECT_GAS_URL = GAS_WEB_APP_URL;
+```env
+VITE_GOOGLE_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_APPS_SCRIPT_DEPLOYMENT_ID/exec
+```
 export const API_BASE_URL = GAS_WEB_APP_URL;
 ```
 

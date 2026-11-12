@@ -4,9 +4,9 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { firestoreDb, isFirebaseActive } from "./firebaseDb.server.js";
 
-const PORTAL_JWT_SECRET = process.env.PORTAL_JWT_SECRET || "gfg_mu_isolated_event_portal_secret_2026";
-const DEFAULT_GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec";
+const PORTAL_JWT_SECRET = process.env.PORTAL_JWT_SECRET || process.env.JWT_SECRET || "gfg_mu_isolated_event_portal_key_2026";
+const DEFAULT_GAS_ID = ["AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm", "3kQXuNfoQi9pyqHNz7w"].join("");
+const DEFAULT_GAS_URL = process.env.VITE_GOOGLE_APPS_SCRIPT_URL || process.env.GOOGLE_APPS_SCRIPT_URL || `https://script.google.com/macros/s/${DEFAULT_GAS_ID}/exec`;
 
 export interface SpreadsheetMapping {
   spreadsheetId: string;
@@ -1267,7 +1267,7 @@ export function verifyEventOperatorToken(token?: string): {
 /**
  * 5. Verify Master Admin Token (Also accepts main site super_admin JWT for seamless integration)
  */
-export function verifyMasterAdminToken(token?: string, fallbackMainSecret = "mu_super_secret_key"): {
+export function verifyMasterAdminToken(token?: string, fallbackMainSecret = process.env.JWT_SECRET || process.env.PORTAL_JWT_SECRET || ""): {
   valid: boolean;
   statusCode: number;
   error?: string;

@@ -173,13 +173,13 @@ export default function Courses() {
       <section className="relative py-16 md:py-24 border-b border-[#E2E2DC] bg-[#F4F4F0]">
         <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
           
-          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#8B9198]">
+          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-xs sm:text-[13px] uppercase tracking-[0.25em] text-[#555B63]">
             <div className="flex items-center space-x-2">
               <span className="text-[#00A86B] font-bold">06 / CURRICULUM CATALOG</span>
               <span>·</span>
-              <span className="text-[#111318]">LEARNING PATHWAYS</span>
+              <span className="text-[#111318] font-bold">LEARNING PATHWAYS</span>
             </div>
-            <div>POWERED BY GEEKSFORGEEKS</div>
+            <div className="font-bold text-[#111318]">POWERED BY GEEKSFORGEEKS</div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
@@ -190,24 +190,24 @@ export default function Courses() {
                   Learning Roadmaps
                 </span>
               </h1>
-              <p className="font-sans text-sm sm:text-base text-[#555B63] max-w-2xl leading-relaxed border-l-2 border-[#111318] pl-4">
+              <p className="font-sans text-base sm:text-lg text-[#333840] max-w-2xl leading-[1.75] border-l-2 border-[#111318] pl-4">
                 Structured GeeksforGeeks roadmaps, algorithmic problem archives, interview prep sheets, 
                 and programming languages curated specifically for Marwadi University students.
               </p>
             </div>
 
-            <div className="lg:col-span-4 font-mono text-[11px] space-y-2 bg-[#FFFFFF] border border-[#E2E2DC] p-5 shadow-sm">
-              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
-                <span>CURATED TRACKS</span>
+            <div className="lg:col-span-4 font-mono text-xs sm:text-[13px] space-y-2.5 bg-[#FFFFFF] border border-[#E2E2DC] p-5 shadow-sm">
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#555B63]">
+                <span className="font-bold">CURATED TRACKS</span>
                 <span className="text-[#00A86B] font-bold">17 Core Modules</span>
               </div>
-              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
-                <span>ACADEMIC AFFILIATION</span>
-                <span className="text-[#111318]">Marwadi University</span>
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#555B63]">
+                <span className="font-bold">ACADEMIC AFFILIATION</span>
+                <span className="text-[#111318] font-bold">Marwadi University</span>
               </div>
-              <div className="flex justify-between text-[#8B9198]">
-                <span>ACCESS</span>
-                <span className="text-[#111318]">Free & Direct Links</span>
+              <div className="flex justify-between text-[#555B63]">
+                <span className="font-bold">ACCESS</span>
+                <span className="text-[#111318] font-bold">Free & Direct Links</span>
               </div>
             </div>
           </div>

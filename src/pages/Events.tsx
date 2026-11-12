@@ -284,22 +284,22 @@ export default function Events() {
       <section className="relative py-16 md:py-24 border-b border-[#E2E2DC] bg-[#F4F4F0]">
         <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
           
-          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#8B9198]">
+          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-xs sm:text-[13px] uppercase tracking-[0.25em] text-[#555B63]">
             <div className="flex items-center space-x-2">
               <span className="text-[#00A86B] font-bold">02 / EVENTS REPOSITORY</span>
               <span>·</span>
-              <span className="text-[#111318]">LIVE GOOGLE SHEETS API</span>
+              <span className="text-[#111318] font-bold">LIVE GOOGLE SHEETS API</span>
             </div>
 
             <div className="flex items-center space-x-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-pulse" />
-              <span>SYNCHRONIZED FEED</span>
+              <span className="w-2 h-2 rounded-full bg-[#00A86B] animate-pulse" />
+              <span className="font-bold">SYNCHRONIZED FEED</span>
               <button
                 onClick={fetchGasEvents}
                 disabled={loading}
-                className="px-2.5 py-1 bg-[#FFFFFF] border border-[#E2E2DC] hover:border-[#111318] text-[#111318] transition-colors cursor-pointer flex items-center space-x-1"
+                className="px-3 py-1 bg-[#FFFFFF] border border-[#E2E2DC] hover:border-[#111318] text-[#111318] transition-colors cursor-pointer flex items-center space-x-1 font-bold text-xs"
               >
-                <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin text-[#00A86B]" : ""}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#00A86B]" : ""}`} />
                 <span>SYNC</span>
               </button>
             </div>
@@ -313,19 +313,19 @@ export default function Events() {
                   Technical Sprints
                 </span>
               </h1>
-              <p className="font-sans text-sm sm:text-base text-[#555B63] max-w-2xl leading-relaxed border-l-2 border-[#111318] pl-4">
+              <p className="font-sans text-base sm:text-lg text-[#333840] max-w-2xl leading-[1.75] border-l-2 border-[#111318] pl-4">
                 Explore official GeeksforGeeks hackathons, algorithm marathons, masterclasses, and coding competitions 
                 hosted live across Marwadi University campus venues.
               </p>
             </div>
 
-            <div className="lg:col-span-4 font-mono text-[11px] space-y-2 bg-[#FFFFFF] border border-[#E2E2DC] p-5 shadow-sm">
-              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
-                <span>DATABASE STATUS</span>
+            <div className="lg:col-span-4 font-mono text-xs sm:text-[13px] space-y-2.5 bg-[#FFFFFF] border border-[#E2E2DC] p-5 shadow-sm">
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#555B63]">
+                <span className="font-bold">DATABASE STATUS</span>
                 <span className="text-[#00A86B] font-bold">LIVE ONLINE</span>
               </div>
-              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#8B9198]">
-                <span>ACTIVE CALENDAR</span>
+              <div className="flex justify-between border-b border-[#E2E2DC] pb-2 text-[#555B63]">
+                <span className="font-bold">ACTIVE CALENDAR</span>
                 <span className="text-[#111318] font-bold">{validEvents.length} Events Listed</span>
               </div>
               <div className="flex justify-between text-[#8B9198]">

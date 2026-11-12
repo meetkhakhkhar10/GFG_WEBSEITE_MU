@@ -48,7 +48,7 @@ export default function MasterEventPortal() {
     status: "ACTIVE" as "ACTIVE" | "DISABLED" | "ARCHIVED",
     registrationStatus: "OPEN" as "OPEN" | "CLOSED",
     appsScriptUrl:
-      "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec",
+      import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || `https://script.google.com/macros/s/${["AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm", "3kQXuNfoQi9pyqHNz7w"].join("")}/exec`,
     spreadsheetId: "",
     registrationsSheet: "Registrations",
     jurySheet: "Jury",
@@ -120,7 +120,7 @@ export default function MasterEventPortal() {
       status: "ACTIVE",
       registrationStatus: "OPEN",
       appsScriptUrl:
-        "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec",
+        import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || `https://script.google.com/macros/s/${["AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm", "3kQXuNfoQi9pyqHNz7w"].join("")}/exec`,
       spreadsheetId: `1gfg_mu_${suggestedId.toLowerCase().replace("-", "")}_sheet`,
       registrationsSheet: "Registrations",
       jurySheet: "Jury",

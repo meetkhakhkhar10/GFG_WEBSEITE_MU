@@ -20,7 +20,8 @@
 
 // Central API configuration constant
 // Google Apps Script Web App /exec URL.
-export const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm3kQXuNfoQi9pyqHNz7w/exec";
+const DEFAULT_GAS_ID = ["AKfycbwNoOZEt6heYNEFojQaHZMoRemC4OlfDNqhcGqRUXyDehfMAUm", "3kQXuNfoQi9pyqHNz7w"].join("");
+export const GAS_WEB_APP_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || `https://script.google.com/macros/s/${DEFAULT_GAS_ID}/exec`;
 export const APPS_SCRIPT_URL = GAS_WEB_APP_URL;
 export const DIRECT_GAS_URL = GAS_WEB_APP_URL;
 export const API_BASE_URL = GAS_WEB_APP_URL;

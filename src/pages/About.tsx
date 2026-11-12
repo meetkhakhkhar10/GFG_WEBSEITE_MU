@@ -46,13 +46,13 @@ export default function About() {
       <section className="relative py-16 md:py-24 border-b border-[#E2E2DC] bg-[#F4F4F0]">
         <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
           
-          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-[10px] uppercase tracking-[0.25em] text-[#8B9198]">
+          <div className="flex flex-wrap items-center justify-between border-b border-[#E2E2DC] pb-4 mb-10 font-mono text-xs sm:text-[13px] uppercase tracking-[0.25em] text-[#555B63]">
             <div className="flex items-center space-x-2">
               <span className="text-[#00A86B] font-bold">04 / INSTITUTIONAL PROSPECTUS</span>
               <span>·</span>
-              <span className="text-[#111318]">CHAPTER FOUNDATION</span>
+              <span className="text-[#111318] font-bold">CHAPTER FOUNDATION</span>
             </div>
-            <div>EST. RAJKOT, GUJARAT</div>
+            <div className="font-bold text-[#111318]">EST. RAJKOT, GUJARAT</div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
