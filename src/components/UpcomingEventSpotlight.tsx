@@ -350,7 +350,7 @@ export default function UpcomingEventSpotlight() {
       {/* Background Architectural Grid */}
       <div className="absolute inset-0 bg-technical-grid opacity-50 pointer-events-none" />
 
-      <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+      <div className="main-container relative z-10 w-full">
         
         {/* SECTION HEADER & CONTROL BAR */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 mb-12 border-b border-[#E2E2DC] gap-4">

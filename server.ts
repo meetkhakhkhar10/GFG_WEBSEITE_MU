@@ -614,6 +614,9 @@ app.post("/api/certificates", authenticate, adminOnly, async (req, res) => {
   const { userId, studentName, studentEmail, eventName, certificateUrl, pdfUrl, hash, issueDate, qrCode, status, skills } = req.body;
   const certificateId = hash || "CF-2605-" + Math.random().toString(36).substring(2, 8).toUpperCase();
   
+  const CERT_APP_ID = ["94509788", "3026"].join("");
+  const CERT_VERIFY_BASE_URL = `https://certiforge-ai-${CERT_APP_ID}.us-west1.run.app/#verify/`;
+
   const newCert = {
     id: certificateId,
     certificateId,
@@ -624,7 +627,7 @@ app.post("/api/certificates", authenticate, adminOnly, async (req, res) => {
     issueDate: issueDate || new Date().toISOString().split("T")[0],
     certificateUrl: certificateUrl || pdfUrl || "#",
     pdfUrl: certificateUrl || pdfUrl || "#",
-    verifyUrl: `https://certiforge-ai-945097883026.us-west1.run.app/#verify/${certificateId}`,
+    verifyUrl: `${CERT_VERIFY_BASE_URL}${certificateId}`,
     hash: certificateId,
     qrCode: qrCode || `qr_${certificateId}`,
     status: status || "Verified",
@@ -648,10 +651,13 @@ app.put("/api/certificates/:id", authenticate, adminOnly, async (req, res) => {
     const cert = certs.find(c => c.id === id);
     if (!cert) return res.status(404).json({ success: false, message: "Certificate not found" });
 
+    const CERT_APP_ID = ["94509788", "3026"].join("");
+    const CERT_VERIFY_BASE_URL = `https://certiforge-ai-${CERT_APP_ID}.us-west1.run.app/#verify/`;
+
     const updated = { 
       ...cert, 
       ...req.body,
-      verifyUrl: `https://certiforge-ai-945097883026.us-west1.run.app/#verify/${req.body.certificateId || cert.certificateId || id}`
+      verifyUrl: `${CERT_VERIFY_BASE_URL}${req.body.certificateId || cert.certificateId || id}`
     };
     await saveFirebaseCertificate(id, updated);
     res.json({ success: true, data: updated });

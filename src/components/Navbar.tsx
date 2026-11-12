@@ -61,51 +61,51 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 h-18 bg-[#F4F4F0]/90 backdrop-blur-md border-b border-[#E2E2DC] transition-colors select-none">
-        <div className="max-w-[1400px] mx-auto h-full px-6 flex items-center justify-between">
+        <div className="main-container h-full flex items-center justify-between gap-4">
           
           {/* Left: GFG × Marwadi University Institutional Brand Lockup */}
-          <div className="flex items-center space-x-3 sm:space-x-5 flex-shrink-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
             <Link 
               to="/" 
               className="flex items-center gap-2 sm:gap-2.5 md:gap-3 group py-1 flex-shrink-0"
               aria-label="GeeksforGeeks Marwadi University Student Chapter Home"
             >
               {/* GFG Logo Container */}
-              <div className="flex-shrink-0 flex items-center justify-center h-[24px] sm:h-[30px] w-auto">
+              <div className="flex-shrink-0 flex items-center justify-center h-[22px] sm:h-[28px] w-auto">
                 <img 
                   src={gfgLogo} 
                   alt="GeeksforGeeks" 
-                  className="h-full w-auto max-h-[30px] object-contain block select-none"
+                  className="h-full w-auto object-contain block select-none"
                   referrerPolicy="no-referrer"
                   onError={() => setGfgLogo(GFG_LOGO_FALLBACK)}
                 />
               </div>
 
               {/* Separator */}
-              <span className="flex-shrink-0 text-[#8B9198] font-mono text-[11px] font-light select-none leading-none">
+              <span className="flex-shrink-0 text-[#8B9198] font-mono text-[10px] font-light select-none leading-none">
                 ×
               </span>
 
               {/* Marwadi University Logo Container */}
-              <div className="flex-shrink-0 flex items-center justify-center h-[26px] sm:h-[34px] w-auto">
+              <div className="flex-shrink-0 flex items-center justify-center h-[24px] sm:h-[32px] w-auto">
                 <img 
                   src={muLogo} 
                   alt="Marwadi University" 
-                  className="h-full w-auto max-h-[34px] object-contain block select-none"
+                  className="h-full w-auto object-contain block select-none"
                   referrerPolicy="no-referrer"
                   onError={() => setMuLogo(MU_LOGO_FALLBACK)}
                 />
               </div>
             </Link>
 
-            <span className="hidden sm:inline-block h-4 w-[1px] bg-[#E2E2DC] flex-shrink-0" />
-            <span className="hidden sm:inline-block font-mono text-[9px] uppercase tracking-widest text-[#8B9198] flex-shrink-0">
+            <span className="hidden xl:inline-block h-4 w-[1px] bg-[#E2E2DC] flex-shrink-0" />
+            <span className="hidden xl:inline-block font-mono text-[9px] uppercase tracking-widest text-[#8B9198] flex-shrink-0">
               CH. 2026
             </span>
           </div>
 
           {/* Center: Editorial Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
+          <nav className="hidden lg:flex items-center gap-x-4 xl:gap-x-6 2xl:gap-x-8 flex-1 justify-center">
             {navLinks.map((link) => {
               if (link.external) {
                 const Icon = link.icon;
@@ -115,12 +115,12 @@ export default function Navbar() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative py-1 font-mono text-[15px] sm:text-[16px] font-bold uppercase tracking-[0.15em] transition-colors duration-200 flex items-center gap-2 text-[#555B63] hover:text-[#00A86B] group"
+                    className="relative py-1 font-mono text-[13px] xl:text-[14px] 2xl:text-[15px] font-bold uppercase tracking-[0.12em] transition-colors duration-200 flex items-center gap-1.5 text-[#555B63] hover:text-[#00A86B] group whitespace-nowrap"
                   >
-                    <span className="text-[10px] opacity-40 font-normal">{link.num}</span>
-                    {Icon && <Icon className="w-4 h-4 text-[#00A86B]" />}
+                    <span className="text-[9px] opacity-40 font-normal hidden xl:inline">{link.num}</span>
+                    {Icon && <Icon className="w-3.5 h-3.5 text-[#00A86B]" />}
                     <span>{link.name}</span>
-                    <ArrowUpRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <ArrowUpRight className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity hidden sm:inline" />
                     <span className="absolute -bottom-2.5 left-0 right-0 h-[2px] bg-[#00A86B] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
                   </a>
                 );
@@ -132,12 +132,12 @@ export default function Navbar() {
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    "relative py-1 font-mono text-[15px] sm:text-[16px] font-bold uppercase tracking-[0.15em] transition-colors duration-200 flex items-center gap-2 group",
+                    "relative py-1 font-mono text-[13px] xl:text-[14px] 2xl:text-[15px] font-bold uppercase tracking-[0.12em] transition-colors duration-200 flex items-center gap-1.5 group whitespace-nowrap",
                     isActive ? "text-[#00A86B]" : "text-[#555B63] hover:text-[#00A86B]"
                   )}
                 >
-                  <span className="text-[10px] opacity-40 font-normal">{link.num}</span>
-                  {Icon && <Icon className="w-4 h-4 text-[#00A86B]" />}
+                  <span className="text-[9px] opacity-40 font-normal hidden xl:inline">{link.num}</span>
+                  {Icon && <Icon className="w-3.5 h-3.5 text-[#00A86B]" />}
                   <span>{link.name}</span>
                   {isActive && (
                     <motion.div
@@ -155,7 +155,7 @@ export default function Navbar() {
               <Link
                 to="/admin/dashboard"
                 className={cn(
-                  "relative py-1 font-mono text-[15px] sm:text-[16px] font-bold uppercase tracking-[0.15em] transition-colors duration-200 text-[#00A86B]",
+                  "relative py-1 font-mono text-[13px] xl:text-[14px] 2xl:text-[15px] font-bold uppercase tracking-[0.12em] transition-colors duration-200 text-[#00A86B] whitespace-nowrap",
                   location.pathname.startsWith("/admin") ? "font-bold" : "opacity-90 hover:opacity-100"
                 )}
               >
@@ -165,9 +165,9 @@ export default function Navbar() {
           </nav>
 
           {/* Right: Technical CTA / Coordinates */}
-          <div className="hidden lg:flex items-center space-x-6">
-            <div className="flex items-center space-x-2 font-mono text-[10px] text-[#8B9198]">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00A86B] animate-pulse" />
+          <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-shrink-0">
+            <div className="hidden xl:flex items-center space-x-2 font-mono text-[9px] text-[#8B9198]">
+              <span className="inline-block w-1 h-1 rounded-full bg-[#00A86B] animate-pulse" />
               <span>RAJKOT, IN</span>
             </div>
 
@@ -175,10 +175,10 @@ export default function Navbar() {
               href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 px-4 py-2 text-xs sm:text-sm font-mono uppercase tracking-widest text-[#111318] bg-transparent hover:bg-[#111318] hover:text-[#F4F4F0] border border-[#111318] transition-colors duration-200 font-bold"
+              className="inline-flex items-center space-x-2 px-3.5 py-1.5 xl:px-4 xl:py-2 text-[11px] xl:text-xs font-mono uppercase tracking-widest text-[#111318] bg-transparent hover:bg-[#111318] hover:text-[#F4F4F0] border border-[#111318] transition-colors duration-200 font-bold whitespace-nowrap"
             >
               <span>Join Circle</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="w-3 h-3" />
             </a>
           </div>
 

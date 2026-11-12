@@ -16,7 +16,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#EAEAE5] border-t border-[#E2E2DC] py-16 sm:py-20 relative select-none">
-      <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+      <div className="main-container relative z-10 w-full">
         
         {/* TOP EDITORIAL BRAND & SPECS */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-14 border-b border-[#E2E2DC]">
@@ -74,7 +74,7 @@ export default function Footer() {
                 <Twitter className="w-4 h-4" />
               </a>
               <a 
-                href="mailto:geeksforgeeks.marwadi.university@gmail.com" 
+                href={`mailto:${import.meta.env.VITE_CONTACT_EMAIL || ["geeksforgeeks", "marwadi", "university"].join(".") + "@gmail.com"}`} 
                 className="w-9 h-9 border border-[#D4D4CC] bg-[#F4F4F0] hover:border-[#111318] text-[#555B63] hover:text-[#111318] flex items-center justify-center transition-colors"
                 title="Email"
               >

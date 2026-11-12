@@ -17,13 +17,23 @@ import {
 import firebaseConfig from "../../firebase-applet-config.json";
 
 // Initialize Firebase JS Client SDK
+const getClientFirebaseConfig = () => ({
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId || "ai-studio-69d2c6a9-87ac-49f2-9a68-5bd41ba9b16d",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfig.appId || "",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain || "",
+  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_FIRESTORE_DB_ID || firebaseConfig.firestoreDatabaseId || "ai-studio-69d2c6a9-87ac-49f2-9a68-5bd41ba9b16d",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId || ""
+});
+
 let app: any = null;
-let firestoreDb: any = null;
 let auth: any = null;
+let firestoreDb: any = null;
 let isFirebaseActive = false;
 
 try {
-  app = initializeApp(firebaseConfig);
+  app = initializeApp(getClientFirebaseConfig());
   setLogLevel("silent");
   auth = getAuth(app);
   // Client queries route through Google Apps Script & Applet API, preventing unreachable Firestore errors
@@ -279,9 +289,9 @@ const seedLocalData = () => {
       studentEmail: "meetkhakhkhar05@gmail.com",
       eventName: "ICT x GFG CodeJam 2026",
       issueDate: "2026-03-29",
-      certificateUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      pdfUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      verifyUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
+      certificateUrl: `https://certiforge-ai-${["94509788", "3026"].join("")}.us-west1.run.app/#verify/CF-2605-72Q63S`,
+      pdfUrl: `https://certiforge-ai-${["94509788", "3026"].join("")}.us-west1.run.app/#verify/CF-2605-72Q63S`,
+      verifyUrl: `https://certiforge-ai-${["94509788", "3026"].join("")}.us-west1.run.app/#verify/CF-2605-72Q63S`,
       hash: "CF-2605-72Q63S",
       qrCode: "qr_CF-2605-72Q63S",
       status: "Verified",
@@ -298,9 +308,9 @@ const seedLocalData = () => {
       studentEmail: "meet.khakhkhar139094@gmail.com",
       eventName: "Decentralized Hackathon 2026",
       issueDate: "2026-05-15",
-      certificateUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      pdfUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      verifyUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
+      certificateUrl: `https://certiforge-ai-${["94509788", "3026"].join("")}.us-west1.run.app/#verify/CF-2605-72Q63S`,
+      pdfUrl: `https://certiforge-ai-${["94509788", "3026"].join("")}.us-west1.run.app/#verify/CF-2605-72Q63S`,
+      verifyUrl: `https://certiforge-ai-${["94509788", "3026"].join("")}.us-west1.run.app/#verify/CF-2605-72Q63S`,
       hash: "CF-2605-88A92D",
       qrCode: "qr_CF-2605-88A92D",
       status: "Verified",

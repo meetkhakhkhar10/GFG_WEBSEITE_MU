@@ -136,7 +136,7 @@ export default function ChapterArchive() {
 
   return (
     <section className="py-20 md:py-28 border-b border-[#E2E2DC] bg-[#FAF9F5] text-[#111318]">
-      <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+      <div className="main-container relative z-10 w-full">
         
         {/* ============================================================
             1. MAIN SECTION HEADER

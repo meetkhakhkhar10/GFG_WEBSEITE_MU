@@ -21,7 +21,7 @@ export default function Home() {
 
       {/* 04. INSTITUTIONAL CONTEXT: MARWADI UNIVERSITY & CHAPTER */}
       <section className="py-20 md:py-28 border-b border-[#E2E2DC] bg-[#FAF9F5] relative overflow-hidden">
-        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+        <div className="main-container relative z-10 w-full">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
@@ -57,29 +57,28 @@ export default function Home() {
                 <span>04 / INSTITUTIONAL COLLABORATION</span>
               </div>
 
-              <h2 className="font-editorial text-3xl sm:text-5xl font-black text-[#111318] tracking-tight leading-[1.05]">
+              <h2 className="font-editorial text-3xl sm:text-5xl font-black text-[#111318] tracking-tight leading-[1.05] text-wrap-balance">
                 Engineering Excellence at Marwadi University
               </h2>
 
-              <p className="font-sans text-sm sm:text-base text-[#555B63] leading-relaxed border-l-2 border-[#111318] pl-5">
+              <p className="font-sans text-sm sm:text-base text-[#555B63] leading-relaxed border-l-2 border-[#111318] pl-5 max-w-xl">
                 Marwadi University provides a 52-acre state-of-the-art technical ecosystem in Rajkot, Gujarat. 
-                Our GeeksforGeeks Chapter acts as an active bridge between foundational academics and modern industry requirements—training 
-                students in algorithmic rigor, cloud architectures, and open-source craftsmanship.
+                Our GeeksforGeeks Chapter acts as an active bridge between foundational academics and modern industry requirements.
               </p>
 
               {/* Technical Campus Pillars */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 font-mono text-[11px]">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 font-mono text-[10px]">
                 <div className="p-3 bg-[#FFFFFF] border border-[#E2E2DC]">
-                  <span className="text-[9px] text-[#8B9198] block uppercase">COMMUNITY</span>
-                  <span className="font-semibold text-[#111318]">600+ Members</span>
+                  <span className="text-[9px] text-[#8B9198] block uppercase mb-1">COMMUNITY</span>
+                  <span className="font-bold text-[#111318]">600+ Members</span>
                 </div>
                 <div className="p-3 bg-[#FFFFFF] border border-[#E2E2DC]">
-                  <span className="text-[9px] text-[#8B9198] block uppercase">ACCREDITATION</span>
-                  <span className="font-semibold text-[#00A86B]">NAAC A+ Grade</span>
+                  <span className="text-[9px] text-[#8B9198] block uppercase mb-1">ACCREDITATION</span>
+                  <span className="font-bold text-[#00A86B]">NAAC A+ Grade</span>
                 </div>
                 <div className="p-3 bg-[#FFFFFF] border border-[#E2E2DC] col-span-2 sm:col-span-1">
-                  <span className="text-[9px] text-[#8B9198] block uppercase">COLLABORATION</span>
-                  <span className="font-semibold text-[#111318]">Official Chapter</span>
+                  <span className="text-[9px] text-[#8B9198] block uppercase mb-1">COLLABORATION</span>
+                  <span className="font-bold text-[#111318]">Official Chapter</span>
                 </div>
               </div>
 
@@ -88,7 +87,7 @@ export default function Home() {
                   href="https://www.marwadiuniversity.ac.in/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-6 py-3.5 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors inline-flex items-center space-x-2"
+                  className="px-6 py-3.5 bg-[#111318] hover:bg-[#00A86B] text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors inline-flex items-center space-x-2 shadow-sm"
                 >
                   <span>University Portal</span>
                   <ArrowUpRight className="w-4 h-4" />
@@ -112,7 +111,7 @@ export default function Home() {
 
       {/* 05. CORE ENGINEERING DOMAINS */}
       <section className="py-20 md:py-28 border-b border-[#E2E2DC] bg-[#F4F4F0] relative overflow-hidden">
-        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+        <div className="main-container relative z-10 w-full">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 mb-12 border-b border-[#E2E2DC] gap-4">
             <div>
@@ -123,7 +122,7 @@ export default function Home() {
                 Focus Areas
               </h2>
             </div>
-            <p className="font-mono text-xs text-[#8B9198] max-w-sm">
+            <p className="font-mono text-xs text-[#8B9198] max-w-xs text-wrap-balance">
               Continuous peer-led masterclasses, code sprints, and hackathons hosted inside Marwadi University campus labs.
             </p>
           </div>
@@ -201,7 +200,7 @@ export default function Home() {
         {/* Subtle grid on dark */}
         <div className="absolute inset-0 bg-technical-grid opacity-10 pointer-events-none" />
 
-        <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full">
+        <div className="main-container relative z-10 w-full">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
@@ -212,14 +211,14 @@ export default function Home() {
                 <span>06 / CHAPTER ADMISSIONS</span>
               </div>
 
-              <h2 className="font-editorial text-4xl sm:text-6xl font-black tracking-tight leading-[1]">
+              <h2 className="font-editorial text-4xl sm:text-6xl font-black tracking-tight leading-[1] text-wrap-balance">
                 Join the Marwadi University <br />
                 <span className="font-editorial-italic font-normal text-[#00A86B]">
                   GeeksforGeeks Circle
                 </span>
               </h2>
 
-              <p className="font-sans text-sm sm:text-base text-[#8B9198] max-w-2xl leading-relaxed">
+              <p className="font-sans text-sm sm:text-base text-[#8B9198] max-w-xl leading-relaxed">
                 Connect with 600+ developers, participate in university hackathons, access curated interview preparation roadmaps, and build projects alongside senior campus mentors.
               </p>
 
@@ -230,7 +229,7 @@ export default function Home() {
                 href="https://chat.whatsapp.com/F7RcXCTLYJ4Ije5NiL6sDM"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-8 py-4.5 bg-[#00A86B] hover:bg-[#FFFFFF] text-[#111318] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 text-center"
+                className="px-8 py-4.5 bg-[#00A86B] hover:bg-[#FFFFFF] text-[#111318] font-mono text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 text-center"
               >
                 <span>[ JOIN WHATSAPP CIRCLE ]</span>
                 <ArrowUpRight className="w-4 h-4" />
@@ -238,7 +237,7 @@ export default function Home() {
 
               <Link
                 to="/team"
-                className="px-8 py-4.5 bg-transparent hover:bg-white/5 border border-white/20 text-[#F4F4F0] font-mono text-xs uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 text-center"
+                className="px-8 py-4.5 bg-transparent hover:bg-white/5 border border-white/20 text-[#F4F4F0] font-mono text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center space-x-2 text-center"
               >
                 <span>Meet Campus Leadership</span>
                 <ArrowRight className="w-4 h-4" />

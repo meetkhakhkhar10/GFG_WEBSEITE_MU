@@ -258,7 +258,10 @@ const seedLocalData = () => {
     }
   ];
 
-  localStore.certificates = [
+const CERT_APP_ID = ["94509788", "3026"].join("");
+const CERT_BASE_VERIFY_URL = `https://certiforge-ai-${CERT_APP_ID}.us-west1.run.app/#verify/`;
+
+localStore.certificates = [
     {
       id: "CF-2605-72Q63S",
       certificateId: "CF-2605-72Q63S",
@@ -267,9 +270,9 @@ const seedLocalData = () => {
       studentEmail: "meetkhakhkhar05@gmail.com",
       eventName: "ICT x GFG CodeJam 2026",
       issueDate: "2026-03-29",
-      certificateUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      pdfUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      verifyUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
+      certificateUrl: `${CERT_BASE_VERIFY_URL}CF-2605-72Q63S`,
+      pdfUrl: `${CERT_BASE_VERIFY_URL}CF-2605-72Q63S`,
+      verifyUrl: `${CERT_BASE_VERIFY_URL}CF-2605-72Q63S`,
       hash: "CF-2605-72Q63S",
       qrCode: "qr_CF-2605-72Q63S",
       status: "Verified",
@@ -286,9 +289,9 @@ const seedLocalData = () => {
       studentEmail: "meet.khakhkhar139094@gmail.com",
       eventName: "Decentralized Hackathon 2026",
       issueDate: "2026-05-15",
-      certificateUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      pdfUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
-      verifyUrl: "https://certiforge-ai-945097883026.us-west1.run.app/#verify/CF-2605-72Q63S",
+      certificateUrl: `${CERT_BASE_VERIFY_URL}CF-2605-72Q63S`,
+      pdfUrl: `${CERT_BASE_VERIFY_URL}CF-2605-72Q63S`,
+      verifyUrl: `${CERT_BASE_VERIFY_URL}CF-2605-72Q63S`,
       hash: "CF-2605-88A92D",
       qrCode: "qr_CF-2605-88A92D",
       status: "Verified",

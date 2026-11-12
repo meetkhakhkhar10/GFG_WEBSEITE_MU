@@ -1,38 +1,7 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Font Face Declarations */
-@font-face {
-  font-family: 'Castledown';
-  src: url('/fonts/castledown-heavy.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* Font Family Declarations fallback to Google Fonts imported in index.html */
 
 :root {
   --theme-bg: #F4F4F0;
@@ -337,6 +306,27 @@ img {
   opacity: 1;
   transform: translateY(0);
   transition: opacity 400ms ease, transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* standardized responsive container */
+.main-container {
+  width: 100%;
+  max-width: 1240px; /* 1200 content + 40 padding */
+  margin-inline: auto;
+  padding-inline: 1.25rem; /* 20px on mobile */
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    padding-inline: 2rem; /* 32px on tablet+ */
+  }
+}
+
+@media (min-width: 1280px) {
+  .main-container {
+    padding-inline: 3rem; /* 48px on large screens */
+    max-width: 1296px; /* 1200 + 96 */
+  }
 }
 
 /* Paper Tile Slices for Dynamic Poster Effect */
